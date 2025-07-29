@@ -2,24 +2,20 @@
 
 #include "CoreMinimal.h"
 #include "BehaviorTree/BTTaskNode.h"
-#include "XVTASK_FindRandomLocation.generated.h"
+#include "XVTASK_StartFocus.generated.h"
 
-struct FBlackboardKeySelector;
 /**
  * 
  */
-UCLASS(Blueprintable)
-class XV_API UXVTASK_FindRandomLocation : public UBTTaskNode
+UCLASS()
+class XV_API UXVTASK_StartFocus : public UBTTaskNode
 {
 	GENERATED_BODY()
 public:
-	UXVTASK_FindRandomLocation();
+	UXVTASK_StartFocus();
 protected:
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
 
 	UPROPERTY(EditAnywhere, Category = "Blackboard")
 	FBlackboardKeySelector LocationKey;
-
-	UPROPERTY(EditAnywhere, Category = "Search", meta = (ClampMin = "100.0"))
-	float SearchRadius = 1000.0f;
 };
