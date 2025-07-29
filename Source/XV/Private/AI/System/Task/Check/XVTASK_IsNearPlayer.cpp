@@ -44,11 +44,13 @@ EBTNodeResult::Type UXVTASK_IsNearPlayer::ExecuteTask(UBehaviorTreeComponent& Ow
 	if(Distance < 100.0f)
 	{
 		BlackboardComp->SetValueAsBool(TEXT("AIIsAttacking"), true);
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("AIIsAttacking : true"));
 		return EBTNodeResult::Succeeded;
 	}
 	else
 	{
 		BlackboardComp->SetValueAsBool(TEXT("AIIsAttacking"), false);
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("AIIsAttacking : false"));
 		return EBTNodeResult::Failed;
 	}
 	
