@@ -96,23 +96,30 @@ void AXVControllerBase::BeginPlay()
 	
 }
 
+void AXVControllerBase::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	FVector MyLocation = this->GetPawn()->GetActorLocation();
+	AIBlackBoard->SetValueAsVector(TEXT("MyLocation"), MyLocation);
+	
+	FVector PlayerLocation = GetWorld()->GetFirstPlayerController()->GetPawn()->GetActorLocation();
+	AIBlackBoard->SetValueAsVector(TEXT("TargetLocation"), PlayerLocation);
+}
+
 void AXVControllerBase::OnTargetInfoUpdated(AActor* Actor, FAIStimulus Stimulus)
 {
 	if (Stimulus.WasSuccessfullySensed())
 	{
 		DrawDebugString(GetWorld(),Actor->GetActorLocation() + FVector(0, 0, 100),FString::Printf(TEXT("Saw: %s"), *Actor->GetName()),nullptr,FColor::Green,2.0f,true);
 		AIBlackBoard->SetValueAsObject(TEXT("TargetActor"), Actor);
-		AIBlackBoard->SetValueAsVector(TEXT("TargetLocation"), Actor->GetActorLocation());
 		AIBlackBoard->SetValueAsBool(TEXT("CanSeeTarget"), true);
-		AIBlackBoard->SetValueAsVector(TEXT("MyLocation"), this->GetPawn()->GetActorLocation());
 	}
 	else
 	{
 		DrawDebugString(GetWorld(),Actor->GetActorLocation() + FVector(0, 0, 100),FString::Printf(TEXT("Missed: %s"), *Actor->GetName()),nullptr,FColor::Red,2.0f,true);
 		AIBlackBoard->SetValueAsObject(TEXT("TargetActor"), nullptr);
-		AIBlackBoard->SetValueAsVector(TEXT("LastTargetLocation"), Actor->GetActorLocation());
 		AIBlackBoard->SetValueAsBool(TEXT("CanSeeTarget"), false);
-		AIBlackBoard->SetValueAsVector(TEXT("MyLocation"), this->GetPawn()->GetActorLocation());
 	}
 }
 

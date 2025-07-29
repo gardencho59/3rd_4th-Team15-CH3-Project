@@ -46,10 +46,11 @@ void UXVTASK_ChasingLocation::TickTask(UBehaviorTreeComponent& OwnerComp, uint8*
 		return;
 	}
 	
+
 	FNavLocation TargetLocation;
 
 	UBlackboardComponent* BlackboardComp = OwnerComp.GetBlackboardComponent();
-
+	
 	// TODO : 플레이어 캐릭터 클래스로 변경할 것.
 	if (ACharacter* TargetActor = Cast<ACharacter>(BlackboardComp->GetValueAsObject(LocationKey.SelectedKeyName)))
 	{
