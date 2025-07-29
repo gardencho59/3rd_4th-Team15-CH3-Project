@@ -104,6 +104,7 @@ void AXVControllerBase::OnTargetInfoUpdated(AActor* Actor, FAIStimulus Stimulus)
 		AIBlackBoard->SetValueAsObject(TEXT("TargetActor"), Actor);
 		AIBlackBoard->SetValueAsVector(TEXT("TargetLocation"), Actor->GetActorLocation());
 		AIBlackBoard->SetValueAsBool(TEXT("CanSeeTarget"), true);
+		AIBlackBoard->SetValueAsVector(TEXT("MyLocation"), this->GetPawn()->GetActorLocation());
 	}
 	else
 	{
@@ -111,6 +112,7 @@ void AXVControllerBase::OnTargetInfoUpdated(AActor* Actor, FAIStimulus Stimulus)
 		AIBlackBoard->SetValueAsObject(TEXT("TargetActor"), nullptr);
 		AIBlackBoard->SetValueAsVector(TEXT("LastTargetLocation"), Actor->GetActorLocation());
 		AIBlackBoard->SetValueAsBool(TEXT("CanSeeTarget"), false);
+		AIBlackBoard->SetValueAsVector(TEXT("MyLocation"), this->GetPawn()->GetActorLocation());
 	}
 }
 

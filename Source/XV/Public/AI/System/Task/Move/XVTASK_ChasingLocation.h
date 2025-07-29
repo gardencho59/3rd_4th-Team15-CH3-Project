@@ -8,7 +8,7 @@ struct FBlackboardKeySelector;
 /**
  * 
  */
-UCLASS()
+UCLASS(Blueprintable)
 class XV_API UXVTASK_ChasingLocation : public UBTTaskNode
 {
 	GENERATED_BODY()

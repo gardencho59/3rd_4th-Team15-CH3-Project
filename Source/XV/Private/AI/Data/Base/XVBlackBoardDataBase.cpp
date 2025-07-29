@@ -79,9 +79,12 @@ UXVBlackBoardDataBase::UXVBlackBoardDataBase()
     Keys.Add(Entry);
 
     Entry.EntryName = TEXT("TargetActor");
-    KeyType = UBlackboardKeyType_Object::StaticClass()->GetDefaultObject<UBlackboardKeyType>();
-    Entry.KeyType = KeyType;
+    auto ObjectKeyType = UBlackboardKeyType_Object::StaticClass()->GetDefaultObject<UBlackboardKeyType_Object>();
+    ObjectKeyType->BaseClass = AActor::StaticClass();  // TODO : 베이스 클래스를 Actor로 설정. 추후 플레이어 캐릭터로 변경해야함.
+    Entry.KeyType = ObjectKeyType;
     Keys.Add(Entry);
+
+
     
     // Location 관련 키 등록
     Entry.EntryName = TEXT("TargetLocation");
