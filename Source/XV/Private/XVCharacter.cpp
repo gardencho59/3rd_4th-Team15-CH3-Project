@@ -8,8 +8,7 @@
 // Sets default values
 AXVCharacter::AXVCharacter()
 {
-	PrimaryActorTick.bCanEverTick = false;
-		
+	PrimaryActorTick.bCanEverTick = false;		
 
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArmComp->SetupAttachment(RootComponent);
@@ -25,11 +24,13 @@ AXVCharacter::AXVCharacter()
 	SprintSpeed = NormalSpeed * SprintSpeedMultiplier;
 
 	GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
+
+	GunMeshComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("GunMeshComp"));
+	GunMeshComp->SetupAttachment(GetMesh(), TEXT("hand_rSocket"));
+
+	bIsSit = false;
 }
 
-
-
-// Called to bind functionality to input
 void AXVCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
@@ -96,7 +97,44 @@ void AXVCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
                     this, 
                     &AXVCharacter::StopSprint
                 );
-	        }    
+	        }
+	    	
+	    	if (PlayerController->FireAction)
+	    	{
+	    		// IA_Fire 마우스 좌클릭 할 때 Fire() 호출
+	    		EnhancedInput->BindAction(
+					PlayerController->FireAction,
+					ETriggerEvent::Started,
+					this,
+					&AXVCharacter::Fire
+				);
+	    	}
+	    	if (PlayerController->ZoomAction)
+	    	{
+	    		EnhancedInput->BindAction(
+					PlayerController->ZoomAction,
+					ETriggerEvent::Triggered,
+					this,
+					&AXVCharacter::StartZoom
+				);
+
+	    		EnhancedInput->BindAction(
+					PlayerController->ZoomAction,
+					ETriggerEvent::Completed,
+					this,
+					&AXVCharacter::StopZoom
+				);
+	    	}
+	    	
+	    	if (PlayerController->SitAction)
+	    	{
+	    		EnhancedInput->BindAction(
+					PlayerController->SitAction,
+					ETriggerEvent::Started,
+					this,
+					&AXVCharacter::Sit
+				);
+	    	}
 	    }
 	}
 }
@@ -158,3 +196,43 @@ void AXVCharacter::StopSprint(const FInputActionValue& value)
 	}
 }
 
+void AXVCharacter::Fire(const FInputActionValue& value)
+{
+	if (value.Get<bool>())
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, TEXT("Fire"));
+	}
+}
+
+void AXVCharacter::Sit(const FInputActionValue& value)
+{
+	if (value.Get<bool>())
+	{
+		if (!bIsSit)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, TEXT("Sit"));
+			bIsSit = true;
+		}
+		else
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, TEXT("Stand"));
+			bIsSit = true;
+		}
+	}
+}
+
+void AXVCharacter::StartZoom(const FInputActionValue& value)
+{
+	if (value.Get<bool>())
+	{
+		SpringArmComp->TargetArmLength = 150.0f;
+	}
+}
+
+void AXVCharacter::StopZoom(const FInputActionValue& value)
+{
+	if (!value.Get<bool>())
+	{
+		SpringArmComp->TargetArmLength = 300.0f;
+	}
+}
