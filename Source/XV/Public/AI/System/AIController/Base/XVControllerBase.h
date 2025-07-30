@@ -33,6 +33,7 @@ protected:
 	
 	UFUNCTION()
 	void OnTargetInfoUpdated(AActor* Actor, FAIStimulus Stimulus); // 감지한 타겟 정보 업데이트
+	
 #pragma endregion 
 
 #pragma region Functions // 기타 함수들 모음 (리플렉션 등록 X)
