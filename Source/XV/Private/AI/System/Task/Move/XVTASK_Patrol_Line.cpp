@@ -1,4 +1,18 @@
-﻿#include "AI/System/Task/Move/XVTASK_Patrol_Line.h"
+﻿// 패트롤 있기 떄문에 개발 중단
+// 패트롤 있기 떄문에 개발 중단
+// 패트롤 있기 떄문에 개발 중단
+// 패트롤 있기 떄문에 개발 중단
+// 패트롤 있기 떄문에 개발 중단
+// 패트롤 있기 떄문에 개발 중단
+// 패트롤 있기 떄문에 개발 중단
+// 패트롤 있기 떄문에 개발 중단
+// 패트롤 있기 떄문에 개발 중단
+// 패트롤 있기 떄문에 개발 중단
+// 패트롤 있기 떄문에 개발 중단
+// 패트롤 있기 떄문에 개발 중단
+// 패트롤 있기 떄문에 개발 중단
+
+#include "AI/System/Task/Move/XVTASK_Patrol_Line.h"
 
 // 추가됨
 #include "BehaviorTree/BehaviorTreeComponent.h"
@@ -41,7 +55,7 @@ EBTNodeResult::Type UXVTASK_Patrol_Line::ExecuteTask(UBehaviorTreeComponent& Own
 	UBlackboardComponent* BlackboardComp = OwnerComp.GetBlackboardComponent();
 
 	// true == 스타트 지점에서만 시작
-	// 
+	// 다 도착하면 false 로 변경 
 	if(true == BlackboardComp->GetValueAsBool(TEXT("AIIsAttacking")))
 	{
 		
