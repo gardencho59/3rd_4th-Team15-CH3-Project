@@ -28,7 +28,6 @@ AXVCharacter::AXVCharacter()
 }
 
 
-
 // Called to bind functionality to input
 void AXVCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {

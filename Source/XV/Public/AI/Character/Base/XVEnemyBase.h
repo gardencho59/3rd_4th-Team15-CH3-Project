@@ -5,6 +5,7 @@
 #include "XVEnemyBase.generated.h"
 
 
+class UAIConfigComponent;
 class UXVDataAssetBase;
 
 UCLASS()
@@ -14,4 +15,7 @@ class XV_API AXVEnemyBase : public ACharacter
 
 public:
 	AXVEnemyBase();
+protected:
+	virtual void BeginPlay() override;
+	
 };

@@ -2,7 +2,6 @@
 
 #include "CoreMinimal.h"
 #include "BehaviorTree/BlackboardData.h"
-#include "AI/Data/Struct/XVAiDataStruct.h" // 추가됨
 #include "XVBlackBoardDataBase.generated.h"
 
 /**
@@ -15,18 +14,17 @@ class XV_API UXVBlackBoardDataBase : public UBlackboardData
 public:
 	UXVBlackBoardDataBase();
 	
-	UPROPERTY(EditAnywhere)
-	FaiData_StatusStruct StatusData; // 속도 및 체력 설정
+	// 블랙보드에 담을 데이터 설정 (BlackBoard)
+public:
+	// 타겟 탐지 여부 (기본 false)
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool AICanSeeTarget = false;
 
-	UPROPERTY(EditAnywhere)
-	FaiData_SightConfigStruct SightConfigData; // 눈 설정
+	// 조사 중 상태 초기화 (기본 false)
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool AIIsInvestigating = false;
 
-	UPROPERTY(EditAnywhere)
-	FaiData_HearingConfigStruct HearingConfigData;// 귀 설정
-
-	UPROPERTY(EditAnywhere)
-	FaiData_GeneralConfigStruct GeneralConfigData; // 일반 설정
-
-	UPROPERTY(EditAnywhere)
-	FaiData_ForBlackBoardStruct BlackBoardData; // 블랙보드용 데이터
+	// 공격 상태 여부 (기본 false)
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool AIIsAttacking = false;
 };
