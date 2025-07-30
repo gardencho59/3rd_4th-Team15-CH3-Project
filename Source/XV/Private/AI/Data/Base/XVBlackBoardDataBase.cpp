@@ -10,6 +10,12 @@ UXVBlackBoardDataBase::UXVBlackBoardDataBase()
     TObjectPtr<UBlackboardKeyType> KeyType;
     
     // StatusData 관련 키 등록
+    
+    Entry.EntryName = TEXT("AIAttackRadius");
+    KeyType = UBlackboardKeyType_Float::StaticClass()->GetDefaultObject<UBlackboardKeyType>();
+    Entry.KeyType = KeyType;
+    Keys.Add(Entry);
+    
     Entry.EntryName = TEXT("CurrentSpeed");
     KeyType = UBlackboardKeyType_Float::StaticClass()->GetDefaultObject<UBlackboardKeyType>();
     Entry.KeyType = KeyType;

@@ -86,13 +86,13 @@ void AXVControllerBase::BeginPlay()
 	// 로그 확인
 	LogDataAssetValues();
 
-	// 블랙보드 업데이트
-	UpdateBlackboardFromDataAsset();
-
 	AIPerception->OnTargetPerceptionUpdated.AddDynamic(this,&AXVControllerBase::OnTargetInfoUpdated);
 
 	UE_LOG(Log_XV_AI, Warning, TEXT("BehaviorTreeAsset is %s"), BehaviorTreeAsset ? TEXT("Valid") : TEXT("NULL"));
 	StartBehaviorTree();
+
+	// 블랙보드 업데이트
+	UpdateBlackboardFromDataAsset();
 	
 }
 
@@ -105,6 +105,17 @@ void AXVControllerBase::Tick(float DeltaSeconds)
 	
 	FVector PlayerLocation = GetWorld()->GetFirstPlayerController()->GetPawn()->GetActorLocation();
 	AIBlackBoard->SetValueAsVector(TEXT("TargetLocation"), PlayerLocation);
+	
+}
+
+void AXVControllerBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (AIPerception && IsValid(AIPerception))
+	{
+		AIPerception->OnTargetPerceptionUpdated.RemoveAll(this);
+	}
+
+	Super::EndPlay(EndPlayReason);
 }
 
 void AXVControllerBase::OnTargetInfoUpdated(AActor* Actor, FAIStimulus Stimulus)
@@ -158,9 +169,25 @@ void AXVControllerBase::ApplyDataAssetSettings()
 
 void AXVControllerBase::UpdateBlackboardFromDataAsset()
 {
-	if (!AIBlackboardAsset || !AIBlackBoard) return;
+	if (!AIBlackboardAsset || !AIBlackBoard)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, TEXT("BlackboardAsset or BlackBoard is NULL"));
+		return;
+	}
+	else
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Green, TEXT("BlackboardAsset and BlackBoard is Valid"));
+	}
 	
 	// StatusData를 블랙보드에 업데이트
+	AIBlackBoard->SetValueAsFloat(TEXT("AIAttackRadius"), AIBlackboardAsset->StatusData.AIAttackRadius);
+	
+	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow,
+		FString::Printf(TEXT("Setting AIAttackRadius: %f"), AIBlackboardAsset->StatusData.AIAttackRadius));
+	float SetValue = AIBlackBoard->GetValueAsFloat(TEXT("AIAttackRadius"));
+	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green,
+		FString::Printf(TEXT("AIAttackRadius result: %f"), SetValue));
+	
 	AIBlackBoard->SetValueAsFloat(TEXT("CurrentSpeed"), AIBlackboardAsset->StatusData.AICurrentSpeed);
 	AIBlackBoard->SetValueAsFloat(TEXT("Damage"), AIBlackboardAsset->StatusData.AIDamage);
 	AIBlackBoard->SetValueAsFloat(TEXT("CurrentHealth"), AIBlackboardAsset->StatusData.AICurrenHealth);
