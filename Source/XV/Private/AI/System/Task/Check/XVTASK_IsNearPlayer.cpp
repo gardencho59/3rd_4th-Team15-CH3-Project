@@ -2,14 +2,13 @@
 
 // 추가됨
 #include "AIController.h"
+#include "AI/AIComponents/AIConfigComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
 
 UXVTASK_IsNearPlayer::UXVTASK_IsNearPlayer()
 {
-	NodeName = TEXT("MyLocation"); 
+	NodeName = TEXT("IsNearPlayer"); 
 	MyLocationKey.AddVectorFilter(this, GET_MEMBER_NAME_CHECKED(UXVTASK_IsNearPlayer, MyLocationKey));
-
-	NodeName = TEXT("PlayerLocation"); 
 	PlayerLocationKey.AddVectorFilter(this, GET_MEMBER_NAME_CHECKED(UXVTASK_IsNearPlayer, PlayerLocationKey));
 }
 
@@ -40,11 +39,14 @@ EBTNodeResult::Type UXVTASK_IsNearPlayer::ExecuteTask(UBehaviorTreeComponent& Ow
 	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, FString::Printf(TEXT("Distance : %f"), Distance));
 
 	// 공격 가능 범위 가져오기
-	float Radius = BlackboardComp->GetValueAsFloat(TEXT("AIAttackRadius"));
-	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, FString::Printf(TEXT("Radius : %f"), Radius));
+	UAIConfigComponent* ConfigComp = MyPawn->FindComponentByClass<UAIConfigComponent>();
+	float Attackrange = ConfigComp->AttackRange;
+	
+	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, FString::Printf(TEXT("Radius : %f"), Attackrange));
 
+	
 	// Radius보다 작으면 Succeeded, 아니면 Failed 반환
-	if(Distance < Radius)
+	if(Distance < Attackrange)
 	{
 		BlackboardComp->SetValueAsBool(TEXT("AIIsAttacking"), true);
 		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("AIIsAttacking : true"));
