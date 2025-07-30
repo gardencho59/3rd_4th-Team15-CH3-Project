@@ -1,18 +1,19 @@
-﻿#include "XVTASK_IsNearPlayer.h"
+﻿#include "XVTASK_Attackmode.h"
 
 // 추가됨
 #include "AIController.h"
 #include "AI/AIComponents/AIConfigComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "Navigation/PathFollowingComponent.h"
 
-UXVTASK_IsNearPlayer::UXVTASK_IsNearPlayer()
+UXVTASK_Attackmode::UXVTASK_Attackmode()
 {
-	NodeName = TEXT("IsNearPlayer"); 
-	MyLocationKey.AddVectorFilter(this, GET_MEMBER_NAME_CHECKED(UXVTASK_IsNearPlayer, MyLocationKey));
-	PlayerLocationKey.AddVectorFilter(this, GET_MEMBER_NAME_CHECKED(UXVTASK_IsNearPlayer, PlayerLocationKey));
+	NodeName = TEXT("ATTACK_MODE_IsNearPlayer"); 
+	MyLocationKey.AddVectorFilter(this, GET_MEMBER_NAME_CHECKED(UXVTASK_Attackmode, MyLocationKey));
+	PlayerLocationKey.AddVectorFilter(this, GET_MEMBER_NAME_CHECKED(UXVTASK_Attackmode, PlayerLocationKey));
 }
 
-EBTNodeResult::Type UXVTASK_IsNearPlayer::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
+EBTNodeResult::Type UXVTASK_Attackmode::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
 	// 오너 확인
 	AAIController* AIController = OwnerComp.GetAIOwner();
@@ -43,20 +44,29 @@ EBTNodeResult::Type UXVTASK_IsNearPlayer::ExecuteTask(UBehaviorTreeComponent& Ow
 	float Attackrange = ConfigComp->AttackRange;
 	
 	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, FString::Printf(TEXT("Radius : %f"), Attackrange));
-
 	
-	// Radius보다 작으면 Succeeded, 아니면 Failed 반환
-	if(Distance < Attackrange)
+	// Radius보다 작으면 Failed, 아니면 Succeeded 반환
+	if(Distance <= Attackrange)
 	{
-		BlackboardComp->SetValueAsBool(TEXT("AIIsAttacking"), true);
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("AIIsAttacking : true"));
-		return EBTNodeResult::Succeeded;
-	}
-	else
-	{
-		BlackboardComp->SetValueAsBool(TEXT("AIIsAttacking"), false);
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("AIIsAttacking : false"));
 		return EBTNodeResult::Failed;
 	}
 	
+	else if (Distance > Attackrange)
+	{
+		// 벡터 값 가져오기
+		FVector TargetVector = GetWorld()->GetFirstPlayerController()->GetPawn()->GetActorLocation();
+	
+		// 이동 요청 생성
+		FAIMoveRequest MoveRequest;
+		MoveRequest.SetGoalLocation(TargetVector);				// 목표 지점
+		MoveRequest.SetAcceptanceRadius(30.f);					// 얼마나 가까이 가야 도착으로 간주할지
+		MoveRequest.SetReachTestIncludesAgentRadius(true);		// 콜리전 반경 고려 여부 설정
+		MoveRequest.SetUsePathfinding(true);					// 경로 탐색 사용
+		MoveRequest.SetAllowPartialPath(true);					// 부분 경로 허용
+	
+		// 이동 실행
+		AIController->MoveTo(MoveRequest);
+	}
+	
+	return EBTNodeResult::Succeeded;
 }
