@@ -17,5 +17,25 @@ public:
 	AXVEnemyBase();
 protected:
 	virtual void BeginPlay() override;
-	
+
+	UPROPERTY()
+	TObjectPtr<UCharacterMovementComponent> MovementComp;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
+	float RoateSpeed;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
+	float Acceleration;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
+	float Deceleration;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
+	float BrakingFriction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
+	bool ControllerDesiredRotation;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
+	bool OrientRotationToMovement;
 };
