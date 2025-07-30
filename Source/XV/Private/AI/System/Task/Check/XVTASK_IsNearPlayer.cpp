@@ -37,11 +37,14 @@ EBTNodeResult::Type UXVTASK_IsNearPlayer::ExecuteTask(UBehaviorTreeComponent& Ow
 
 	// 두 벡터 사이의 거리 계산
 	float Distance = FVector::Distance(MyLocation, PlayerLocation);
-
 	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, FString::Printf(TEXT("Distance : %f"), Distance));
-	
-	// 100보다 작으면 Succeeded, 아니면 Failed 반환
-	if(Distance < 100.0f)
+
+	// 공격 가능 범위 가져오기
+	float Radius = BlackboardComp->GetValueAsFloat(TEXT("AIAttackRadius"));
+	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, FString::Printf(TEXT("Radius : %f"), Radius));
+
+	// Radius보다 작으면 Succeeded, 아니면 Failed 반환
+	if(Distance < Radius)
 	{
 		BlackboardComp->SetValueAsBool(TEXT("AIIsAttacking"), true);
 		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("AIIsAttacking : true"));

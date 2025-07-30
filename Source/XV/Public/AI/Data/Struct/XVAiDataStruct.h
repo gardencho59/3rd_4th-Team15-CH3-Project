@@ -15,6 +15,11 @@ struct FaiData_StatusStruct // 속도 및 체력 설정 (AI)
 	FaiData_StatusStruct() = default;
 
 public:
+
+	// AI 공격 범위
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float AIAttackRadius = 100.f;
+	
 	// 현재 속도
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float AICurrentSpeed = 10.f;
