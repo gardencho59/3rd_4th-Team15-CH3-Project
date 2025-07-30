@@ -30,6 +30,11 @@ protected:
 	float SprintSpeedMultiplier;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
 	float SprintSpeed;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+	bool bIsSit;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+	class USkeletalMeshComponent* GunMeshComp;
 	
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
@@ -45,4 +50,12 @@ protected:
 	void StartSprint(const FInputActionValue& value);
 	UFUNCTION()
 	void StopSprint(const FInputActionValue& value);
+	UFUNCTION()
+	void Fire(const FInputActionValue& value);
+	UFUNCTION()
+	void Sit(const FInputActionValue& value);
+	UFUNCTION()
+	void StartZoom(const FInputActionValue& value);
+	UFUNCTION()
+	void StopZoom(const FInputActionValue& value);
 };
