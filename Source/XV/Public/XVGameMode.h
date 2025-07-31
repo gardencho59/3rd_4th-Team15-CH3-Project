@@ -17,6 +17,7 @@ public:
 	void StartGame();
 	void SpawnEnemies() const;
 	void OnEnemyKilled();
+	void OnWaveTriggered();
 	void OnTimeLimitExceeded();
 	void EndGame(bool bIsClear);
 
@@ -24,6 +25,6 @@ public:
 	int32 MaxLevel;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Level")
 	TArray<FName> LevelNames;
-
+	
 	FTimerHandle XVGameTimerHandle;
 };

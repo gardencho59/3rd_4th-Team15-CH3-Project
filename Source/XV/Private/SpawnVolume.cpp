@@ -53,15 +53,9 @@ FEnemySpawnRow* ASpawnVolume::GetRandomEnemy() const
 	return nullptr;
 }
 
-FVector ASpawnVolume::GetRandomPointInLocation() const	
+FVector ASpawnVolume::GetEnemySpawnPoint() const	
 {
-	FVector BoxExtent = SpawningBox->GetScaledBoxExtent();
-	FVector BoxOrigin = SpawningBox->GetComponentLocation();
-	return BoxOrigin + FVector(
-		FMath::FRandRange(-BoxExtent.X, BoxExtent.X),
-		FMath::FRandRange(-BoxExtent.Y, BoxExtent.Y),
-		FMath::FRandRange(-BoxExtent.Z, BoxExtent.	Z)
-		);
+	return SpawningBox->GetComponentLocation();
 }
 
 AActor* ASpawnVolume::SpawnEnemy(TSubclassOf<AActor> EnemyClass)
@@ -70,19 +64,19 @@ AActor* ASpawnVolume::SpawnEnemy(TSubclassOf<AActor> EnemyClass)
 	
 	AActor* SpawnedActor = GetWorld()->SpawnActor<AActor>(
 		EnemyClass,	
-		GetRandomPointInLocation(),
+		GetEnemySpawnPoint(),
 		FRotator::ZeroRotator
 	);
 	return SpawnedActor;
 }
-	AActor* ASpawnVolume::SpawnRandomEnemy()
+AActor* ASpawnVolume::SpawnRandomEnemy()
+{
+	if (FEnemySpawnRow* SelectedRow = GetRandomEnemy())
 	{
-		if (FEnemySpawnRow* SelectedRow = GetRandomEnemy())
+		if (UClass* ActualClass = SelectedRow->EnemyClass.Get())
 		{
-			if (UClass* ActualClass = SelectedRow->EnemyClass.Get())
-			{
-				return SpawnEnemy(ActualClass);
-			}
+			return SpawnEnemy(ActualClass);
 		}
-		return nullptr;
 	}
+	return nullptr;
+}
