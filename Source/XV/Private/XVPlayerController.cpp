@@ -8,8 +8,8 @@ AXVPlayerController::AXVPlayerController()
 	  LookAction(nullptr),
 	  SprintAction(nullptr),
 	  FireAction(nullptr),
-	  ZoomAction(nullptr),
-	  SitAction(nullptr)
+	  SitAction(nullptr),
+	  ZoomAction(nullptr)
 {
 }
 

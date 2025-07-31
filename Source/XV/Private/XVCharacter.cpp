@@ -27,6 +27,7 @@ AXVCharacter::AXVCharacter()
 
 	GunMeshComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("GunMeshComp"));
 	GunMeshComp->SetupAttachment(GetMesh(), TEXT("hand_rSocket"));
+}
 
 void AXVCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
