@@ -25,12 +25,6 @@ public:
 	int32 MaxLevel;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Level")
 	TArray<FName> LevelNames;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawn")
-	int32 SpawnAllEnemyCount;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawn")
-	int32 SpawnPatrolEnemyCount;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wave")
-	bool IsWaveTriggered;
-
+	
 	FTimerHandle XVGameTimerHandle;
 };

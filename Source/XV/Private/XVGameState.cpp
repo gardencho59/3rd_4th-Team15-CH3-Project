@@ -6,4 +6,9 @@ AXVGameState::AXVGameState()
 	
 	SpawnedEnemyCount = 0;
 	KilledEnemyCount = 0;
+
+	SpawnAllEnemyCount = 10;
+	SpawnPatrolEnemyCount = 3;
+	IsWaveTriggered = false;
+	CanActiveArrivalPoint = true;
 }
