@@ -10,6 +10,9 @@
 AXVGameMode::AXVGameMode()
 {
 	MaxLevel = 3;
+	SpawnAllEnemyCount = 10;
+	SpawnPatrolEnemyCount = 3;
+	IsWaveTriggered = false;
 }
 
 void AXVGameMode::BeginPlay()
@@ -62,7 +65,7 @@ void AXVGameMode::StartGame()
 			false);
 	}
 }
-
+	
 void AXVGameMode::SpawnEnemies() const
 {
 	TArray<AActor*> FoundVolumes;
@@ -72,22 +75,38 @@ void AXVGameMode::SpawnEnemies() const
 
 	if (AXVGameState* GS = GetGameState<AXVGameState>())
 	{
-		if (UGameInstance* GI = GetGameInstance())
+		TArray<ASpawnVolume*> ValidVolumes;
+		for (AActor* Actor : FoundVolumes)
 		{
-			if (UXVGameInstance* XVGI = Cast<UXVGameInstance>(GI))
+			if (ASpawnVolume* Volume = Cast<ASpawnVolume>(Actor))
 			{
-				const int32 EnemyToSpawn = (XVGI->CurrentLevelIdx + 5);
-				for (int32 i = 0; i < EnemyToSpawn; i++)
+				if (!IsWaveTriggered && Volume->ActorHasTag("Patrol"))
 				{
-					if (ASpawnVolume* SpawnVolume = Cast<ASpawnVolume>(FoundVolumes[0]))
-					{
-						AActor* SpawnActor = SpawnVolume->SpawnRandomEnemy();
-						if (SpawnActor && SpawnActor->IsA(ATestEnemy::StaticClass()))
-						{
-							GS->SpawnedEnemyCount++;
-						}
-					}
+					ValidVolumes.Add(Volume);
 				}
+				else if (IsWaveTriggered && Volume->ActorHasTag("Wave"))
+				{
+					ValidVolumes.Add(Volume);
+				}
+			}
+		}	
+		
+		int32 EnemyToSpawn;
+		if (!IsWaveTriggered) EnemyToSpawn = SpawnPatrolEnemyCount;
+		else EnemyToSpawn = SpawnAllEnemyCount - SpawnPatrolEnemyCount;
+		
+		const int32 SpawnVolumeCount = ValidVolumes.Num();
+		if (SpawnVolumeCount == 0) return;
+			
+		for (int32 i = 0; i < EnemyToSpawn; i++)
+		{
+			ASpawnVolume* SpawnVolume = ValidVolumes[i % SpawnVolumeCount];
+			if (!SpawnVolume) continue;
+			
+			AActor* SpawnActor = SpawnVolume->SpawnRandomEnemy();
+			if (SpawnActor && SpawnActor->IsA(ATestEnemy::StaticClass()))
+			{
+				GS->SpawnedEnemyCount++;
 			}
 		}
 	}
@@ -95,6 +114,7 @@ void AXVGameMode::SpawnEnemies() const
 
 void AXVGameMode::OnEnemyKilled()
 {
+	OnWaveTriggered();
 	if (AXVGameState* GS = GetGameState<AXVGameState>())
 	{
 		GS->KilledEnemyCount++;
@@ -103,6 +123,12 @@ void AXVGameMode::OnEnemyKilled()
 			EndGame(true);
 		}
 	}
+}
+
+void AXVGameMode::OnWaveTriggered()
+{
+	IsWaveTriggered = true;
+	SpawnEnemies();
 }
 
 void AXVGameMode::OnTimeLimitExceeded()
