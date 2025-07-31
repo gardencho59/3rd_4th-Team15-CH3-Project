@@ -25,7 +25,7 @@ public:
 	UDataTable* EnemyDataTable;
 
 	FEnemySpawnRow* GetRandomEnemy() const;
-	FVector GetRandomPointInLocation() const;
+	FVector GetEnemySpawnPoint() const;
 	AActor* SpawnEnemy(TSubclassOf<AActor> EnemyClass);
 	AActor* SpawnRandomEnemy();
 };
