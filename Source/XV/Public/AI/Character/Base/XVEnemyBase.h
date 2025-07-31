@@ -38,4 +38,12 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
 	bool OrientRotationToMovement;
+
+public:
+	// 순찰 포인트
+	UPROPERTY(EditInstanceOnly, BlueprintReadWrite, Category = "AI")
+	TArray<AActor*> PatrolPoints;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "AI")
+	int32 CurrentPatrolIndex = 0;
 };
