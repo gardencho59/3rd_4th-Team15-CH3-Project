@@ -62,14 +62,21 @@ void AXVControllerBase::BeginPlay()
 void AXVControllerBase::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-
-	FVector MyLocation = this->GetPawn()->GetActorLocation();
+    
+	APawn* ControlledPawn = GetPawn();
+	if (!ControlledPawn) return;
+    
+	FVector MyLocation = ControlledPawn->GetActorLocation();
 	AIBlackBoard->SetValueAsVector(TEXT("MyLocation"), MyLocation);
-	
-	FVector PlayerLocation = GetWorld()->GetFirstPlayerController()->GetPawn()->GetActorLocation();
-	AIBlackBoard->SetValueAsVector(TEXT("TargetLocation"), PlayerLocation);
-	
+    
+	APlayerController* PC = GetWorld()->GetFirstPlayerController();
+	if (PC && PC->GetPawn())
+	{
+		FVector PlayerLocation = PC->GetPawn()->GetActorLocation();
+		AIBlackBoard->SetValueAsVector(TEXT("TargetLocation"), PlayerLocation);
+	}
 }
+
 
 void AXVControllerBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
@@ -96,13 +103,13 @@ void AXVControllerBase::OnTargetInfoUpdated(AActor* Actor, FAIStimulus Stimulus)
 	
 	if (Stimulus.WasSuccessfullySensed() && TargetCharacter)
 	{
-		DrawDebugString(GetWorld(),TargetCharacter->GetActorLocation() + FVector(0, 0, 100),FString::Printf(TEXT("Saw: %s"), *Actor->GetName()),nullptr,FColor::Green,2.0f,true);
+		DrawDebugString(GetWorld(),Actor->GetActorLocation() + FVector(0, 0, 100),FString::Printf(TEXT("Saw: %s"), *Actor->GetName()),nullptr,FColor::Green,2.0f,true);
 		AIBlackBoard->SetValueAsObject(TEXT("TargetActor"), TargetCharacter);
 		AIBlackBoard->SetValueAsBool(TEXT("CanSeeTarget"), true);
 	}
 	else
 	{
-		DrawDebugString(GetWorld(),TargetCharacter->GetActorLocation() + FVector(0, 0, 100),FString::Printf(TEXT("Missed: %s"), *Actor->GetName()),nullptr,FColor::Red,2.0f,true);
+		DrawDebugString(GetWorld(),Actor->GetActorLocation() + FVector(0, 0, 100),FString::Printf(TEXT("Missed: %s"), *Actor->GetName()),nullptr,FColor::Red,2.0f,true);
 		AIBlackBoard->SetValueAsObject(TEXT("TargetActor"), nullptr);
 		AIBlackBoard->SetValueAsBool(TEXT("CanSeeTarget"), false);
 	}
