@@ -1,18 +1,18 @@
 #include "XVCharacter.h"
 #include "XVPlayerController.h"
+#include "XVPlayerAnimInstance.h"
 #include "EnhancedInputComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
-// Sets default values
 AXVCharacter::AXVCharacter()
 {
 	PrimaryActorTick.bCanEverTick = false;		
 
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArmComp->SetupAttachment(RootComponent);
-	SpringArmComp->TargetArmLength = 300.0f;  
+	SpringArmComp->TargetArmLength = 250.0f;  
 	SpringArmComp->bUsePawnControlRotation = true;  
 	
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
@@ -102,7 +102,7 @@ void AXVCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	    		// IA_Fire 마우스 좌클릭 할 때 Fire() 호출
 	    		EnhancedInput->BindAction(
 					PlayerController->FireAction,
-					ETriggerEvent::Started,
+					ETriggerEvent::Triggered,
 					this,
 					&AXVCharacter::Fire
 				);
@@ -188,9 +188,34 @@ void AXVCharacter::StartSprint(const FInputActionValue& value)
 
 void AXVCharacter::StopSprint(const FInputActionValue& value)
 {
-	if (GetCharacterMovement())
+	TargetWalkSpeed = NormalSpeed;
+	CurrentWalkSpeed = GetCharacterMovement()->MaxWalkSpeed;
+
+	// 보간 타이머 실행
+	GetWorld()->GetTimerManager().SetTimer(
+		WalkSpeedInterpTimerHandle,
+		this,
+		&AXVCharacter::InterpWalkSpeed,
+		0.01f,
+		true
+	);
+}
+
+void AXVCharacter::InterpWalkSpeed()
+{
+
+	if (!GetCharacterMovement()) return;
+
+	// 보간
+	CurrentWalkSpeed = FMath::FInterpTo(CurrentWalkSpeed, TargetWalkSpeed, GetWorld()->GetDeltaSeconds(), InterpSpeed);
+	GetCharacterMovement()->MaxWalkSpeed = CurrentWalkSpeed;
+	UE_LOG(LogTemp, Warning, TEXT("%f"), CurrentWalkSpeed);
+	
+	// 충분히 가까워지면 보간 종료
+	if (FMath::IsNearlyEqual(CurrentWalkSpeed, TargetWalkSpeed, 1.0f))
 	{
-		GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
+		GetCharacterMovement()->MaxWalkSpeed = TargetWalkSpeed;
+		GetWorld()->GetTimerManager().ClearTimer(WalkSpeedInterpTimerHandle);
 	}
 }
 
@@ -199,23 +224,25 @@ void AXVCharacter::Fire(const FInputActionValue& value)
 	if (value.Get<bool>())
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, TEXT("Fire"));
+		auto anim = Cast<UXVPlayerAnimInstance>(GetMesh()->GetAnimInstance());
+		anim->PlayAttackAnim();
+
+		auto controller = GetWorld()->GetFirstPlayerController();
+		controller->PlayerCameraManager->StartCameraShake(CameraShake);
 	}
 }
 
 void AXVCharacter::Sit(const FInputActionValue& value)
 {
-	if (value.Get<bool>())
+	if (!bIsSit)
 	{
-		if (!bIsSit)
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, TEXT("Sit"));
-			bIsSit = true;
-		}
-		else
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, TEXT("Stand"));
-			bIsSit = true;
-		}
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, TEXT("Sit"));
+		bIsSit = true;
+	}
+	else
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, TEXT("Stand"));
+		bIsSit = false;
 	}
 }
 
@@ -223,7 +250,7 @@ void AXVCharacter::StartZoom(const FInputActionValue& value)
 {
 	if (value.Get<bool>())
 	{
-		SpringArmComp->TargetArmLength = 150.0f;
+		SpringArmComp->TargetArmLength = 100.0f;
 	}
 }
 
@@ -231,6 +258,6 @@ void AXVCharacter::StopZoom(const FInputActionValue& value)
 {
 	if (!value.Get<bool>())
 	{
-		SpringArmComp->TargetArmLength = 300.0f;
+		SpringArmComp->TargetArmLength = 250.0f;
 	}
 }

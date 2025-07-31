@@ -23,7 +23,9 @@ protected:
 	USpringArmComponent* SpringArmComp;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	UCameraComponent* CameraComp;
-
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
+	TSubclassOf<class UCameraShakeBase> CameraShake;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	float NormalSpeed; 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
@@ -32,9 +34,15 @@ protected:
 	float SprintSpeed;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	bool bIsSit;
-
+	
+	FTimerHandle WalkSpeedInterpTimerHandle;
+	float CurrentWalkSpeed = 0.0f;
+	float TargetWalkSpeed = 0.0f;
+	float InterpSpeed = 1.0f;
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
 	class USkeletalMeshComponent* GunMeshComp;
+
 	
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
@@ -58,4 +66,5 @@ protected:
 	void StartZoom(const FInputActionValue& value);
 	UFUNCTION()
 	void StopZoom(const FInputActionValue& value);
+	void InterpWalkSpeed();
 };
