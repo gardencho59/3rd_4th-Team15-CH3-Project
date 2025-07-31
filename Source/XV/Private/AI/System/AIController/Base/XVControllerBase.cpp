@@ -1,6 +1,7 @@
 ﻿#include "AI/System/AIController/Base/XVControllerBase.h"
 
 // 디버깅용 추가
+
 #include "AI/DebugTool/DebugTool.h"
 #include "GameFramework/Character.h"
 DEFINE_LOG_CATEGORY(Log_XV_AI);
@@ -10,13 +11,16 @@ DEFINE_LOG_CATEGORY(Log_XV_AI);
 #include "Perception/AISenseConfig_Sight.h"
 #include "Perception/AISenseConfig_Hearing.h"
 #include "BehaviorTree/BlackboardComponent.h"
-#include "XVCharacter.h" 
+#include "XVCharacter.h"
+
+#include "XVGameState.h"
+
 
 
 AXVControllerBase::AXVControllerBase()
 {
 	PrimaryActorTick.bCanEverTick = true;
-	
+
 	// AI Perception 컴포넌트 생성
 	AIPerception = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("AIPerception"));
 	check(AIPerception);
@@ -99,12 +103,24 @@ void AXVControllerBase::OnTargetInfoUpdated(AActor* Actor, FAIStimulus Stimulus)
 		GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Missed: %s"), *Actor->GetName()));
 	}
 
-	AXVCharacter* TargetCharacter = Cast<AXVCharacter>(Actor);
+	// AXVCharacter* TargetCharacter = Cast<AXVCharacter>(Actor);
 	
-	if (Stimulus.WasSuccessfullySensed() && TargetCharacter)
+	if (Stimulus.WasSuccessfullySensed() && Actor)
 	{
+		if (AXVGameState* GameState = Cast<AXVGameState>(GetWorld()->GetGameState()))
+		{
+			if (GameState->CanActiveArrivalPoint == true)
+			{
+				GameState->CanActiveArrivalPoint = false;
+			
+				UE_LOG(LogTemp, Warning, TEXT("CanActiveArrivalPoint = %s"), 
+					GameState->CanActiveArrivalPoint ? TEXT("true") : TEXT("false"));
+			}
+			
+		}
+		
 		DrawDebugString(GetWorld(),Actor->GetActorLocation() + FVector(0, 0, 100),FString::Printf(TEXT("Saw: %s"), *Actor->GetName()),nullptr,FColor::Green,2.0f,true);
-		AIBlackBoard->SetValueAsObject(TEXT("TargetActor"), TargetCharacter);
+		AIBlackBoard->SetValueAsObject(TEXT("TargetActor"), Actor);
 		AIBlackBoard->SetValueAsBool(TEXT("CanSeeTarget"), true);
 	}
 	else
