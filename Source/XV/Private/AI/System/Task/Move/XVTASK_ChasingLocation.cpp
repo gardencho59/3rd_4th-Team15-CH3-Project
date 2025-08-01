@@ -11,7 +11,6 @@ UXVTASK_ChasingLocation::UXVTASK_ChasingLocation()
 {
 	bNotifyTick = true;
 
-	// TODO : 플레이어 캐릭터 클래스로 변경할 것.
 	NodeName = TEXT("Chasing Location"); 
 }
 

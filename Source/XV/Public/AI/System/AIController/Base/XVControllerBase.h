@@ -15,7 +15,14 @@ UCLASS()
 class XV_API AXVControllerBase : public AAIController
 {
 	GENERATED_BODY()
-
+	
+protected:
+	UPROPERTY(EditDefaultsOnly, Category = "AI")
+	uint8 TeamID = 1; // 원하는 팀 ID (예: 0=플레이어, 1=적AI)
+public:
+	virtual FGenericTeamId GetGenericTeamId() const override;
+	virtual ETeamAttitude::Type GetTeamAttitudeTowards(const AActor& Other) const override;
+	
 #pragma region LifeCycle // 라이프 사이클 관련 함수 모음
 //---------------------------------------------------------------------------------------------------------------------//
 public:

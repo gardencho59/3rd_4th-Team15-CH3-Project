@@ -27,7 +27,6 @@ EBTNodeResult::Type UXVTASK_Attackmode::ExecuteTask(UBehaviorTreeComponent& Owne
 	UBlackboardComponent* BlackboardComp = OwnerComp.GetBlackboardComponent();
 	if (!BlackboardComp)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("BlackboardComponent is not found!"));
 		return EBTNodeResult::Failed;
 	}
 
@@ -37,15 +36,12 @@ EBTNodeResult::Type UXVTASK_Attackmode::ExecuteTask(UBehaviorTreeComponent& Owne
 
 	// 두 벡터 사이의 거리 계산
 	float Distance = FVector::Distance(MyLocation, PlayerLocation);
-	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, FString::Printf(TEXT("Distance : %f"), Distance));
 
 	// 공격 가능 범위 가져오기
 	UAIConfigComponent* ConfigComp = MyPawn->FindComponentByClass<UAIConfigComponent>();
 	float Attackrange = ConfigComp->AttackRange;
 	
-	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, FString::Printf(TEXT("Radius : %f"), Attackrange));
-	
-	// Radius보다 작으면 Failed, 아니면 Succeeded 반환
+	// Attackrange보다 작으면 Failed, 아니면 Succeeded 반환
 	if(Distance <= Attackrange)
 	{
 		return EBTNodeResult::Failed;
@@ -59,7 +55,7 @@ EBTNodeResult::Type UXVTASK_Attackmode::ExecuteTask(UBehaviorTreeComponent& Owne
 		// 이동 요청 생성
 		FAIMoveRequest MoveRequest;
 		MoveRequest.SetGoalLocation(TargetVector);				// 목표 지점
-		MoveRequest.SetAcceptanceRadius(30.f);					// 얼마나 가까이 가야 도착으로 간주할지
+		MoveRequest.SetAcceptanceRadius(5.0f);					// 얼마나 가까이 가야 도착으로 간주할지
 		MoveRequest.SetReachTestIncludesAgentRadius(true);		// 콜리전 반경 고려 여부 설정
 		MoveRequest.SetUsePathfinding(true);					// 경로 탐색 사용
 		MoveRequest.SetAllowPartialPath(true);					// 부분 경로 허용
