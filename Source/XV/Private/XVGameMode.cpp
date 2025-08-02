@@ -1,9 +1,10 @@
 #include "XVGameMode.h"
 #include "XVGameState.h"
 #include "XVGameInstance.h"
+#include "ElevatorDoor.h"
 #include "Kismet/GameplayStatics.h"
 #include "SpawnVolume.h"
-#include "TestEnemy.h"
+#include "AI/Character/Base/XVEnemyBase.h"
 #include "GameFramework/PlayerController.h"
 
 
@@ -33,12 +34,12 @@ void AXVGameMode::StartGame()
 			if (XVGI->IsWaiting)	
 			{
 				XVGI->IsWaiting = false;
-			
+				
 				if (LevelNames.IsValidIndex(XVGI->CurrentLevelIdx))
 				{
 					UE_LOG(LogTemp, Warning, TEXT("OpenLevel: %s"), *LevelNames[XVGI->CurrentLevelIdx].ToString());
 					UGameplayStatics::OpenLevel(GetWorld(), LevelNames[XVGI->CurrentLevelIdx]);
-					return;
+					return;			
 				}
 			}
 		}
@@ -100,7 +101,7 @@ void AXVGameMode::SpawnEnemies() const
 			if (!SpawnVolume) continue;
 			
 			AActor* SpawnActor = SpawnVolume->SpawnRandomEnemy();
-			if (SpawnActor && SpawnActor->IsA(ATestEnemy::StaticClass()))
+			if (SpawnActor && SpawnActor->IsA(AXVEnemyBase::StaticClass()))
 			{
 				GS->SpawnedEnemyCount++;
 			}

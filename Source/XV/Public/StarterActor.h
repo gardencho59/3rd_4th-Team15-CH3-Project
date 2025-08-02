@@ -4,6 +4,7 @@
 #include "GameFramework/Actor.h"
 #include "StarterActor.generated.h"
 
+class AElevatorDoor;
 class UBoxComponent;
 UCLASS()
 class XV_API AStarterActor : public AActor
@@ -19,6 +20,8 @@ public:
 	UBoxComponent* BoxComponent;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UStaticMeshComponent* StaticMeshComponent;
+	
+	FTimerHandle Delayer;
 
 	UFUNCTION()
 	virtual void OnStarterBeginOverlap(
