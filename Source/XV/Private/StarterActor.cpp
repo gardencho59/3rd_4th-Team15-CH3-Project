@@ -1,7 +1,8 @@
 #include "StarterActor.h"
 #include "Components/BoxComponent.h"
-#include "XVGameMode.h"
+#include "ElevatorDoor.h"
 #include "XVGameInstance.h"
+#include "Kismet/GameplayStatics.h"
 
 AStarterActor::AStarterActor()
 {
@@ -35,18 +36,24 @@ void AStarterActor::ActivateStarter(AActor* Activator)
 {
 	if (Activator && Activator->ActorHasTag("Player"))
 	{
-		if (AXVGameMode* GM = Cast<AXVGameMode>(GetWorld()->GetAuthGameMode()))
+		if (UGameInstance* GI = GetGameInstance())
 		{
-			if (UGameInstance* GI = GetGameInstance())
+			if (UXVGameInstance* XVGI = Cast<UXVGameInstance>(GI))
 			{
-				if (UXVGameInstance* XVGI = Cast<UXVGameInstance>(GI))
+				if (XVGI->IsWaiting)
 				{
-					if (XVGI->IsWaiting)
+					if (AElevatorDoor* Elevator = Cast<AElevatorDoor>(UGameplayStatics::GetActorOfClass(this, AElevatorDoor::StaticClass())))
 					{
-						GM->StartGame();
-						Destroy();
+						GetWorldTimerManager().SetTimer(
+						Delayer,
+						Elevator,
+						&AElevatorDoor::CloseDoor,
+						5.0f,
+						false
+						);
 					}
-				}
+					Destroy();
+				}	
 			}
 		}
 	}
