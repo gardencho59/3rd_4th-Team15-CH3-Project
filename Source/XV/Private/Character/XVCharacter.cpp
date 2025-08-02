@@ -166,9 +166,12 @@ void AXVCharacter::OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor
 		// 엘리베이터 클래스인지 확인
 		AElevatorDoor* OverlapElevator = Cast<AElevatorDoor>(OtherActor);
 		if (OverlapElevator)
-		{
+		{			
 			Elevator = nullptr;
-			UE_LOG(LogTemp, Log, TEXT("Elevator: %s"), *Elevator->GetName());
+			if (!Elevator)
+			{
+				UE_LOG(LogTemp, Log, TEXT("Elevator: null"));
+			}
 		}
 	}
 }
