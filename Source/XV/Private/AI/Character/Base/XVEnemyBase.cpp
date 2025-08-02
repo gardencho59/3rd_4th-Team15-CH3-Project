@@ -66,7 +66,21 @@ void AXVEnemyBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 		UE_LOG(LogTemp, Warning, TEXT("OnEnemyKilled"));
 		GameMode->OnEnemyKilled();
 	}
+
+	
+		
 	Super::EndPlay(EndPlayReason);
+}
+
+void AXVEnemyBase::Destroyed()
+{
+	// 무기 파괴
+	if (AIWeaponBase)
+	{
+		AIWeaponBase->Destroy();
+	}
+	
+	Super::Destroyed();
 }
 
 void AXVEnemyBase::SetWeapon()

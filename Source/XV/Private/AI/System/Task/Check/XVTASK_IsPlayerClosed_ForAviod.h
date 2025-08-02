@@ -2,10 +2,10 @@
 
 #include "CoreMinimal.h"
 #include "BehaviorTree/BTTaskNode.h"
-#include "XVTASK_IsPlayerClosed.generated.h"
+#include "XVTASK_IsPlayerClosed_ForAviod.generated.h"
 
 UCLASS()
-class XV_API UXVTASK_IsPlayerClosed : public UBTTaskNode
+class XV_API UXVTASK_IsPlayerClosed_ForAviod : public UBTTaskNode
 {
 	GENERATED_BODY()
 public:
