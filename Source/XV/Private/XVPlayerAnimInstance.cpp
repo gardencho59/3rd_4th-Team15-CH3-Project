@@ -2,5 +2,5 @@
 
 void UXVPlayerAnimInstance::PlayAttackAnim()
 {
-	Montage_Play(attackAnimMontage);
+	// Montage_Play(attackAnimMontage);
 }
