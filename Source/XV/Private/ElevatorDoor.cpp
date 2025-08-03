@@ -1,10 +1,9 @@
 #include "ElevatorDoor.h"
-
-#include "XVCharacter.h"
 #include "XVGameMode.h"
 #include "Components/BoxComponent.h"
 
 AElevatorDoor::AElevatorDoor()
+{
 {
 	SceneRoot = CreateDefaultSubobject<USceneComponent>("SceneRoot");
 	SetRootComponent(SceneRoot);
@@ -71,6 +70,7 @@ void AElevatorDoor::Tick(float DeltaTime)
 
 void AElevatorDoor::OpenDoor()
 {
+	UE_LOG(LogTemp, Warning, TEXT("Door opened"));
 	if (bIsOpen) return;
 
 	LeftTargetPos = LeftClosedPos + LeftOpenOffset;
