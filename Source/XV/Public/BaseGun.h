@@ -4,8 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "GunInterface.h"
+#include "WeaponTypes.h"
 #include "GameFramework/Actor.h"
 #include "BaseGun.generated.h"
+
 
 UCLASS()
 class XV_API ABaseGun : public AActor, public IGunInterface
@@ -15,8 +17,12 @@ class XV_API ABaseGun : public AActor, public IGunInterface
 public:	
 	ABaseGun();
 
+	virtual EWeaponType GetWeaponType();
+
 protected:
 	virtual void BeginPlay() override;
+
+	EWeaponType CurrentWeaponType;
 
 	UFUNCTION()
 	virtual void OnGunOverlap(
@@ -37,5 +43,5 @@ protected:
 
 	virtual void FireBullet() override;
 	virtual FName GetGunType() const override;
-
+	
 };

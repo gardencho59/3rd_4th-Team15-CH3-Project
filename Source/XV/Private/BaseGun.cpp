@@ -3,7 +3,12 @@
 ABaseGun::ABaseGun()
 {
 	PrimaryActorTick.bCanEverTick = false;
+	CurrentWeaponType = EWeaponType::None;
+}
 
+EWeaponType ABaseGun::GetWeaponType()
+{
+	return CurrentWeaponType;
 }
 
 void ABaseGun::BeginPlay()
