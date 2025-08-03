@@ -4,7 +4,6 @@
 
 AElevatorDoor::AElevatorDoor()
 {
-{
 	SceneRoot = CreateDefaultSubobject<USceneComponent>("SceneRoot");
 	SetRootComponent(SceneRoot);
 
