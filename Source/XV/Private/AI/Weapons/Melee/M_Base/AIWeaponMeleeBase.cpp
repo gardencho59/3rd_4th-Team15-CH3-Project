@@ -1,7 +1,7 @@
 ﻿#include "AI/Weapons/Melee/M_Base/AIWeaponMeleeBase.h"
 #include "Components/AudioComponent.h"
 #include "Components/BoxComponent.h"
-#include "XVCharacter.h"
+#include "Character/XVCharacter.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 AAIWeaponMeleeBase::AAIWeaponMeleeBase()
