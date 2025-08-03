@@ -1,4 +1,4 @@
-#include "XVPlayerController.h"
+#include "Character/XVPlayerController.h"
 #include "EnhancedInputSubsystems.h"
 
 AXVPlayerController::AXVPlayerController()
@@ -9,7 +9,11 @@ AXVPlayerController::AXVPlayerController()
 	  SprintAction(nullptr),
 	  FireAction(nullptr),
 	  SitAction(nullptr),
-	  ZoomAction(nullptr)
+	  ZoomAction(nullptr),
+	  PickUpAction(nullptr),
+	  MainWeaponAction(nullptr),
+	  SubWeaponAction(nullptr),
+	  OpenDoorAction(nullptr)
 {
 }
 
