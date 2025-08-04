@@ -4,7 +4,7 @@
 #include "AI/System/AIController/Base/XVControllerBase.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "AI/AIComponents/AIConfigComponent.h"
-#include "XVGameMode.h"
+#include "System/XVGameMode.h"
 
 AXVEnemyBase::AXVEnemyBase()
 	: RotateSpeed(480.f)
