@@ -1,8 +1,11 @@
 ﻿#include "AI/Weapons/Melee/M_Base/AIWeaponMeleeBase.h"
+
+#include "AI/Character/Base/XVEnemyBase.h"
 #include "Components/AudioComponent.h"
 #include "Components/BoxComponent.h"
 #include "Character/XVCharacter.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "AI/AIComponents/AIStatusComponent.h"
 
 AAIWeaponMeleeBase::AAIWeaponMeleeBase()
 {
@@ -60,9 +63,11 @@ void AAIWeaponMeleeBase::CheckMeleeHit()
                 WeaponSound->Play();
             
             AXVCharacter* Player = Cast<AXVCharacter>(HitActor);
-            
-            GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("TODO : Player is Hit! Make Damage! And Change Sound!"));
-            // TODO : 실 공격 로직 처리 (예: Player->TakeDamage(데미지값, ...))
+            AXVEnemyBase* Enemy = CastChecked<AXVEnemyBase>(GetOwner());
+            UAIStatusComponent* Component = Enemy->FindComponentByClass<UAIStatusComponent>();
+
+            float Damage = Component->AttackDamage;
+            Player->AddDamage(Damage);
             break;
         }
     }
