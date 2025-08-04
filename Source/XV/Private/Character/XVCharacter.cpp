@@ -8,6 +8,7 @@
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Perception/AISense_Hearing.h" // AI 총소리 듣기 용입니다.
 
 AXVCharacter::AXVCharacter()
 {
@@ -423,6 +424,17 @@ void AXVCharacter::Fire(const FInputActionValue& value)
 
 		auto controller = GetWorld()->GetFirstPlayerController();
 		controller->PlayerCameraManager->StartCameraShake(CameraShake);
+
+		// AI 소리 듣기용입니다.
+		UAISense_Hearing::ReportNoiseEvent
+		(
+		GetWorld(),
+		GetActorLocation(),			 // 소리 발생 위치
+		1.0f,						 // 소리 Loudness (1.0은 일반, 더 크면 더 멀리 들림)
+		this,						 // 소리 낸 Actor
+		0.f,						 // 일정 지연시간
+		FName(TEXT("WeaponFire"))	 // 이벤트 식별 태그(선택)
+		);
 	}
 }
 
