@@ -27,6 +27,18 @@ public:
 
 	void SetWeapon(EWeaponType Weapon);
 	EWeaponType GetWeapon() const;
+	bool GetISRun() const;
+	bool GetIsSit() const;
+	
+	// 현재 장착 무기 타입
+	UPROPERTY(BlueprintReadOnly, Category="Weapon")
+	EWeaponType CurrentWeaponType;
+	// 주 무기 타입
+	UPROPERTY(BlueprintReadOnly, Category="Weapon")
+	EWeaponType MainWeaponType;
+	// 서브 무기 타입 = Pistol
+	UPROPERTY(BlueprintReadOnly, Category="Weapon")
+	EWeaponType SubWeaponType;
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
@@ -52,25 +64,32 @@ protected:
 	bool bIsRun;
 
 	// 무기
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+	/*UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
 	class USkeletalMeshComponent* PistolMeshComp;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
 	class USkeletalMeshComponent* RifleMeshComp;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
-	class USkeletalMeshComponent* ShotMeshComp;
+	class USkeletalMeshComponent* ShotMeshComp;*/
+
+	UPROPERTY(VisibleAnywhere)
+	UChildActorComponent* PrimaryWeapon;
+	UPROPERTY(VisibleAnywhere)
+	USceneComponent* PrimaryWeaponOffset;
+	UPROPERTY(VisibleAnywhere)
+	UChildActorComponent* SubWeapon;
+	UPROPERTY(VisibleAnywhere)
+	USceneComponent* SubWeaponOffset;
+	UPROPERTY()
+	TSubclassOf<ABaseGun> BPPrimaryWeapon;
+	UPROPERTY()
+	TSubclassOf<ABaseGun> BPSubWeapon;
+	
+	TSubclassOf<ABaseGun> BPCurrentWeapon;
 
 	UPROPERTY()
 	ABaseGun* CurrentOverlappingWeapon;
 
-	// 현재 장착 무기 타입
-	UPROPERTY(BlueprintReadOnly, Category="Weapon")
-	EWeaponType CurrentWeaponType;
-	// 주 무기 타입
-	UPROPERTY(BlueprintReadOnly, Category="Weapon")
-	EWeaponType MainWeaponType;
-	// 서브 무기 타입 = Pistol
-	UPROPERTY(BlueprintReadOnly, Category="Weapon")
-	EWeaponType SubWeaponType;
+	
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Overlap")
 	AElevatorDoor* Elevator;
