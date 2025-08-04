@@ -70,6 +70,7 @@ float AXVCharacter::GetHealth() const
 void AXVCharacter::AddDamage(float Value)
 {
 	CurrentHealth = FMath::Clamp(CurrentHealth - Value, 0.0f, MaxHealth);
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Damage"));
 	// 피격 애니메이션 추가
 }
 
