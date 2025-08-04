@@ -10,11 +10,4 @@ UCLASS()
 class XV_API AAIWeaponGunBase : public AAIWeaponBase
 {
 	GENERATED_BODY()
-
-public:
-	AAIWeaponGunBase();
-
-protected:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category= "AI")
-	TObjectPtr<UAudioComponent> FireSound;
 };
