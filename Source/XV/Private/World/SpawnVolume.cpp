@@ -1,5 +1,5 @@
-#include "SpawnVolume.h"
-#include "EnemySpawnRow.h"
+#include "World/SpawnVolume.h"
+#include "Data/EnemySpawnRow.h"
 #include "Components/BoxComponent.h"
 
 ASpawnVolume::ASpawnVolume()

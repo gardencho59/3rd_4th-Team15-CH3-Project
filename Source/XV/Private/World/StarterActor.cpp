@@ -1,7 +1,7 @@
-#include "StarterActor.h"
+#include "World/StarterActor.h"
 #include "Components/BoxComponent.h"
-#include "ElevatorDoor.h"
-#include "XVGameInstance.h"
+#include "World/ElevatorDoor.h"
+#include "System/XVGameInstance.h"
 #include "Kismet/GameplayStatics.h"
 
 AStarterActor::AStarterActor()

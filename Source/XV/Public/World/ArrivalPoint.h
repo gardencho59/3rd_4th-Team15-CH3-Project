@@ -19,7 +19,7 @@ public:
 	UBoxComponent* BoxComponent;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UStaticMeshComponent* StaticMeshComponent;
-
+	
 	UFUNCTION()
 	virtual void OnArrivalPointBeginOverlap(
 		UPrimitiveComponent* OverlappedComp,
