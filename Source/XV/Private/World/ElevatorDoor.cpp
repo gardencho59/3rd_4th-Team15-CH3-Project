@@ -1,5 +1,5 @@
-#include "ElevatorDoor.h"
-#include "XVGameMode.h"
+#include "World/ElevatorDoor.h"
+#include "System/XVGameMode.h"
 #include "Components/BoxComponent.h"
 
 AElevatorDoor::AElevatorDoor()
@@ -17,6 +17,7 @@ AElevatorDoor::AElevatorDoor()
 	bOpening = false;
 	bClosing = false;
 	bIsOpen = false;
+	bHasClosedOnce = false;
 	
 	LeftOpenOffset = FVector(-150.f , 0.f, 0.f);
 	RightOpenOffset = FVector(150.f , 0.f, 0.f);
@@ -30,8 +31,6 @@ void AElevatorDoor::BeginPlay()
 	
 	LeftClosedPos = LeftDoor->GetRelativeLocation();
 	RightClosedPos = RightDoor->GetRelativeLocation();
-
-	OpenDoor();
 }
 
 void AElevatorDoor::Tick(float DeltaTime)
@@ -70,7 +69,7 @@ void AElevatorDoor::Tick(float DeltaTime)
 void AElevatorDoor::OpenDoor()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Door opened"));
-	if (bIsOpen) return;
+	if (bIsOpen || bHasClosedOnce) return;
 
 	LeftTargetPos = LeftClosedPos + LeftOpenOffset;
 	RightTargetPos = RightClosedPos + RightOpenOffset;
@@ -87,4 +86,5 @@ void AElevatorDoor::CloseDoor()
 	RightTargetPos = RightClosedPos;
 	bClosing = true;
 	bIsOpen = false;
+	bHasClosedOnce = true;
 }

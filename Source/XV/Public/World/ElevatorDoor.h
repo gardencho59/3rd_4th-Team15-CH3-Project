@@ -35,6 +35,7 @@ public:
 	bool bOpening;
 	bool bClosing;
 	bool bIsOpen;
+	bool bHasClosedOnce;
 
 	FTimerHandle DoorTimer;
 	virtual void BeginPlay() override;

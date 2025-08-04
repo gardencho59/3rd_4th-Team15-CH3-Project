@@ -17,6 +17,4 @@ public:
 	int32 CurrentLevelIdx;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Game Date")
 	bool IsWaiting;
-	
-	
 };

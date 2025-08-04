@@ -1,8 +1,8 @@
-#include "ArrivalPoint.h"
+#include "World/ArrivalPoint.h"
 #include "Components/BoxComponent.h"
-#include "XVGameMode.h"
-#include "XVGameInstance.h"
-#include "XVGameState.h"
+#include "System/XVGameMode.h"
+#include "System/XVGameInstance.h"
+#include "System/XVGameState.h"
 
 AArrivalPoint::AArrivalPoint()
 {

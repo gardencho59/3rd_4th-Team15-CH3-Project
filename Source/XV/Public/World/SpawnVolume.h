@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "EnemySpawnRow.h"
+#include "Data/EnemySpawnRow.h"
 #include "GameFramework/Actor.h"
 #include "SpawnVolume.generated.h"
 
