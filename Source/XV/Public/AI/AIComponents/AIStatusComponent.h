@@ -18,4 +18,9 @@ public:
 private:
 	UPROPERTY(EditAnywhere, Category = "AI Status")
 	float Health;
+	
+public:
+	UPROPERTY(EditAnywhere, Category = "AI Status")
+	float AttackDamage;
+
 };

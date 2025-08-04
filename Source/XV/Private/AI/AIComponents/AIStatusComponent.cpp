@@ -2,6 +2,7 @@
 
 UAIStatusComponent::UAIStatusComponent()
 	: Health(100)
+	, AttackDamage(10)
 {
 	PrimaryComponentTick.bCanEverTick = false;;
 }
