@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GunInterface.h"
+#include "WeaponStat.h"
 #include "WeaponTypes.h"
 #include "GameFramework/Actor.h"
 #include "BaseGun.generated.h"
@@ -23,6 +24,21 @@ protected:
 	virtual void BeginPlay() override;
 
 	EWeaponType CurrentWeaponType;
+
+	UPROPERTY(EditDefaultsOnly, Category="Weapon Data")
+	UDataTable* WeaponDataTable;
+
+	UPROPERTY(EditAnywhere, Category="Weapon Data")
+	FName WeaponRowName;
+
+	FWeaponStat WeaponStat;
+
+	UPROPERTY(VisibleAnywhere)
+	USkeletalMeshComponent* GunMesh;
+
+	void LoadWeaponData();
+	
+	virtual void Reload() override;
 
 	UFUNCTION()
 	virtual void OnGunOverlap(
