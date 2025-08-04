@@ -6,8 +6,8 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "AI/Character/Base/XVEnemyBase.h"
-#include "XVGameMode.h"
-#include "XVGameState.h"
+#include "System/XVGameMode.h"
+#include "System/XVGameState.h"
 
 DEFINE_LOG_CATEGORY(Log_XV_AI);
 
