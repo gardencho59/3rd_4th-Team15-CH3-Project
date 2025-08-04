@@ -14,7 +14,10 @@ class XV_API UXVPlayerAnimInstance : public UAnimInstance
 	
 public:
 	UPROPERTY(EditDefaultsOnly, Category = "PlayerAnim")
-	class UAnimMontage* attackAnimMontage;
+	class UAnimMontage* AttackAnimMontage;
+	UPROPERTY(EditDefaultsOnly, Category = "PlayerAnim")
+	class UAnimMontage* ChangeAnimMontage;
 	
 	void PlayAttackAnim();
+	void PlayGunChangeAnim();
 };

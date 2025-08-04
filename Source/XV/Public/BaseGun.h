@@ -19,6 +19,7 @@ public:
 	ABaseGun();
 
 	virtual EWeaponType GetWeaponType();
+	virtual void FireBullet() override;
 
 protected:
 	virtual void BeginPlay() override;
@@ -57,7 +58,7 @@ protected:
 		bool bFromSweep,
 		const FHitResult& SweepResult) override;
 
-	virtual void FireBullet() override;
+
 	virtual FName GetGunType() const override;
 	
 };
