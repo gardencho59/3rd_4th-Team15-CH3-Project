@@ -14,6 +14,8 @@ public:
 
 public:
 	virtual void TakeDamage(float Damage);
+	virtual float Sub_Health(float Damage){return Health = Health - Damage;}
+	virtual float CurrentHealth(){return Health;}
 	
 private:
 	UPROPERTY(EditAnywhere, Category = "AI Status")
