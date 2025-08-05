@@ -5,19 +5,19 @@
 ATestGun::ATestGun()
 {
     PrimaryActorTick.bCanEverTick = false;
-
+    
     // 기본값 설정
     bAutoFire = true;
     AutoFireRate = 2.0f;
     DebugDrawDuration = 1.0f;
     DebugLineLength = 5000.0f;
-    MuzzleSocketName = TEXT("MuzzleSocket");
+    MuzzleSocketName = TEXT("Muzzle");
 }
 
 void ATestGun::BeginPlay()
 {
     Super::BeginPlay();
-
+    
     // 자동 발사 시작
     if (bAutoFire)
     {
@@ -33,10 +33,9 @@ void ATestGun::BeginPlay()
 
 void ATestGun::FireBullet()
 {
-    // 총구 위치와 회전 계산
     FVector MuzzleLocation;
     FRotator MuzzleRotation;
-    
+
     if (GunMesh->DoesSocketExist(MuzzleSocketName))
     {
         MuzzleLocation = GunMesh->GetSocketLocation(MuzzleSocketName);
@@ -48,16 +47,50 @@ void ATestGun::FireBullet()
         MuzzleRotation = GetActorRotation();
     }
 
-    // Z축 방향 반전 (180도)
-    FVector DownVector = MuzzleRotation.RotateVector(FVector::ForwardVector);
-    FVector EndLocation = MuzzleLocation + (DownVector * DebugLineLength);
+    // 1. 애니메이션 재생 (GunAnimInstance)
+    if (GunMesh)
+    {
+        UGunAnimInstance* GunAnim = Cast<UGunAnimInstance>(GunMesh->GetAnimInstance());
+        if (GunAnim)
+        {
+            GunAnim->bIsFiring = true;
 
-    // 라인 트레이스 설정
+            FTimerHandle ResetFireHandle;
+            GetWorld()->GetTimerManager().SetTimer(ResetFireHandle, [GunAnim]()
+            {
+                GunAnim->bIsFiring = false;
+            }, 0.2f, false);
+        }
+    }
+
+    // 2. 머즐 플래시 재생
+    if (MuzzleFlashNiagara)
+    {
+        UNiagaraFunctionLibrary::SpawnSystemAttached(
+            MuzzleFlashNiagara,
+            GunMesh,
+            MuzzleSocketName,
+            FVector::ZeroVector,
+            FRotator::ZeroRotator,
+            EAttachLocation::SnapToTarget,
+            true
+        );
+    }
+
+    // 3. 발사 사운드
+    if (FireSound)
+    {
+        UGameplayStatics::PlaySoundAtLocation(this, FireSound, MuzzleLocation);
+    }
+
+    // 4. 디버그 라인 트레이스
+    FVector ForwardVector = MuzzleRotation.Vector();
+    FVector EndLocation = MuzzleLocation + (ForwardVector * DebugLineLength);
+
     FHitResult Hit;
     FCollisionQueryParams QueryParams;
     QueryParams.AddIgnoredActor(this);
 
-    // 라인 트레이스 실행
     bool bHit = GetWorld()->LineTraceSingleByChannel(
         Hit,
         MuzzleLocation,
@@ -66,77 +99,37 @@ void ATestGun::FireBullet()
         QueryParams
     );
 
-    // 머즐 플래시 이펙트 재생
-    if (MuzzleFlashNiagara)
-    {
-        if (GunMesh->DoesSocketExist(MuzzleSocketName))
-        {
-            UNiagaraFunctionLibrary::SpawnSystemAttached(
-                MuzzleFlashNiagara,
-                GunMesh,
-                MuzzleSocketName,
-                FVector::ZeroVector,
-                FRotator::ZeroRotator,
-                EAttachLocation::SnapToTarget,
-                true
-            );
-        }
-        else
-        {
-            UNiagaraFunctionLibrary::SpawnSystemAtLocation(
-                GetWorld(),
-                MuzzleFlashNiagara,
-                MuzzleLocation,
-                MuzzleRotation
-            );
-        }
-    }
+    DrawDebugLine(GetWorld(), MuzzleLocation, bHit ? Hit.ImpactPoint : EndLocation, FColor::Red, false, DebugDrawDuration, 0, 1.5f);
 
-    // 발사 사운드 재생
-    if (FireSound)
-    {
-        UGameplayStatics::PlaySoundAtLocation(
-            this,
-            FireSound,
-            MuzzleLocation,
-            1.0f,
-            1.0f,
-            0.0f
-        );
-    }
-
-    // 디버그 라인 그리기
-    DrawDebugLine(
-        GetWorld(),
-        MuzzleLocation,
-        bHit ? Hit.ImpactPoint : EndLocation,
-        FColor::Red,
-        false,
-        DebugDrawDuration,
-        0,
-        2.0f
-    );
-
-    // 히트 결과 표시
     if (bHit)
     {
-        DrawDebugSphere(
-            GetWorld(),
-            Hit.ImpactPoint,
-            10.0f,
-            12,
-            FColor::Green,
-            false,
-            DebugDrawDuration
-        );
-
+        DrawDebugSphere(GetWorld(), Hit.ImpactPoint, 10.0f, 12, FColor::Green, false, DebugDrawDuration);
         if (Hit.GetActor())
         {
-            FString HitMessage = FString::Printf(TEXT("Hit: %s"), *Hit.GetActor()->GetName());
-            GEngine->AddOnScreenDebugMessage(-1, DebugDrawDuration, FColor::Yellow, HitMessage);
+            FString HitMsg = FString::Printf(TEXT("Hit: %s"), *Hit.GetActor()->GetName());
+            GEngine->AddOnScreenDebugMessage(-1, DebugDrawDuration, FColor::Yellow, HitMsg);
         }
     }
+
+    // 5. 물리 탄환 발사
+    if (ProjectileClass)
+    {
+        FActorSpawnParameters Params;
+        Params.Owner = this;
+        Params.Instigator = GetInstigator();
+
+        AProjectileBullet* Bullet = GetWorld()->SpawnActor<AProjectileBullet>(ProjectileClass, MuzzleLocation, MuzzleRotation, Params);
+        if (Bullet)
+        {
+            Bullet->InitBullet(3000.0f, 25.0f); // 속도, 데미지
+        }
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("ProjectileClass is NULL!"));
+    }
 }
+
 
 void ATestGun::AutoFireTimerCallback()
 {
