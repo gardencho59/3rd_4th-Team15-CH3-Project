@@ -119,7 +119,7 @@ void AXVCharacter::SetWeapon(EWeaponType Weapon)
 		SubWeaponOffset->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("Pistol_Equipped"));
 		PrimaryWeaponOffset->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("Rifle_Unequipped"));
 
-		CurrentWeaponActor = Cast<ABaseGun>(PrimaryWeapon->GetChildActor());
+		CurrentWeaponActor = Cast<ABaseGun>(SubWeapon->GetChildActor());
 		Anim->PlayGunChangeAnim();
 		break;
 		
