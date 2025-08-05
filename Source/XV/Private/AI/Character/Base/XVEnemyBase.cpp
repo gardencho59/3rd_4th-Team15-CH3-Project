@@ -4,7 +4,7 @@
 #include "AI/System/AIController/Base/XVControllerBase.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "AI/AIComponents/AIConfigComponent.h"
-#include "XVGameMode.h"
+#include "System/XVGameMode.h"
 
 AXVEnemyBase::AXVEnemyBase()
 	: RotateSpeed(480.f)
@@ -54,8 +54,9 @@ void AXVEnemyBase::BeginPlay()
 	MovementComponent->bOrientRotationToMovement = OrientRotationToMovement;       // 이동 방향으로 캐릭터 회전
 
 	// 무기 끼우기
+	// TODO : 무기 어떻게 할거임? 기존의 것 가져오던지 아니면 말던지.
 	SetWeapon();
-	checkf(AIWeaponBaseClass != nullptr, TEXT("AIWeaponBaseClass is NULL"));
+	// checkf(AIWeaponBaseClass != nullptr, TEXT("AIWeaponBaseClass is NULL"));
 }
 
 void AXVEnemyBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -66,8 +67,6 @@ void AXVEnemyBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 		UE_LOG(LogTemp, Warning, TEXT("OnEnemyKilled"));
 		GameMode->OnEnemyKilled();
 	}
-
-	
 		
 	Super::EndPlay(EndPlayReason);
 }
@@ -103,6 +102,16 @@ void AXVEnemyBase::SetWeapon()
 		{
 			AIWeaponBase->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, FName(TEXT("WeaponSocket")));
 		}
+	}
+}
+
+void AXVEnemyBase::GetDamage(float Damage)
+{
+	AIStatusComponent->Sub_Health(Damage);
+	
+	if( 0 <= AIStatusComponent->CurrentHealth())
+	{
+		this->Destroy();
 	}
 }
 

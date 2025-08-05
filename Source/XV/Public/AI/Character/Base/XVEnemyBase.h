@@ -40,6 +40,8 @@ public:
 protected:
 	void SetWeapon();
 
+public:
+	void GetDamage(float Damage);
 	
 // === AI 관련 속도, 회전 세팅 ===========================================================================================//	
 protected:

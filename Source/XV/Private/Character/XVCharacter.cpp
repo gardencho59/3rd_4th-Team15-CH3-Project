@@ -4,7 +4,7 @@
 #include "EnhancedInputComponent.h"
 #include "Camera/CameraComponent.h"
 #include "BaseGun.h"
-#include "ElevatorDoor.h"
+#include "World/ElevatorDoor.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -31,16 +31,26 @@ AXVCharacter::AXVCharacter()
 	SprintSpeed = NormalSpeed * SprintSpeedMultiplier;
 
 	GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
-		
-	PistolMeshComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("PistolMeshComp"));
-	PistolMeshComp->SetupAttachment(GetMesh(), TEXT("weapon_rSocket"));
-	RifleMeshComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("RifleMeshComp"));
-	RifleMeshComp->SetupAttachment(GetMesh(), TEXT("weapon_rSocket"));
-	ShotMeshComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("ShotMeshComp"));
-	ShotMeshComp->SetupAttachment(GetMesh(), TEXT("weapon_rSocket"));
+
+	// 메인 무기 == Rifle or Shotgun
+	PrimaryWeaponOffset = CreateDefaultSubobject<USceneComponent>(TEXT("PrimaryWeaponOffset"));
+	PrimaryWeaponOffset->SetupAttachment(GetMesh(), TEXT("Rifle_Unequipped"));
+
+	PrimaryWeapon = CreateDefaultSubobject<UChildActorComponent>(TEXT("PrimaryWeapon"));
+	PrimaryWeapon->SetupAttachment(PrimaryWeaponOffset);
+	PrimaryWeapon->SetChildActorClass(BPPrimaryWeapon);
+
+	// 서브 무기 == Pistol
+	SubWeaponOffset = CreateDefaultSubobject<USceneComponent>(TEXT("SubWeaponOffset"));
+	SubWeaponOffset->SetupAttachment(GetMesh(), TEXT("Pistol_Unequipped"));
+
+	SubWeapon = CreateDefaultSubobject<UChildActorComponent>(TEXT("SubWeapon"));
+	SubWeapon->SetupAttachment(SubWeaponOffset);
+	SubWeapon->SetChildActorClass(BPSubWeapon);
 	
-	SetWeapon(EWeaponType::Pistol); // 시작할 때 들고 있는 무기 = Pistol
-	MainWeaponType = EWeaponType::None; // 주 무기 초기화
+	//SetWeapon(EWeaponType::Pistol); // 시작할 때 들고 있는 무기 = Pistol
+	MainWeaponType = EWeaponType::Rifle; // 주 무기 초기화
+	SubWeaponType = EWeaponType::Pistol; // 보조 무기 초기화
 	
 	// 체력 세팅
 	MaxHealth = 100.0f;
@@ -70,57 +80,45 @@ float AXVCharacter::GetHealth() const
 void AXVCharacter::AddDamage(float Value)
 {
 	CurrentHealth = FMath::Clamp(CurrentHealth - Value, 0.0f, MaxHealth);
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Damage"));
 	// 피격 애니메이션 추가
 }
 
 void AXVCharacter::SetWeapon(EWeaponType Weapon)
 { // 일단 타입마다 필요한게 있을 까 싶어 나눴는데 추가 기능 없으면 간략하게 변경해도 될듯
 	CurrentWeaponType = Weapon;
+	FString WeaponTypeName = StaticEnum<EWeaponType>()->GetNameStringByValue((int64)CurrentWeaponType);
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, WeaponTypeName);
 
+	auto anim = Cast<UXVPlayerAnimInstance>(GetMesh()->GetAnimInstance());
+	
 	switch (CurrentWeaponType)
 	{
 	case EWeaponType::Pistol:
 		// 무기 교체 애니메이션 및 사운드 재생 필요
-		PistolMeshComp->SetVisibility(true);
-		PistolMeshComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		SubWeaponOffset->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("Pistol_Equipped"));
+		PrimaryWeaponOffset->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("Rifle_Unequipped"));
 
-		RifleMeshComp->SetVisibility(false);
-		RifleMeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		ShotMeshComp->SetupAttachment(GetMesh(), TEXT("등 소켓 위치로"));
-		
-		ShotMeshComp->SetVisibility(false);
-		ShotMeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		anim->PlayGunChangeAnim();
 		break;
 		
 	case EWeaponType::Rifle:
 		// 무기 교체 애니메이션 및 사운드 재생 필요
-		RifleMeshComp->SetVisibility(true);
-		RifleMeshComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		SubWeaponOffset->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("Pistol_Unequipped"));
+		PrimaryWeaponOffset->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("Rifle_Equipped"));
 
-		PistolMeshComp->SetVisibility(false);
-		PistolMeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		ShotMeshComp->SetVisibility(false);
-		ShotMeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		anim->PlayGunChangeAnim();
 		break;
 
 	case EWeaponType::ShotGun:
 		// 무기 교체 애니메이션 및 사운드 재생 필요
-		ShotMeshComp->SetVisibility(true);
-		ShotMeshComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-
-		PistolMeshComp->SetVisibility(false);
-		PistolMeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		RifleMeshComp->SetVisibility(false);
-		RifleMeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		SubWeaponOffset->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("Pistol_Unequipped"));
+		PrimaryWeaponOffset->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("Rifle_Equipped"));
 		break;
 	
 	default:
-		PistolMeshComp->SetVisibility(false);
-		RifleMeshComp->SetVisibility(false);
-		ShotMeshComp->SetVisibility(false);
-		PistolMeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		RifleMeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		ShotMeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		SubWeaponOffset->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("Pistol_Unequipped"));
+		PrimaryWeaponOffset->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("Rifle_Unequipped"));
 		break;
 	}
 }
@@ -128,6 +126,16 @@ void AXVCharacter::SetWeapon(EWeaponType Weapon)
 EWeaponType AXVCharacter::GetWeapon() const
 {
 	return CurrentWeaponType;
+}
+
+bool AXVCharacter::GetISRun() const
+{
+	return bIsRun;
+}
+
+bool AXVCharacter::GetIsSit() const
+{
+	return bIsSit;
 }
 
 void AXVCharacter::OnWeaponOverlapBegin(ABaseGun* Weapon)
@@ -386,15 +394,7 @@ void AXVCharacter::StopSprint(const FInputActionValue& value)
 {
 	TargetWalkSpeed = NormalSpeed;
 	CurrentWalkSpeed = GetCharacterMovement()->MaxWalkSpeed;
-
-	// 보간 타이머 실행
-	GetWorld()->GetTimerManager().SetTimer(
-		WalkSpeedInterpTimerHandle,
-		this,
-		&AXVCharacter::InterpWalkSpeed,
-		0.01f,
-		true
-	);
+	bIsRun = false;
 }
 
 void AXVCharacter::InterpWalkSpeed()
@@ -404,13 +404,13 @@ void AXVCharacter::InterpWalkSpeed()
 	// 보간
 	CurrentWalkSpeed = FMath::FInterpTo(CurrentWalkSpeed, TargetWalkSpeed, GetWorld()->GetDeltaSeconds(), InterpSpeed);
 	GetCharacterMovement()->MaxWalkSpeed = CurrentWalkSpeed;
-	UE_LOG(LogTemp, Warning, TEXT("%f"), CurrentWalkSpeed);
 	
 	// 충분히 가까워지면 보간 종료
 	if (FMath::IsNearlyEqual(CurrentWalkSpeed, TargetWalkSpeed, 1.0f))
 	{
 		GetCharacterMovement()->MaxWalkSpeed = TargetWalkSpeed;
 		GetWorld()->GetTimerManager().ClearTimer(WalkSpeedInterpTimerHandle);
+		bIsRun = false;
 	}
 }
 
@@ -421,6 +421,12 @@ void AXVCharacter::Fire(const FInputActionValue& value)
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, TEXT("Fire"));
 		auto anim = Cast<UXVPlayerAnimInstance>(GetMesh()->GetAnimInstance());
 		anim->PlayAttackAnim();
+
+		ABaseGun* Weapon = Cast<ABaseGun>(PrimaryWeapon->GetChildActor());
+		if (Weapon)
+		{
+			Weapon->FireBullet();
+		}
 
 		auto controller = GetWorld()->GetFirstPlayerController();
 		controller->PlayerCameraManager->StartCameraShake(CameraShake);
@@ -491,11 +497,13 @@ void AXVCharacter::PickUpWeapon(const FInputActionValue& value)
 
 void AXVCharacter::ChangeToMainWeapon(const FInputActionValue& value)
 {
+	UE_LOG(LogTemp, Warning, TEXT("Change To MainWeapon"));
 	SetWeapon(MainWeaponType);
 }
 
 void AXVCharacter::ChangeToSubWeapon(const FInputActionValue& value)
 {
+	UE_LOG(LogTemp, Warning, TEXT("Change To SubWeapon"));
 	SetWeapon(SubWeaponType);
 }
 
