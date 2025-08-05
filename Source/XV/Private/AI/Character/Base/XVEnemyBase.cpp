@@ -16,7 +16,7 @@ AXVEnemyBase::AXVEnemyBase()
 	, ControllerDesiredRotation(true)
 	, OrientRotationToMovement(true)
 	, AttackModeSpeed(400.f)
-	, DestroyTime(5.f)
+	, DestroyTime(0.1f)
 {
 	// 컨트롤러 세팅
 	AIControllerClass = AXVControllerBase::StaticClass();
@@ -113,9 +113,16 @@ void AXVEnemyBase::GetDamage(float Damage)
 {
 	AIStatusComponent->Sub_Health(Damage);
 	
+	 if (bIsDead)
+     {
+		return;
+	 }
+            
 	// ▼ 체력이 0 이하로 떨어졌을 때만 사망 처리!
 	if (AIStatusComponent->CurrentHealth() <= 0.f)
 	{
+	 	bIsDead = true;
+	 
 		// 컨트롤러 가져오기 (현재 액터에 바운드된 실제 컨트롤러)
 		AXVControllerBase* AIController = Cast<AXVControllerBase>(GetController());
 		if (AIController)
@@ -128,6 +135,13 @@ void AXVEnemyBase::GetDamage(float Damage)
 			{
 				AIController->BrainComponent->StopLogic(TEXT("Dead"));
 			}
+		}
+
+		UCharacterMovementComponent* MovementComponent = GetCharacterMovement();
+		if (MovementComponent)
+		{
+			MovementComponent->DisableMovement();
+			MovementComponent->StopMovementImmediately();
 		}
 
 		// 죽는 모션이 있으면 우선 재생
@@ -145,6 +159,7 @@ void AXVEnemyBase::GetDamage(float Damage)
 				
 				AnimInstance->Montage_Play(DeathMontage);
 				AnimInstance->Montage_SetEndDelegate(MontageEndedDelegate, DeathMontage);
+				AnimInstance->Montage_SetPlayRate(DeathMontage, 1.0f);
 			}
 			else
 			{
@@ -167,10 +182,15 @@ void AXVEnemyBase::SetAttackMode()
 	// 공격모드 속도로 설정
 	MovementComponent->MaxWalkSpeed = AttackModeSpeed;
 	
-}
+} 
 
 void AXVEnemyBase::DeathTimer()
 {
+	if (IsActorBeingDestroyed())
+	{
+		return;
+	}
+
 	FTimerHandle DeathTimerHandle;
 	GetWorld()->GetTimerManager().SetTimer(
 		DeathTimerHandle,         // 타이머 핸들
