@@ -9,6 +9,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Perception/AISense_Hearing.h" // AI 총소리 듣기 용입니다.
+#include "System/XVGameMode.h"
 
 AXVCharacter::AXVCharacter()
 {
@@ -67,30 +68,42 @@ void AXVCharacter::SetHealth(float Value)
 	CurrentHealth = FMath::Clamp( Value, 0.0f, MaxHealth);
 }
 
-void AXVCharacter::AddHealth(float Value)
-{
-	CurrentHealth = FMath::Clamp(CurrentHealth + Value, 0.0f, MaxHealth);
-}
-
 float AXVCharacter::GetHealth() const
 {
 	return CurrentHealth;
 }
 
+void AXVCharacter::AddHealth(float Value)
+{
+	CurrentHealth = FMath::Clamp(CurrentHealth + Value, 0.0f, MaxHealth);
+}
 void AXVCharacter::AddDamage(float Value)
 {
 	CurrentHealth = FMath::Clamp(CurrentHealth - Value, 0.0f, MaxHealth);
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Damage"));
+	FString Str = FString::Printf(TEXT("%f Damaged, Now Health : %f"), Value, CurrentHealth);
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, Str);
 	// 피격 애니메이션 추가
+	
+	if (CurrentHealth <= 0.0f)
+	{
+		Die();
+	}
+}
+void AXVCharacter::Die()
+{
+	AXVGameMode* XVGameMode = Cast<AXVGameMode>(GetWorld()->GetAuthGameMode());
+	XVGameMode->EndGame(false);
 }
 
 void AXVCharacter::SetWeapon(EWeaponType Weapon)
 { // 일단 타입마다 필요한게 있을 까 싶어 나눴는데 추가 기능 없으면 간략하게 변경해도 될듯
-	CurrentWeaponType = Weapon;
+	if (CurrentWeaponType == Weapon){ CurrentWeaponType = EWeaponType::None;} // 현재 무기와 동일한 무기가 매개변수로 들어온 경우 => 장착 해제
+	else { CurrentWeaponType = Weapon; }
+
 	FString WeaponTypeName = StaticEnum<EWeaponType>()->GetNameStringByValue((int64)CurrentWeaponType);
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, WeaponTypeName);
 
-	auto anim = Cast<UXVPlayerAnimInstance>(GetMesh()->GetAnimInstance());
+	auto Anim = Cast<UXVPlayerAnimInstance>(GetMesh()->GetAnimInstance());
 	
 	switch (CurrentWeaponType)
 	{
@@ -99,7 +112,7 @@ void AXVCharacter::SetWeapon(EWeaponType Weapon)
 		SubWeaponOffset->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("Pistol_Equipped"));
 		PrimaryWeaponOffset->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("Rifle_Unequipped"));
 
-		anim->PlayGunChangeAnim();
+		Anim->PlayGunChangeAnim();
 		break;
 		
 	case EWeaponType::Rifle:
@@ -107,7 +120,7 @@ void AXVCharacter::SetWeapon(EWeaponType Weapon)
 		SubWeaponOffset->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("Pistol_Unequipped"));
 		PrimaryWeaponOffset->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("Rifle_Equipped"));
 
-		anim->PlayGunChangeAnim();
+		Anim->PlayGunChangeAnim();
 		break;
 
 	case EWeaponType::ShotGun:
@@ -119,6 +132,7 @@ void AXVCharacter::SetWeapon(EWeaponType Weapon)
 	default:
 		SubWeaponOffset->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("Pistol_Unequipped"));
 		PrimaryWeaponOffset->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("Rifle_Unequipped"));
+		Anim->PlayGunChangeAnim();
 		break;
 	}
 }
@@ -138,20 +152,13 @@ bool AXVCharacter::GetIsSit() const
 	return bIsSit;
 }
 
-void AXVCharacter::OnWeaponOverlapBegin(ABaseGun* Weapon)
+float AXVCharacter::GetTurnRate() const
 {
-	CurrentOverlappingWeapon = Weapon;
-
-	if (Weapon)
-	{
-		//CurrentWeaponType = Weapon->GetWeaponType();
-		FString WeaponTypeName = UEnum::GetValueAsString(Weapon->GetWeaponType());
-		UE_LOG(LogTemp, Log, TEXT("Overlapping Weapon Type: %s"), *WeaponTypeName);
-	}
+	return TurnRate;
 }
 
 void AXVCharacter::OnBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+                                  UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (OtherActor)
 	{
@@ -182,6 +189,18 @@ void AXVCharacter::OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor
 				UE_LOG(LogTemp, Log, TEXT("Elevator: null"));
 			}
 		}
+	}
+}
+
+void AXVCharacter::OnWeaponOverlapBegin(ABaseGun* Weapon)
+{
+	CurrentOverlappingWeapon = Weapon;
+
+	if (Weapon)
+	{
+		//CurrentWeaponType = Weapon->GetWeaponType();
+		FString WeaponTypeName = UEnum::GetValueAsString(Weapon->GetWeaponType());
+		UE_LOG(LogTemp, Log, TEXT("Overlapping Weapon Type: %s"), *WeaponTypeName);
 	}
 }
 
@@ -274,13 +293,14 @@ void AXVCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	    	}
 	    	if (PlayerController->ZoomAction)
 	    	{
+	    		// IA_Zoom 마우스 우클릭 할 때 StartZoom() 호출
 	    		EnhancedInput->BindAction(
 					PlayerController->ZoomAction,
 					ETriggerEvent::Triggered,
 					this,
 					&AXVCharacter::StartZoom
 				);
-
+	    		// IA_Zoom 마우스 우클릭 끝날 때 StopZoom() 호출
 	    		EnhancedInput->BindAction(
 					PlayerController->ZoomAction,
 					ETriggerEvent::Completed,
@@ -291,6 +311,7 @@ void AXVCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	    	
 	    	if (PlayerController->SitAction)
 	    	{
+	    		// IA_Sit 컨트롤 누를 때 Sit() 호출
 	    		EnhancedInput->BindAction(
 					PlayerController->SitAction,
 					ETriggerEvent::Started,
@@ -301,6 +322,7 @@ void AXVCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 
 	    	if (PlayerController->PickUpAction)
 	    	{
+	    		// IA_PickUp E 누를 때 PickUpWeapon() 호출
 	    		EnhancedInput->BindAction(
 					PlayerController->PickUpAction,
 					ETriggerEvent::Started,
@@ -310,6 +332,7 @@ void AXVCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	    	}
 	    	if (PlayerController->MainWeaponAction)
 	    	{
+	    		// IA_MainWeapon 1 누를 때 ChangeToMainWeapon() 호출
 	    		EnhancedInput->BindAction(
 					PlayerController->MainWeaponAction,
 					ETriggerEvent::Started,
@@ -319,6 +342,7 @@ void AXVCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	    	}	    	
 	    	if (PlayerController->SubWeaponAction)
 	    	{
+	    		// IA_SubWeapon 2 누를 때 ChangeToSubWeapon() 호출
 	    		EnhancedInput->BindAction(
 					PlayerController->SubWeaponAction,
 					ETriggerEvent::Started,
@@ -328,7 +352,7 @@ void AXVCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	    	}
 	    	if (PlayerController->OpenDoorAction)
             {
-	    		// IA_OpenDoor F키 누른 순간 OpenDoor() 호출
+	    		// IA_OpenDoor F키 누를 때 OpenDoor() 호출
             	EnhancedInput->BindAction(
             		PlayerController->OpenDoorAction,
             		ETriggerEvent::Started,
@@ -340,11 +364,11 @@ void AXVCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	}
 }
 
-void AXVCharacter::Move(const FInputActionValue& value)
+void AXVCharacter::Move(const FInputActionValue& Value)
 {
 	if (!Controller) return;
 	
-	const FVector2D MoveInput = value.Get<FVector2D>();
+	const FVector2D MoveInput = Value.Get<FVector2D>();
 
 	if (!FMath::IsNearlyZero(MoveInput.X))
 	{
@@ -357,31 +381,32 @@ void AXVCharacter::Move(const FInputActionValue& value)
 	}
 }
 
-void AXVCharacter::StartJump(const FInputActionValue& value)
+void AXVCharacter::StartJump(const FInputActionValue& Value)
 {
-	if (value.Get<bool>())
+	if (Value.Get<bool>())
 	{
 		Jump();
 	}
 }
 
-void AXVCharacter::StopJump(const FInputActionValue& value)
+void AXVCharacter::StopJump(const FInputActionValue& Value)
 {
-	if (!value.Get<bool>())
+	if (!Value.Get<bool>())
 	{
 		StopJumping();
 	}
 }
 
-void AXVCharacter::Look(const FInputActionValue& value)
+void AXVCharacter::Look(const FInputActionValue& Value)
 {
-	FVector2D LookInput = value.Get<FVector2D>();
+	FVector2D LookInput = Value.Get<FVector2D>();
 	
 	AddControllerYawInput(LookInput.X);
 	AddControllerPitchInput(LookInput.Y);
+	TurnRate = FMath::Clamp(LookInput.X, -1 ,1);
 }
 
-void AXVCharacter::StartSprint(const FInputActionValue& value)
+void AXVCharacter::StartSprint(const FInputActionValue& Value)
 {
 	if (GetCharacterMovement())
 	{
@@ -390,7 +415,7 @@ void AXVCharacter::StartSprint(const FInputActionValue& value)
 	}
 }
 
-void AXVCharacter::StopSprint(const FInputActionValue& value)
+void AXVCharacter::StopSprint(const FInputActionValue& Value)
 {
 	TargetWalkSpeed = NormalSpeed;
 	CurrentWalkSpeed = GetCharacterMovement()->MaxWalkSpeed;
@@ -414,13 +439,13 @@ void AXVCharacter::InterpWalkSpeed()
 	}
 }
 
-void AXVCharacter::Fire(const FInputActionValue& value)
+void AXVCharacter::Fire(const FInputActionValue& Value)
 {
-	if (value.Get<bool>())
+	if (Value.Get<bool>() && CurrentWeaponType != EWeaponType::None) // 빈 손 일 때 발사 금지
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, TEXT("Fire"));
-		auto anim = Cast<UXVPlayerAnimInstance>(GetMesh()->GetAnimInstance());
-		anim->PlayAttackAnim();
+		auto Anim = Cast<UXVPlayerAnimInstance>(GetMesh()->GetAnimInstance());
+		Anim->PlayAttackAnim();
 
 		ABaseGun* Weapon = Cast<ABaseGun>(PrimaryWeapon->GetChildActor());
 		if (Weapon)
@@ -428,8 +453,8 @@ void AXVCharacter::Fire(const FInputActionValue& value)
 			Weapon->FireBullet();
 		}
 
-		auto controller = GetWorld()->GetFirstPlayerController();
-		controller->PlayerCameraManager->StartCameraShake(CameraShake);
+		auto XVController = GetWorld()->GetFirstPlayerController();
+		XVController->PlayerCameraManager->StartCameraShake(CameraShake);
 
 		// AI 소리 듣기용입니다.
 		UAISense_Hearing::ReportNoiseEvent
@@ -444,7 +469,7 @@ void AXVCharacter::Fire(const FInputActionValue& value)
 	}
 }
 
-void AXVCharacter::Sit(const FInputActionValue& value)
+void AXVCharacter::Sit(const FInputActionValue& Value)
 {
 	if (!bIsSit)
 	{
@@ -458,25 +483,25 @@ void AXVCharacter::Sit(const FInputActionValue& value)
 	}
 }
 
-void AXVCharacter::StartZoom(const FInputActionValue& value)
+void AXVCharacter::StartZoom(const FInputActionValue& Value)
 {
-	if (value.Get<bool>())
+	if (Value.Get<bool>())
 	{
 		SpringArmComp->TargetArmLength = ZoomCameraLenght;
 	}
 }
 
-void AXVCharacter::StopZoom(const FInputActionValue& value)
+void AXVCharacter::StopZoom(const FInputActionValue& Value)
 {
-	if (!value.Get<bool>())
+	if (!Value.Get<bool>())
 	{
 		SpringArmComp->TargetArmLength = DefaultCameraLenght;
 	}
 }
 
-void AXVCharacter::PickUpWeapon(const FInputActionValue& value)
+void AXVCharacter::PickUpWeapon(const FInputActionValue& Value)
 {
-	if (value.Get<bool>())
+	if (Value.Get<bool>())
 	{
 		if (CurrentOverlappingWeapon)
 		{
@@ -495,19 +520,19 @@ void AXVCharacter::PickUpWeapon(const FInputActionValue& value)
 	}
 }
 
-void AXVCharacter::ChangeToMainWeapon(const FInputActionValue& value)
+void AXVCharacter::ChangeToMainWeapon(const FInputActionValue& Value)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Change To MainWeapon"));
 	SetWeapon(MainWeaponType);
 }
 
-void AXVCharacter::ChangeToSubWeapon(const FInputActionValue& value)
+void AXVCharacter::ChangeToSubWeapon(const FInputActionValue& Value)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Change To SubWeapon"));
 	SetWeapon(SubWeaponType);
 }
 
-void AXVCharacter::OpenDoor(const FInputActionValue& value)
+void AXVCharacter::OpenDoor(const FInputActionValue& Value)
 {
 	if (Elevator)
 	{
