@@ -2,6 +2,8 @@
 
 #include "CoreMinimal.h"
 #include "BaseGun.h"
+#include "GunAnimInstance.h"
+#include "ProjectileBullet.h"
 #include "NiagaraFunctionLibrary.h"
 #include "TestGun.generated.h"
 
@@ -14,11 +16,15 @@ public:
     ATestGun();
 
     virtual void FireBullet() override;
+    void ProjectileBullet();
     virtual void Reload() override;
     virtual FName GetGunType() const override;
 
 protected:
     virtual void BeginPlay() override;
+    
+    UPROPERTY(EditAnywhere, Category = "Bullet")
+    TSubclassOf<AProjectileBullet> ProjectileClass;
     
     // 자동 발사 관련 변수
     UPROPERTY(EditAnywhere, Category = "AutoFire")

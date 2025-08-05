@@ -15,9 +15,9 @@ struct FWeaponStat : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FName WeaponName;
 
-	// 무기 종류 (ex. Rifle, Pistol)
+	// 총알 종류 (레이, 물리)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FName WeaponType;
+	FName BulletType;
 
 	// 최대 탄약 수
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)

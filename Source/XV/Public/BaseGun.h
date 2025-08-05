@@ -22,6 +22,14 @@ public:
 	virtual void FireBullet() override;
 
 protected:
+	int32 CurrentAmmo; // 현재 탄약
+	bool bIsReloading; // 장전 중 여부
+
+	FTimerHandle ReloadTimerHandle;
+
+	void StartReload(); // 장전 시작
+	void FinishReload(); // 장전 완료
+	
 	virtual void BeginPlay() override;
 
 	EWeaponType CurrentWeaponType;
