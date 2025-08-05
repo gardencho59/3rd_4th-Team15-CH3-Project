@@ -18,17 +18,17 @@ void ATestGun::BeginPlay()
 {
     Super::BeginPlay();
     
-    // // 자동 발사 시작
-    // if (bAutoFire)
-    // {
-    //     GetWorld()->GetTimerManager().SetTimer(
-    //         AutoFireTimerHandle,
-    //         this,
-    //         &ATestGun::AutoFireTimerCallback,
-    //         AutoFireRate,
-    //         true
-    //     );
-    // }
+    // 자동 발사 시작
+    if (bAutoFire)
+    {
+        GetWorld()->GetTimerManager().SetTimer(
+            AutoFireTimerHandle,
+            this,
+            &ATestGun::AutoFireTimerCallback,
+            AutoFireRate,
+            true
+        );
+    }
 }
 
 void ATestGun::FireBullet()
@@ -131,10 +131,10 @@ void ATestGun::FireBullet()
 }
 
 
-// void ATestGun::AutoFireTimerCallback()
-// {
-//     FireBullet();
-// }
+void ATestGun::AutoFireTimerCallback()
+{
+    FireBullet();
+}
 
 void ATestGun::Reload()
 {

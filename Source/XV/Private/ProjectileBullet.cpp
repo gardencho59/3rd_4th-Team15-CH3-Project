@@ -1,4 +1,6 @@
 #include "ProjectileBullet.h"
+
+#include "AI/Character/Base/XVEnemyBase.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -17,6 +19,9 @@ AProjectileBullet::AProjectileBullet()
 	BulletMesh->SetCollisionObjectType(ECC_GameTraceChannel1); // 예: Projectile용 채널
 	BulletMesh->SetCollisionResponseToAllChannels(ECR_Block); // 모든 것과 Block
 	BulletMesh->BodyInstance.bUseCCD = true; // 고속 충돌 보정 (관통 방지)
+
+	// 움직일 수 있다 알려주는
+	BulletMesh->SetMobility(EComponentMobility::Movable);
 
 	// OnHit 이벤트 바인딩
 	BulletMesh->OnComponentHit.AddDynamic(this, &AProjectileBullet::OnHit);
@@ -48,8 +53,18 @@ void AProjectileBullet::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
 							  UPrimitiveComponent* OtherComp, FVector NormalImpulse,
 							  const FHitResult& Hit)
 {
+	
+	
 	if (OtherActor && OtherActor != this)
 	{
+		if (AXVEnemyBase* Enemy = Cast<AXVEnemyBase>(OtherActor))
+		{
+			Enemy->GetDamage(100.f);
+		}
+		
+		// 프렉처 관련 오류 남
+		OtherComp->AddImpulseAtLocation(GetVelocity() * 1000.0f, Hit.ImpactPoint);
+		
 		// 충돌 확인 로그
 		UE_LOG(LogTemp, Warning, TEXT("Bullet HIT: %s"), *OtherActor->GetName());
 
