@@ -24,11 +24,17 @@ public:
 	void AddHealth(float Value);
 	float GetHealth() const;
 	void AddDamage(float Value);
+	void Die();
 
 	void SetWeapon(EWeaponType Weapon);
+	UFUNCTION(BlueprintCallable)
 	EWeaponType GetWeapon() const;
+	UFUNCTION(BlueprintCallable)
 	bool GetISRun() const;
+	UFUNCTION(BlueprintCallable)
 	bool GetIsSit() const;
+	UFUNCTION(BlueprintCallable)
+	float GetTurnRate() const;
 	
 	// 현재 장착 무기 타입
 	UPROPERTY(BlueprintReadOnly, Category="Weapon")
@@ -103,33 +109,33 @@ protected:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	UFUNCTION()
-	void Move(const FInputActionValue& value);
+	void Move(const FInputActionValue& Value);
 	UFUNCTION()
-	void StartJump(const FInputActionValue& value);
+	void StartJump(const FInputActionValue& Value);
 	UFUNCTION()
-	void StopJump(const FInputActionValue& value);
+	void StopJump(const FInputActionValue& Value);
 	UFUNCTION()
-	void Look(const FInputActionValue& value);
+	void Look(const FInputActionValue& Value);
 	UFUNCTION()
-	void StartSprint(const FInputActionValue& value);
+	void StartSprint(const FInputActionValue& Value);
 	UFUNCTION()
-	void StopSprint(const FInputActionValue& value);
+	void StopSprint(const FInputActionValue& Value);
 	UFUNCTION()
-	void Fire(const FInputActionValue& value);
+	void Fire(const FInputActionValue& Value);
 	UFUNCTION()
-	void Sit(const FInputActionValue& value);
+	void Sit(const FInputActionValue& Value);
 	UFUNCTION()
-	void StartZoom(const FInputActionValue& value);
+	void StartZoom(const FInputActionValue& Value);
 	UFUNCTION()
-	void StopZoom(const FInputActionValue& value);
+	void StopZoom(const FInputActionValue& Value);
 	UFUNCTION()
-	void PickUpWeapon(const FInputActionValue& value);
+	void PickUpWeapon(const FInputActionValue& Value);
 	UFUNCTION()
-	void ChangeToMainWeapon(const FInputActionValue& value);
+	void ChangeToMainWeapon(const FInputActionValue& Value);
 	UFUNCTION()
-	void ChangeToSubWeapon(const FInputActionValue& value);
+	void ChangeToSubWeapon(const FInputActionValue& Value);
 	UFUNCTION()
-	void OpenDoor(const FInputActionValue& value);
+	void OpenDoor(const FInputActionValue& Value);
 	
 	void InterpWalkSpeed();
 
@@ -158,4 +164,5 @@ private:
 	// 캐릭터 스테이터스
 	float CurrentHealth;
 	float MaxHealth;
+	float TurnRate;
 };
