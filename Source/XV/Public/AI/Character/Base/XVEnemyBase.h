@@ -86,9 +86,6 @@ protected:
 public:
 	UPROPERTY(EditDefaultsOnly, Category=Animation)
 	UAnimMontage* DeathMontage; // 죽는 애니메이션
-
-	UPROPERTY(EditDefaultsOnly, Category=Animation)
-	float DestroyTime; // 죽는 애니메니메이션 이후 실제로 사라지기까지 시간
 	
 	UPROPERTY()
     bool bIsDead = false;
