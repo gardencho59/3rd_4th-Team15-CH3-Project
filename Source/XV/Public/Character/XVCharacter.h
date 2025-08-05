@@ -35,16 +35,6 @@ public:
 	bool GetIsSit() const;
 	UFUNCTION(BlueprintCallable)
 	float GetTurnRate() const;
-	
-	// 현재 장착 무기 타입
-	UPROPERTY(BlueprintReadOnly, Category="Weapon")
-	EWeaponType CurrentWeaponType;
-	// 주 무기 타입
-	UPROPERTY(BlueprintReadOnly, Category="Weapon")
-	EWeaponType MainWeaponType;
-	// 서브 무기 타입 = Pistol
-	UPROPERTY(BlueprintReadOnly, Category="Weapon")
-	EWeaponType SubWeaponType;
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
@@ -60,23 +50,25 @@ protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	float NormalSpeed; 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
-	float SprintSpeedMultiplier;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
 	float SprintSpeed;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+	float SitSpeed;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	bool bIsSit;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
-	bool bIsRun;
+	bool bIsRun;	
 
-	// 무기
-	/*UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
-	class USkeletalMeshComponent* PistolMeshComp;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
-	class USkeletalMeshComponent* RifleMeshComp;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
-	class USkeletalMeshComponent* ShotMeshComp;*/
-
+	// 현재 장착 무기 타입
+	UPROPERTY(BlueprintReadOnly, Category="Weapon")
+	EWeaponType CurrentWeaponType;
+	// 주 무기 타입
+	UPROPERTY(BlueprintReadOnly, Category="Weapon")
+	EWeaponType MainWeaponType;
+	// 서브 무기 타입 = Pistol
+	UPROPERTY(BlueprintReadOnly, Category="Weapon")
+	EWeaponType SubWeaponType;
+	
 	UPROPERTY(VisibleAnywhere)
 	UChildActorComponent* PrimaryWeapon;
 	UPROPERTY(VisibleAnywhere)
@@ -89,22 +81,13 @@ protected:
 	TSubclassOf<ABaseGun> BPPrimaryWeapon;
 	UPROPERTY()
 	TSubclassOf<ABaseGun> BPSubWeapon;
-	
-	TSubclassOf<ABaseGun> BPCurrentWeapon;
-
+	UPROPERTY()	//현재 장착하고 있는 무기 BP
+	ABaseGun* CurrentWeaponActor; 
 	UPROPERTY()
-	ABaseGun* CurrentOverlappingWeapon;
-
-	
+	ABaseGun* CurrentOverlappingWeapon;	
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Overlap")
-	AElevatorDoor* Elevator;
-	
-	// 달리기 선형보간 관련 변수
-	FTimerHandle WalkSpeedInterpTimerHandle;
-	float CurrentWalkSpeed = 0.0f;
-	float TargetWalkSpeed = 0.0f;
-	float InterpSpeed = 1.0f;  //보간 시간		
+	AElevatorDoor* Elevator;	
 	
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
@@ -136,9 +119,8 @@ protected:
 	void ChangeToSubWeapon(const FInputActionValue& Value);
 	UFUNCTION()
 	void OpenDoor(const FInputActionValue& Value);
-	
-	void InterpWalkSpeed();
-
+	UFUNCTION()
+	void Reload(const FInputActionValue& Value);	
 
 	UFUNCTION()
 	void OnBeginOverlap(

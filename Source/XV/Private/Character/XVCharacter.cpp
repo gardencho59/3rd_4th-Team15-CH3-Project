@@ -27,9 +27,9 @@ AXVCharacter::AXVCharacter()
 	CameraComp->SetupAttachment(SpringArmComp, USpringArmComponent::SocketName);
 	CameraComp->bUsePawnControlRotation = false;
 
-	NormalSpeed = 600.0f;
-	SprintSpeedMultiplier = 1.5f;
-	SprintSpeed = NormalSpeed * SprintSpeedMultiplier;
+	NormalSpeed = 300.0f;
+	SprintSpeed = 500.0f;
+	SitSpeed = 250.0f;
 
 	GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
 
@@ -97,8 +97,15 @@ void AXVCharacter::Die()
 
 void AXVCharacter::SetWeapon(EWeaponType Weapon)
 { // 일단 타입마다 필요한게 있을 까 싶어 나눴는데 추가 기능 없으면 간략하게 변경해도 될듯
-	if (CurrentWeaponType == Weapon){ CurrentWeaponType = EWeaponType::None;} // 현재 무기와 동일한 무기가 매개변수로 들어온 경우 => 장착 해제
-	else { CurrentWeaponType = Weapon; }
+	if (CurrentWeaponType == Weapon) // 현재 무기와 동일한 무기가 매개변수로 들어온 경우 => 장착 해제
+	{
+		CurrentWeaponType = EWeaponType::None;
+		CurrentWeaponActor = nullptr;
+	} 
+	else
+	{
+		CurrentWeaponType = Weapon;
+	}
 
 	FString WeaponTypeName = StaticEnum<EWeaponType>()->GetNameStringByValue((int64)CurrentWeaponType);
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, WeaponTypeName);
@@ -112,6 +119,7 @@ void AXVCharacter::SetWeapon(EWeaponType Weapon)
 		SubWeaponOffset->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("Pistol_Equipped"));
 		PrimaryWeaponOffset->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("Rifle_Unequipped"));
 
+		CurrentWeaponActor = Cast<ABaseGun>(PrimaryWeapon->GetChildActor());
 		Anim->PlayGunChangeAnim();
 		break;
 		
@@ -120,6 +128,7 @@ void AXVCharacter::SetWeapon(EWeaponType Weapon)
 		SubWeaponOffset->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("Pistol_Unequipped"));
 		PrimaryWeaponOffset->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("Rifle_Equipped"));
 
+		CurrentWeaponActor = Cast<ABaseGun>(PrimaryWeapon->GetChildActor());
 		Anim->PlayGunChangeAnim();
 		break;
 
@@ -132,6 +141,8 @@ void AXVCharacter::SetWeapon(EWeaponType Weapon)
 	default:
 		SubWeaponOffset->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("Pistol_Unequipped"));
 		PrimaryWeaponOffset->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("Rifle_Unequipped"));
+
+		CurrentWeaponActor = Cast<ABaseGun>(SubWeapon->GetChildActor());
 		Anim->PlayGunChangeAnim();
 		break;
 	}
@@ -359,31 +370,49 @@ void AXVCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
             		this,
             		&AXVCharacter::OpenDoor
             	);
-            }	    	
+            }
+	    	if (PlayerController->ReloadAction)
+	    	{
+	    		// IA_Reload R키 누를 때 Reload() 호출
+	    		EnhancedInput->BindAction(
+					PlayerController->ReloadAction,
+					ETriggerEvent::Started,
+					this,
+					&AXVCharacter::Reload
+				);
+	    	}	    	
 	    }
 	}
 }
 
 void AXVCharacter::Move(const FInputActionValue& Value)
 {
-	if (!Controller) return;
-	
-	const FVector2D MoveInput = Value.Get<FVector2D>();
+    if (!Controller) return;
+    
+    const FVector2D MoveInput = Value.Get<FVector2D>();
 
-	if (!FMath::IsNearlyZero(MoveInput.X))
-	{
-		AddMovementInput(GetActorForwardVector(), MoveInput.X);
-	}
+    if (!FMath::IsNearlyZero(MoveInput.X))
+    {
+    	FRotator ControlRotation = Controller->GetControlRotation();
+    	FRotator YawRotation(0, ControlRotation.Yaw, 0); // Pitch, Roll 제거 (수평 회전만)
+    	FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+    	
+       AddMovementInput(ForwardDirection, MoveInput.X);
+    }
 
-	if (!FMath::IsNearlyZero(MoveInput.Y))
-	{
-		AddMovementInput(GetActorRightVector(), MoveInput.Y);
-	}
+    if (!FMath::IsNearlyZero(MoveInput.Y))
+    {
+       FRotator ControlRotation = Controller->GetControlRotation();
+       FRotator YawRotation(0, ControlRotation.Yaw, 0);
+       FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+       
+       AddMovementInput(RightDirection, MoveInput.Y);
+    }
 }
 
 void AXVCharacter::StartJump(const FInputActionValue& Value)
 {
-	if (Value.Get<bool>())
+	if (Value.Get<bool>() && !bIsSit)
 	{
 		Jump();
 	}
@@ -408,7 +437,7 @@ void AXVCharacter::Look(const FInputActionValue& Value)
 
 void AXVCharacter::StartSprint(const FInputActionValue& Value)
 {
-	if (GetCharacterMovement())
+	if (GetCharacterMovement() && !bIsSit)
 	{
 		GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
 		bIsRun = true;
@@ -417,40 +446,25 @@ void AXVCharacter::StartSprint(const FInputActionValue& Value)
 
 void AXVCharacter::StopSprint(const FInputActionValue& Value)
 {
-	TargetWalkSpeed = NormalSpeed;
-	CurrentWalkSpeed = GetCharacterMovement()->MaxWalkSpeed;
+	GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
 	bIsRun = false;
 }
 
-void AXVCharacter::InterpWalkSpeed()
-{
-	if (!GetCharacterMovement()) return;
-
-	// 보간
-	CurrentWalkSpeed = FMath::FInterpTo(CurrentWalkSpeed, TargetWalkSpeed, GetWorld()->GetDeltaSeconds(), InterpSpeed);
-	GetCharacterMovement()->MaxWalkSpeed = CurrentWalkSpeed;
-	
-	// 충분히 가까워지면 보간 종료
-	if (FMath::IsNearlyEqual(CurrentWalkSpeed, TargetWalkSpeed, 1.0f))
-	{
-		GetCharacterMovement()->MaxWalkSpeed = TargetWalkSpeed;
-		GetWorld()->GetTimerManager().ClearTimer(WalkSpeedInterpTimerHandle);
-		bIsRun = false;
-	}
-}
 
 void AXVCharacter::Fire(const FInputActionValue& Value)
 {
 	if (Value.Get<bool>() && CurrentWeaponType != EWeaponType::None) // 빈 손 일 때 발사 금지
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, TEXT("Fire"));
 		auto Anim = Cast<UXVPlayerAnimInstance>(GetMesh()->GetAnimInstance());
-		Anim->PlayAttackAnim();
-
-		ABaseGun* Weapon = Cast<ABaseGun>(PrimaryWeapon->GetChildActor());
-		if (Weapon)
+		if (Anim)
 		{
-			Weapon->FireBullet();
+			Anim->PlayAttackAnim();
+		}
+
+		if (CurrentWeaponActor)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, TEXT("Fire"));
+			CurrentWeaponActor->FireBullet();
 		}
 
 		auto XVController = GetWorld()->GetFirstPlayerController();
@@ -471,16 +485,22 @@ void AXVCharacter::Fire(const FInputActionValue& Value)
 
 void AXVCharacter::Sit(const FInputActionValue& Value)
 {
-	if (!bIsSit)
+	if (GetCharacterMovement())
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, TEXT("Sit"));
-		bIsSit = true;
-	}
-	else
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, TEXT("Stand"));
-		bIsSit = false;
-	}
+		if (!bIsSit)
+		{
+		
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, TEXT("Sit"));
+			GetCharacterMovement()->MaxWalkSpeed = SitSpeed;
+			bIsSit = true;
+		}
+		else
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, TEXT("Stand"));
+			GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
+			bIsSit = false;
+		}
+	}	
 }
 
 void AXVCharacter::StartZoom(const FInputActionValue& Value)
@@ -538,4 +558,13 @@ void AXVCharacter::OpenDoor(const FInputActionValue& Value)
 	{
 		Elevator->OpenDoor();
 	}		
+}
+
+void AXVCharacter::Reload(const FInputActionValue& Value)
+{
+	if (CurrentWeaponType != EWeaponType::None)
+	{		
+		UE_LOG(LogTemp, Warning, TEXT("Reload"));
+		//BPCurrentWeapon->Reload();
+	}
 }
