@@ -12,20 +12,14 @@ UAIStatusComponent::UAIStatusComponent()
 void UAIStatusComponent::TakeDamage(float Damage)
 {
 	Health -= Damage;
-	if (Health <= 0 && EnemyKilled == false)
+	if (Health <= 0.f)
 	{
-		Health = 0;
-		EnemyKilled = true;
-	}
-
-	// OnEnemyKilled 호출
-	if (EnemyKilled == true)
-	{
+		Health = 0.f;
 		if(AXVBaseGameMode* BaseGameMode = GetWorld()->GetAuthGameMode<AXVBaseGameMode>())
 		{
 			UE_LOG(LogTemp, Warning, TEXT("OnEnemyKilled"));
 			BaseGameMode->OnEnemyKilled();
 		}
 	}
-		
+	
 }
