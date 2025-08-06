@@ -1,4 +1,4 @@
-#include "GM_XVStartLevel.h"
+#include "System/GM_XVStartLevel.h"
 #include "system/XVGameState.h"
 #include "System/XVGameInstance.h"
 #include "World/SpawnVolume.h"
@@ -13,7 +13,13 @@ AGM_XVStartLevel::AGM_XVStartLevel()
 void AGM_XVStartLevel::BeginPlay()
 {
 	Super::BeginPlay();
-	StartGame();
+	GetWorld()->GetTimerManager().SetTimer(
+			Delayer, 
+			this, 
+			&AGM_XVStartLevel::StartGame,
+			60.0f, 
+			false
+	  );
 }
 
 void AGM_XVStartLevel::StartGame()
@@ -42,7 +48,7 @@ void AGM_XVStartLevel::SpawnEnemies() const
 						ValidVolumes.Add(Volume);
 					}
 				}
-			}	
+			}
 		
 			int32 EnemyToSpawn = GS->SpawnPatrolEnemyCount;
 			const int32 SpawnVolumeCount = ValidVolumes.Num();
@@ -69,6 +75,7 @@ void AGM_XVStartLevel::SpawnEnemies() const
 
 void AGM_XVStartLevel::OnEnemyKilled()
 {
+	UE_LOG(LogTemp, Warning, TEXT("a"));
 	if (IsOutdoor)
 	{
 		if (AXVGameState* GS = GetGameState<AXVGameState>())

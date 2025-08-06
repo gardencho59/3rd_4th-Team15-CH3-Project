@@ -8,7 +8,7 @@
 #include "AI/AIComponents/AIConfigComponent.h"
 #include "AI/DebugTool/DebugTool.h"
 #include "BehaviorTree/BlackboardComponent.h"
-#include "System/XVGameMode.h"
+#include "System/XVBaseGameMode.h"
 
 AXVEnemyBase::AXVEnemyBase()
 	: RotateSpeed(480.f)
@@ -69,10 +69,10 @@ void AXVEnemyBase::BeginPlay()
 void AXVEnemyBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	// OnEnemyKilled 호출
-	if(AXVGameMode* GameMode = GetWorld()->GetAuthGameMode<AXVGameMode>())
+	if(AXVBaseGameMode* BaseGameMode = GetWorld()->GetAuthGameMode<AXVBaseGameMode>())
 	{
 		UE_LOG(LogTemp, Warning, TEXT("OnEnemyKilled"));
-		GameMode->OnEnemyKilled();
+		BaseGameMode->OnEnemyKilled();
 	}
 		
 	Super::EndPlay(EndPlayReason);

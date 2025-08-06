@@ -21,4 +21,6 @@ public:
 	virtual void EndGame(bool bIsClear) override;
 	
 	bool IsOutdoor;
+
+	FTimerHandle Delayer;
 };
