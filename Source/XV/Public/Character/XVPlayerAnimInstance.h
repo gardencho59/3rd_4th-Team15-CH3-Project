@@ -17,7 +17,13 @@ public:
 	class UAnimMontage* AttackAnimMontage;
 	UPROPERTY(EditDefaultsOnly, Category = "PlayerAnim")
 	class UAnimMontage* ChangeAnimMontage;
+	UPROPERTY(EditDefaultsOnly, Category = "PlayerAnim")
+	class UAnimMontage* ReloadAnimMontage;
+	UPROPERTY(EditDefaultsOnly, Category = "PlayerAnim")
+	class UAnimMontage* DieAnimMontage;
 	
 	void PlayAttackAnim();
 	void PlayGunChangeAnim();
+	void PlayReloadAnim();
+	void PlayDieAnim();
 };
