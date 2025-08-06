@@ -25,6 +25,7 @@ public:
 	float GetHealth() const;
 	void AddDamage(float Value);
 	void Die();
+	void OnDieAnimationFinished();
 
 	void SetWeapon(EWeaponType Weapon);
 	UFUNCTION(BlueprintCallable)
@@ -37,6 +38,10 @@ public:
 	bool GetIsAim() const;
 	UFUNCTION(BlueprintCallable)
 	float GetTurnRate() const;
+
+	// 현재 장착 무기 타입
+	UPROPERTY(BlueprintReadOnly, Category="Weapon")
+	EWeaponType CurrentWeaponType;
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
@@ -68,9 +73,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	bool bIsRun;	
 
-	// 현재 장착 무기 타입
-	UPROPERTY(BlueprintReadOnly, Category="Weapon")
-	EWeaponType CurrentWeaponType;
+
 	// 주 무기 타입
 	UPROPERTY(BlueprintReadOnly, Category="Weapon")
 	EWeaponType MainWeaponType;
@@ -157,6 +160,6 @@ private:
 	float CurrentHealth;
 	float MaxHealth;
 	float TurnRate;
-	
-	
+	bool bIsDie;
+	FTimerHandle DieTimerHandle;
 };
