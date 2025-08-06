@@ -51,8 +51,6 @@ protected:
     float DebugLineLength;
 
 private:
-    FTimerHandle AutoFireTimerHandle;
-    void AutoFireTimerCallback();
     
     // 컨스트럭터에서 초기화할 변수들
     FRotator DefaultRotation;
