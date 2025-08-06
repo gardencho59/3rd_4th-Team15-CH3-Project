@@ -18,9 +18,12 @@ public:
 	virtual float CurrentHealth(){return Health;}
 	
 private:
+	bool EnemyKilled = false;
+
+	
 	UPROPERTY(EditAnywhere, Category = "AI Status")
 	float Health;
-	
+
 public:
 	UPROPERTY(EditAnywhere, Category = "AI Status")
 	float AttackDamage;
