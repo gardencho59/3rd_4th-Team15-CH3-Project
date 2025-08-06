@@ -9,7 +9,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Perception/AISense_Hearing.h" // AI 총소리 듣기 용입니다.
-#include "System/XVGameMode.h"
+#include "System/XVBaseGameMode.h"
 
 AXVCharacter::AXVCharacter()
 {
@@ -93,13 +93,13 @@ void AXVCharacter::AddDamage(float Value)
 
 void AXVCharacter::Die()
 {
-	AXVGameMode* XVGameMode = Cast<AXVGameMode>(GetWorld()->GetAuthGameMode());
+	AXVBaseGameMode* XVBaseGameMode = Cast<AXVBaseGameMode>(GetWorld()->GetAuthGameMode());
 	auto Anim = Cast<UXVPlayerAnimInstance>(GetMesh()->GetAnimInstance());
 	if (Anim)
 	{
 		Anim->PlayDieAnim();
 	}
-	//XVGameMode->EndGame(false);
+	XVBaseGameMode->EndGame(false);
 }
 
 void AXVCharacter::SetWeapon(EWeaponType Weapon)

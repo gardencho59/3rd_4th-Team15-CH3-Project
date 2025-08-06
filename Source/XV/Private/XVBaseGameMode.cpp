@@ -1,4 +1,4 @@
-#include "XVBaseGameMode.h"
+#include "System/XVBaseGameMode.h"
 #include "System/XVGameState.h"
 #include "Kismet/GameplayStatics.h"
 #include "World/SpawnVolume.h"
