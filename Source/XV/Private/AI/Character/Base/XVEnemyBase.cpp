@@ -68,13 +68,6 @@ void AXVEnemyBase::BeginPlay()
 
 void AXVEnemyBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	// OnEnemyKilled 호출
-	if(AXVBaseGameMode* BaseGameMode = GetWorld()->GetAuthGameMode<AXVBaseGameMode>())
-	{
-		UE_LOG(LogTemp, Warning, TEXT("OnEnemyKilled"));
-		BaseGameMode->OnEnemyKilled();
-	}
-		
 	Super::EndPlay(EndPlayReason);
 }
 
@@ -144,6 +137,13 @@ void AXVEnemyBase::GetDamage(float Damage)
 	// ▼ 체력이 0 이하로 떨어졌을 때만 사망 처리!
 	if (AIStatusComponent->CurrentHealth() <= 0.f)
 	{
+		// OnEnemyKilled 호출
+		if(AXVBaseGameMode* BaseGameMode = GetWorld()->GetAuthGameMode<AXVBaseGameMode>())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("OnEnemyKilled"));
+			BaseGameMode->OnEnemyKilled();
+		}
+		
 		bIsDead = true;
 
 		AIController->AIBlackBoard->SetValueAsBool(TEXT("bIsDead"), true);
