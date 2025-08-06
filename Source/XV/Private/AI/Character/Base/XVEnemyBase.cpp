@@ -132,18 +132,11 @@ void AXVEnemyBase::GetDamage(float Damage)
 	
 	AXVControllerBase* AIController = Cast<AXVControllerBase>(GetController());
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-
 	
 	// ▼ 체력이 0 이하로 떨어졌을 때만 사망 처리!
 	if (AIStatusComponent->CurrentHealth() <= 0.f)
 	{
-		// OnEnemyKilled 호출
-		if(AXVBaseGameMode* BaseGameMode = GetWorld()->GetAuthGameMode<AXVBaseGameMode>())
-		{
-			UE_LOG(LogTemp, Warning, TEXT("OnEnemyKilled"));
-			BaseGameMode->OnEnemyKilled();
-		}
-		
+
 		bIsDead = true;
 
 		AIController->AIBlackBoard->SetValueAsBool(TEXT("bIsDead"), true);
@@ -198,7 +191,7 @@ void AXVEnemyBase::GetDamage(float Damage)
 	}
 	
 	// 기본 : 50% 확률로 애니메이션 실행
-	if (AIStatusComponent->CurrentHealth() > 1.f && false == bIsAvoid && FMath::FRand() < AvoidChance)
+	if (AIStatusComponent->CurrentHealth() > 10.f && false == bIsAvoid && FMath::FRand() < AvoidChance)
 	{
 		AIController->AIBlackBoard->SetValueAsBool(TEXT("bIsAvoiding"), true);
 		
@@ -210,7 +203,7 @@ void AXVEnemyBase::GetDamage(float Damage)
 			TryRandomAvoid(PlayerCharacter->GetActorLocation());
 		}
 	}
-	else if (AIStatusComponent->CurrentHealth() > 1.f && false == bIsAvoid && FMath::FRand() > AvoidChance)
+	else if (AIStatusComponent->CurrentHealth() > 5.f && false == bIsAvoid && FMath::FRand() > AvoidChance)
 	{
 		UE_LOG(Log_XV_AI, Warning, TEXT("AvoidChance Fail"));
 		// 데미지 받기
