@@ -12,6 +12,8 @@ UAIStatusComponent::UAIStatusComponent()
 void UAIStatusComponent::TakeDamage(float Damage)
 {
 	Health -= Damage;
+
+	
 	
 	if (Health <= 0.f)
 	{
