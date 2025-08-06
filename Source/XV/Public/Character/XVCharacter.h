@@ -34,6 +34,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool GetIsSit() const;
 	UFUNCTION(BlueprintCallable)
+	bool GetIsAim() const;
+	UFUNCTION(BlueprintCallable)
 	float GetTurnRate() const;
 
 protected:
@@ -44,9 +46,16 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
 	TSubclassOf<class UCameraShakeBase> CameraShake;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
-	float DefaultCameraLenght;
+	float DefaultCameraLength;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
-	float ZoomCameraLenght; 
+	float ZoomCameraLength;
+
+	// 카메라 줌 관련 변수들
+	UPROPERTY(EditDefaultsOnly, Category = "Camera")
+	float ZoomInterpSpeed = 10.f;
+	FTimerHandle ZoomTimerHandle;
+	bool bIsZooming;
+	bool bIsAim;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	float NormalSpeed; 
@@ -111,6 +120,7 @@ protected:
 	void StartZoom(const FInputActionValue& Value);
 	UFUNCTION()
 	void StopZoom(const FInputActionValue& Value);
+	void UpdateZoom();
 	UFUNCTION()
 	void PickUpWeapon(const FInputActionValue& Value);
 	UFUNCTION()
@@ -147,4 +157,6 @@ private:
 	float CurrentHealth;
 	float MaxHealth;
 	float TurnRate;
+	
+	
 };

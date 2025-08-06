@@ -15,12 +15,12 @@ AXVCharacter::AXVCharacter()
 {
 	PrimaryActorTick.bCanEverTick = false;		
 	
-	DefaultCameraLenght = 250.0f;
-	ZoomCameraLenght = 100.0f;
+	DefaultCameraLength = 250.0f;
+	ZoomCameraLength = 100.0f;
 	
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArmComp->SetupAttachment(RootComponent);
-	SpringArmComp->TargetArmLength = DefaultCameraLenght;  
+	SpringArmComp->TargetArmLength = DefaultCameraLength;  
 	SpringArmComp->bUsePawnControlRotation = true;  
 	
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
@@ -30,6 +30,11 @@ AXVCharacter::AXVCharacter()
 	NormalSpeed = 300.0f;
 	SprintSpeed = 500.0f;
 	SitSpeed = 250.0f;
+
+	bIsRun = false;
+	bIsSit = false;
+	bIsAim = false;
+	bIsZooming = false;
 
 	GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
 
@@ -168,6 +173,11 @@ bool AXVCharacter::GetISRun() const
 bool AXVCharacter::GetIsSit() const
 {
 	return bIsSit;
+}
+
+bool AXVCharacter::GetIsAim() const
+{
+	return bIsAim;
 }
 
 float AXVCharacter::GetTurnRate() const
@@ -512,7 +522,19 @@ void AXVCharacter::StartZoom(const FInputActionValue& Value)
 {
 	if (Value.Get<bool>())
 	{
-		SpringArmComp->TargetArmLength = ZoomCameraLenght;
+		bIsAim = true;
+
+		if (!bIsZooming)
+		{
+			bIsZooming = true;
+			GetWorld()->GetTimerManager().SetTimer(
+				ZoomTimerHandle,
+				this,
+				&AXVCharacter::UpdateZoom,
+				0.01f,
+				true
+			);
+		}
 	}
 }
 
@@ -520,7 +542,36 @@ void AXVCharacter::StopZoom(const FInputActionValue& Value)
 {
 	if (!Value.Get<bool>())
 	{
-		SpringArmComp->TargetArmLength = DefaultCameraLenght;
+		bIsAim = false;
+
+		if (!bIsZooming)
+		{
+			bIsZooming = true;
+			GetWorld()->GetTimerManager().SetTimer(
+				ZoomTimerHandle,
+				this,
+				&AXVCharacter::UpdateZoom,
+				0.01f,
+				true
+			);
+		}
+	}
+}
+
+void AXVCharacter::UpdateZoom()
+{
+	float TargetLength = bIsAim ? ZoomCameraLength : DefaultCameraLength;
+	float CurrentLength = SpringArmComp->TargetArmLength;
+
+	// 보간 계산
+	float NewLength = FMath::FInterpTo(CurrentLength, TargetLength, GetWorld()->GetDeltaSeconds(), ZoomInterpSpeed);
+	SpringArmComp->TargetArmLength = NewLength;
+	
+	if (FMath::Abs(NewLength - TargetLength) < 1.f)
+	{
+		SpringArmComp->TargetArmLength = TargetLength;
+		GetWorld()->GetTimerManager().ClearTimer(ZoomTimerHandle);
+		bIsZooming = false;
 	}
 }
 
