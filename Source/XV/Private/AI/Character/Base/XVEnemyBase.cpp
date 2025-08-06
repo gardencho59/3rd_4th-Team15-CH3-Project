@@ -136,7 +136,16 @@ void AXVEnemyBase::GetDamage(float Damage)
 	// ▼ 체력이 0 이하로 떨어졌을 때만 사망 처리!
 	if (AIStatusComponent->CurrentHealth() <= 0.f)
 	{
-
+		if(AXVBaseGameMode* BaseGameMode = GetWorld()->GetAuthGameMode<AXVBaseGameMode>())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("OnEnemyKilled Succeed"));
+			BaseGameMode->OnEnemyKilled();
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("OnEnemyKilled failed"));
+		}
+		
 		bIsDead = true;
 
 		AIController->AIBlackBoard->SetValueAsBool(TEXT("bIsDead"), true);
