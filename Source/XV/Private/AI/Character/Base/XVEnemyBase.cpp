@@ -16,7 +16,6 @@ AXVEnemyBase::AXVEnemyBase()
 	, ControllerDesiredRotation(true)
 	, OrientRotationToMovement(true)
 	, AttackModeSpeed(400.f)
-	, DestroyTime(5.f)
 {
 	// 컨트롤러 세팅
 	AIControllerClass = AXVControllerBase::StaticClass();
@@ -113,9 +112,16 @@ void AXVEnemyBase::GetDamage(float Damage)
 {
 	AIStatusComponent->Sub_Health(Damage);
 	
+	 if (bIsDead)
+     {
+		return;
+	 }
+            
 	// ▼ 체력이 0 이하로 떨어졌을 때만 사망 처리!
 	if (AIStatusComponent->CurrentHealth() <= 0.f)
 	{
+	 	bIsDead = true;
+	 
 		// 컨트롤러 가져오기 (현재 액터에 바운드된 실제 컨트롤러)
 		AXVControllerBase* AIController = Cast<AXVControllerBase>(GetController());
 		if (AIController)
@@ -123,11 +129,21 @@ void AXVEnemyBase::GetDamage(float Damage)
 			// 1. 움직임 멈춤
 			AIController->StopMovement();
 
+			// 포커스 멈추기
+			AIController->ClearFocus(EAIFocusPriority::Gameplay);
+			
 			// 2. 비헤이비어 트리(BrainComponent) 정지
 			if (AIController->BrainComponent)
 			{
 				AIController->BrainComponent->StopLogic(TEXT("Dead"));
 			}
+		}
+
+		UCharacterMovementComponent* MovementComponent = GetCharacterMovement();
+		if (MovementComponent)
+		{
+			MovementComponent->DisableMovement();
+			MovementComponent->StopMovementImmediately();
 		}
 
 		// 죽는 모션이 있으면 우선 재생
@@ -140,11 +156,17 @@ void AXVEnemyBase::GetDamage(float Damage)
 				FOnMontageEnded MontageEndedDelegate;
 				MontageEndedDelegate.BindLambda([this](UAnimMontage*, bool)
 				{
+					UE_LOG(LogTemp, Warning, TEXT("DeathTimer0"));
+	
 					DeathTimer();
+					
+					
 				});
 				
 				AnimInstance->Montage_Play(DeathMontage);
 				AnimInstance->Montage_SetEndDelegate(MontageEndedDelegate, DeathMontage);
+				AnimInstance->Montage_SetPlayRate(DeathMontage, 1.0f);
+
 			}
 			else
 			{
@@ -167,18 +189,38 @@ void AXVEnemyBase::SetAttackMode()
 	// 공격모드 속도로 설정
 	MovementComponent->MaxWalkSpeed = AttackModeSpeed;
 	
-}
+} 
 
 void AXVEnemyBase::DeathTimer()
 {
-	FTimerHandle DeathTimerHandle;
-	GetWorld()->GetTimerManager().SetTimer(
-		DeathTimerHandle,         // 타이머 핸들
-		[this]()	 // 타이머 만료 시 실행할 람다(또는 함수)
-		{             
-			Destroy();				 // 디스트로이
-		},
-		DestroyTime,				 // 대기 시간(초)
-		false						 // 반복 여부(false: 1회)
-	);
+	UE_LOG(LogTemp, Warning, TEXT("DeathTimer1"));
+	
+	if (IsActorBeingDestroyed())
+	{
+		return;
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("DeathTimer3"));
+
+	SetActorHiddenInGame(true);      // 액터 전체 숨김(컴포넌트 관계 없음)
+	SetActorEnableCollision(false);  // 충돌도 끔(안 밟힘)
+	SetActorTickEnabled(false);      // 틱도 끔(CPU 소모 방지)
+	
+	GetMesh()->bPauseAnims = true;
+	GetMesh()->SetVisibility(false, true);
+	GetMesh()->SetHiddenInGame(true, true);
+	UE_LOG(LogTemp, Warning, TEXT("Mesh Visible: %d, HiddenInGame: %d"), GetMesh()->IsVisible(), GetMesh()->bHiddenInGame);
+	
+	for (UActorComponent* Comp : GetComponents())
+	{
+		UMeshComponent* MeshComp = Cast<UMeshComponent>(Comp);
+		if (MeshComp)
+			{
+			MeshComp->SetVisibility(false, true);
+			MeshComp->SetHiddenInGame(true, true);
+			UE_LOG(LogTemp, Warning, TEXT("%s: V:%d, H:%d"), *MeshComp->GetName(), MeshComp->IsVisible(), MeshComp->bHiddenInGame);
+		}
+	}
+	
+	Destroy();
 }
