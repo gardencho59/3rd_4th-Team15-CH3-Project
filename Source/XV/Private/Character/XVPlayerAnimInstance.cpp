@@ -9,3 +9,13 @@ void UXVPlayerAnimInstance::PlayGunChangeAnim()
 {
 	Montage_Play(ChangeAnimMontage);
 }
+
+void UXVPlayerAnimInstance::PlayReloadAnim()
+{
+	Montage_Play(ReloadAnimMontage);
+}
+
+void UXVPlayerAnimInstance::PlayDieAnim()
+{
+	Montage_Play(DieAnimMontage);
+}
