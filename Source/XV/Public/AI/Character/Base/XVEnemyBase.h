@@ -76,7 +76,6 @@ public:
 // === AI 공격 모드 관련 세팅 ==================================================================================//	
 public:
 	void SetAttackMode();
-	void TestDeath();
 	void DeathTimer();
 
 protected:
@@ -119,6 +118,8 @@ public:
 	// 회피용 
 protected:
 	void RunBTWithDelay();
+
+	UPROPERTY()
 	AXVControllerBase* CachedAIController;
 
 

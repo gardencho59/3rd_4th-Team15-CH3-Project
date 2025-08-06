@@ -200,6 +200,8 @@ void AXVEnemyBase::GetDamage(float Damage)
 	// 기본 : 50% 확률로 애니메이션 실행
 	if (AIStatusComponent->CurrentHealth() > 1.f && false == bIsAvoid && FMath::FRand() < AvoidChance)
 	{
+		AIController->AIBlackBoard->SetValueAsBool(TEXT("bIsAvoiding"), true);
+		
 		UE_LOG(Log_XV_AI, Warning, TEXT("AvoidChance Succeed"));
 		ACharacter* PlayerCharacter = Cast<ACharacter>(GetWorld()->GetFirstPlayerController()->GetCharacter());
 		if (PlayerCharacter)
@@ -346,6 +348,7 @@ void AXVEnemyBase::EndAvoid()
 {
 	UE_LOG(LogTemp, Warning, TEXT("EndAvoid : EndAvoid Start"));
 
+	
 	bIsAvoid = false; // 중단/정상 무관하게 명확히 false 처리
 
 	// AI 재활성화(1초 후 실행) 
@@ -372,5 +375,6 @@ void AXVEnemyBase::RunBTWithDelay()
 	if (CachedAIController && CachedAIController->BehaviorTreeAsset)
 	{
 		CachedAIController->RunBehaviorTree(CachedAIController->BehaviorTreeAsset);
+		CachedAIController->AIBlackBoard->SetValueAsBool(TEXT("bIsAvoiding"), false);
 	}
 }
