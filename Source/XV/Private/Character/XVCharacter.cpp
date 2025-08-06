@@ -77,6 +77,7 @@ void AXVCharacter::AddHealth(float Value)
 {
 	CurrentHealth = FMath::Clamp(CurrentHealth + Value, 0.0f, MaxHealth);
 }
+
 void AXVCharacter::AddDamage(float Value)
 {
 	CurrentHealth = FMath::Clamp(CurrentHealth - Value, 0.0f, MaxHealth);
@@ -89,10 +90,16 @@ void AXVCharacter::AddDamage(float Value)
 		Die();
 	}
 }
+
 void AXVCharacter::Die()
 {
 	AXVGameMode* XVGameMode = Cast<AXVGameMode>(GetWorld()->GetAuthGameMode());
-	XVGameMode->EndGame(false);
+	auto Anim = Cast<UXVPlayerAnimInstance>(GetMesh()->GetAnimInstance());
+	if (Anim)
+	{
+		Anim->PlayDieAnim();
+	}
+	//XVGameMode->EndGame(false);
 }
 
 void AXVCharacter::SetWeapon(EWeaponType Weapon)
@@ -191,8 +198,7 @@ void AXVCharacter::OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor
 	{
 		UE_LOG(LogTemp, Log, TEXT("End Overlap Actor: %s"), *OtherActor->GetName());
 		// 엘리베이터 클래스인지 확인
-		AElevatorDoor* OverlapElevator = Cast<AElevatorDoor>(OtherActor);
-		if (OverlapElevator)
+		if (AElevatorDoor* OverlapElevator = Cast<AElevatorDoor>(OtherActor))
 		{			
 			Elevator = nullptr;
 			if (!Elevator)
@@ -450,10 +456,9 @@ void AXVCharacter::StopSprint(const FInputActionValue& Value)
 	bIsRun = false;
 }
 
-
 void AXVCharacter::Fire(const FInputActionValue& Value)
 {
-	if (Value.Get<bool>() && CurrentWeaponType != EWeaponType::None) // 빈 손 일 때 발사 금지
+	if (Value.Get<bool>() && CurrentWeaponType != EWeaponType::None && !bIsRun) // 빈 손 일 때, 달릴 때 발사 금지
 	{
 		auto Anim = Cast<UXVPlayerAnimInstance>(GetMesh()->GetAnimInstance());
 		if (Anim)
@@ -565,6 +570,11 @@ void AXVCharacter::Reload(const FInputActionValue& Value)
 	if (CurrentWeaponType != EWeaponType::None)
 	{		
 		UE_LOG(LogTemp, Warning, TEXT("Reload"));
+		auto Anim = Cast<UXVPlayerAnimInstance>(GetMesh()->GetAnimInstance());
+		if (Anim)
+		{
+			Anim->PlayReloadAnim();
+		}
 		//BPCurrentWeapon->Reload();
 	}
 }
