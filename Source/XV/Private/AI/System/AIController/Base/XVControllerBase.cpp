@@ -6,8 +6,8 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "AI/Character/Base/XVEnemyBase.h"
-#include "System/XVGameMode.h"
 #include "System/XVGameState.h"
+#include "System/GM_XVStartLevel.h"
 
 DEFINE_LOG_CATEGORY(Log_XV_AI);
 
@@ -168,9 +168,15 @@ void AXVControllerBase::OnTargetInfoUpdated(AActor* Actor, FAIStimulus Stimulus)
     DrawDebugString(GetWorld(), Actor->GetActorLocation() + FVector(0, 0, 100), StatusText, nullptr, bWasSuccessfullySensed ? FColor::Green : FColor::Red, 2.0f,true);
 	
 	// 게임모드 업데이트
-	if (AXVGameMode* GameMode = Cast<AXVGameMode>(GetWorld()->GetAuthGameMode()))
+	if (AGM_XVStartLevel* StartGameMode = Cast<AGM_XVStartLevel>(GetWorld()->GetAuthGameMode()))
 	{
-		GameMode->OnWaveTriggered();
+		if (!StartGameMode->IsOutdoor)
+		{
+			if (AXVBaseGameMode* BaseGameMode = Cast<AXVBaseGameMode>(GetWorld()->GetAuthGameMode()))
+			{
+				BaseGameMode->OnWaveTriggered();
+			}
+		}
 	}
 }
 
