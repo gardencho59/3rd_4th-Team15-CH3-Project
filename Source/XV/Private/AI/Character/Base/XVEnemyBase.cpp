@@ -9,6 +9,7 @@
 #include "AI/DebugTool/DebugTool.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "System/XVBaseGameMode.h"
+#include "Components/CapsuleComponent.h"
 
 AXVEnemyBase::AXVEnemyBase()
 	: RotateSpeed(480.f)
@@ -132,10 +133,39 @@ void AXVEnemyBase::GetDamage(float Damage)
 	
 	AXVControllerBase* AIController = Cast<AXVControllerBase>(GetController());
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+
 	
 	// ▼ 체력이 0 이하로 떨어졌을 때만 사망 처리!
 	if (AIStatusComponent->CurrentHealth() <= 0.f)
 	{
+		//
+		APawn* Pawn = AIController->GetPawn();
+		AXVEnemyBase* AIEnemy = Cast<AXVEnemyBase>(Pawn);
+		UCapsuleComponent* Capsule = AIEnemy->GetCapsuleComponent();
+		//
+		if (Capsule)
+		{
+			Capsule->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			Capsule->SetCanEverAffectNavigation(false);
+
+			// Mesh의 콜리전도 끄기
+			if (USkeletalMeshComponent* MeshComp = AIEnemy->GetMesh())
+			{
+				MeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			}
+
+			// 모든 MeshComponent의 콜리전 해제(자식까지 포함)
+			TArray<UMeshComponent*> MeshComps;
+			AIEnemy->GetComponents<UMeshComponent>(MeshComps);
+
+			for (UMeshComponent* Mesh_Comp : MeshComps)
+			{
+				Mesh_Comp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			}
+
+		}
+		//
+		
 		if(AXVBaseGameMode* BaseGameMode = GetWorld()->GetAuthGameMode<AXVBaseGameMode>())
 		{
 			UE_LOG(LogTemp, Warning, TEXT("OnEnemyKilled Succeed"));
