@@ -17,10 +17,6 @@ public:
 	virtual float Sub_Health(float Damage){return Health = Health - Damage;}
 	virtual float CurrentHealth(){return Health;}
 	
-private:
-	bool EnemyKilled = false;
-
-	
 	UPROPERTY(EditAnywhere, Category = "AI Status")
 	float Health;
 
