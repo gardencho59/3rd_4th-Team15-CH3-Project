@@ -1,6 +1,8 @@
 ﻿#include "AI/Notify/AI_PauseAnim.h"
 
 #include "AIController.h"
+#include "BrainComponent.h"
+#include "BehaviorTree/BehaviorTreeComponent.h"
 #include "GameFramework/Character.h"
 
 void UAI_PauseAnim::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration,const FAnimNotifyEventReference& EventReference)
@@ -27,11 +29,23 @@ void UAI_PauseAnim::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceB
 				if (AIController)
 				{
 					AIController->ClearFocus(EAIFocusPriority::Gameplay);
-					Character->Destroy();
+					
+					AIController->BrainComponent->StopLogic(TEXT("Dead"));
+
+					UBehaviorTreeComponent* BTComp = Cast<UBehaviorTreeComponent>(AIController->BrainComponent);
+					if (BTComp)
+					{
+						BTComp->StopTree(EBTStopMode::Safe); // 또는 ForceImmediate
+					}
+
+					// 타이머로 파괴
+					FTimerHandle DestroyTimerHandle;
+					if (UWorld* World = Character->GetWorld())
+					{
+						World->GetTimerManager().SetTimer(DestroyTimerHandle,[Character](){if (IsValid(Character)){Character->Destroy();}},DestroyDelayTime,false);
+					}
 				}
 			}
 		}
 	}
-
 }
-

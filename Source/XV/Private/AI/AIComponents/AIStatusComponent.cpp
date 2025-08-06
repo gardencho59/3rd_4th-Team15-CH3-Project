@@ -12,6 +12,6 @@ void UAIStatusComponent::TakeDamage(float Damage)
 	Health -= Damage;
 	if (Health <= 0)
 	{
-		GetOwner()->Destroy();
+		Health = 0;
 	}
 }
