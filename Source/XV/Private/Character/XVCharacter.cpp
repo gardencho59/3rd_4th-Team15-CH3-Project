@@ -35,9 +35,10 @@ AXVCharacter::AXVCharacter()
 	bIsSit = false;
 	bIsAim = false;
 	bIsZooming = false;
+	bIsDie = false;
 
 	GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
-
+	
 	// 메인 무기 == Rifle or Shotgun
 	PrimaryWeaponOffset = CreateDefaultSubobject<USceneComponent>(TEXT("PrimaryWeaponOffset"));
 	PrimaryWeaponOffset->SetupAttachment(GetMesh(), TEXT("Rifle_Unequipped"));
@@ -92,19 +93,43 @@ void AXVCharacter::AddDamage(float Value)
 	
 	if (CurrentHealth <= 0.0f)
 	{
-		Die();
+		if (!bIsDie)
+		{
+			Die();
+		}
 	}
 }
 
 void AXVCharacter::Die()
 {
-	AXVBaseGameMode* XVBaseGameMode = Cast<AXVBaseGameMode>(GetWorld()->GetAuthGameMode());
-	auto Anim = Cast<UXVPlayerAnimInstance>(GetMesh()->GetAnimInstance());
-	if (Anim)
+	bIsDie = true;
+	if (APlayerController* XVPlayerController = Cast<APlayerController>(GetController()))
+	{
+		UE_LOG(LogTemp, Log, TEXT("PlayerController: %s"), *XVPlayerController->GetName());
+		XVPlayerController->DisableInput(XVPlayerController);
+	}
+	
+	if (auto Anim = Cast<UXVPlayerAnimInstance>(GetMesh()->GetAnimInstance()))
 	{
 		Anim->PlayDieAnim();
 	}
-	XVBaseGameMode->EndGame(false);
+
+	GetWorldTimerManager().SetTimer(
+	DieTimerHandle,
+	this,
+	&AXVCharacter::OnDieAnimationFinished,
+	2.0f,
+	false
+	);
+}
+
+void AXVCharacter::OnDieAnimationFinished()
+{
+	UE_LOG(LogTemp, Warning, TEXT("EndGame"));
+	if (AXVBaseGameMode* XVBaseGameMode = Cast<AXVBaseGameMode>(GetWorld()->GetAuthGameMode()))
+	{
+		XVBaseGameMode->EndGame(false);
+	}
 }
 
 void AXVCharacter::SetWeapon(EWeaponType Weapon)
@@ -190,7 +215,7 @@ void AXVCharacter::OnBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* O
 {
 	if (OtherActor)
 	{
-		UE_LOG(LogTemp, Log, TEXT("Overlap Actor: %s"), *OtherActor->GetName());
+		//UE_LOG(LogTemp, Log, TEXT("Overlap Actor: %s"), *OtherActor->GetName());
 		// 엘리베이터 클래스인지 확인
 		AElevatorDoor* OverlapElevator = Cast<AElevatorDoor>(OtherActor);
 		if (OverlapElevator)
@@ -206,7 +231,7 @@ void AXVCharacter::OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor
 {
 	if (OtherActor)
 	{
-		UE_LOG(LogTemp, Log, TEXT("End Overlap Actor: %s"), *OtherActor->GetName());
+		//UE_LOG(LogTemp, Log, TEXT("End Overlap Actor: %s"), *OtherActor->GetName());
 		// 엘리베이터 클래스인지 확인
 		if (AElevatorDoor* OverlapElevator = Cast<AElevatorDoor>(OtherActor))
 		{			
@@ -403,6 +428,7 @@ void AXVCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 
 void AXVCharacter::Move(const FInputActionValue& Value)
 {
+	if (bIsDie) return;
     if (!Controller) return;
     
     const FVector2D MoveInput = Value.Get<FVector2D>();
@@ -428,6 +454,7 @@ void AXVCharacter::Move(const FInputActionValue& Value)
 
 void AXVCharacter::StartJump(const FInputActionValue& Value)
 {
+	if (bIsDie) return;
 	if (Value.Get<bool>() && !bIsSit)
 	{
 		Jump();
@@ -436,6 +463,7 @@ void AXVCharacter::StartJump(const FInputActionValue& Value)
 
 void AXVCharacter::StopJump(const FInputActionValue& Value)
 {
+	if (bIsDie) return;
 	if (!Value.Get<bool>())
 	{
 		StopJumping();
@@ -444,6 +472,7 @@ void AXVCharacter::StopJump(const FInputActionValue& Value)
 
 void AXVCharacter::Look(const FInputActionValue& Value)
 {
+	if (bIsDie) return;
 	FVector2D LookInput = Value.Get<FVector2D>();
 	
 	AddControllerYawInput(LookInput.X);
@@ -453,6 +482,7 @@ void AXVCharacter::Look(const FInputActionValue& Value)
 
 void AXVCharacter::StartSprint(const FInputActionValue& Value)
 {
+	if (bIsDie) return;
 	if (GetCharacterMovement() && !bIsSit)
 	{
 		GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
@@ -462,12 +492,14 @@ void AXVCharacter::StartSprint(const FInputActionValue& Value)
 
 void AXVCharacter::StopSprint(const FInputActionValue& Value)
 {
+	if (bIsDie) return;
 	GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
 	bIsRun = false;
 }
 
 void AXVCharacter::Fire(const FInputActionValue& Value)
 {
+	if (bIsDie) return;
 	if (Value.Get<bool>() && CurrentWeaponType != EWeaponType::None && !bIsRun) // 빈 손 일 때, 달릴 때 발사 금지
 	{
 		auto Anim = Cast<UXVPlayerAnimInstance>(GetMesh()->GetAnimInstance());
@@ -500,6 +532,7 @@ void AXVCharacter::Fire(const FInputActionValue& Value)
 
 void AXVCharacter::Sit(const FInputActionValue& Value)
 {
+	if (bIsDie) return;
 	if (GetCharacterMovement())
 	{
 		if (!bIsSit)
@@ -577,6 +610,7 @@ void AXVCharacter::UpdateZoom()
 
 void AXVCharacter::PickUpWeapon(const FInputActionValue& Value)
 {
+	if (bIsDie) return;
 	if (Value.Get<bool>())
 	{
 		if (CurrentOverlappingWeapon)
@@ -598,18 +632,21 @@ void AXVCharacter::PickUpWeapon(const FInputActionValue& Value)
 
 void AXVCharacter::ChangeToMainWeapon(const FInputActionValue& Value)
 {
+	if (bIsDie) return;
 	UE_LOG(LogTemp, Warning, TEXT("Change To MainWeapon"));
 	SetWeapon(MainWeaponType);
 }
 
 void AXVCharacter::ChangeToSubWeapon(const FInputActionValue& Value)
 {
+	if (bIsDie) return;
 	UE_LOG(LogTemp, Warning, TEXT("Change To SubWeapon"));
 	SetWeapon(SubWeaponType);
 }
 
 void AXVCharacter::OpenDoor(const FInputActionValue& Value)
 {
+	if (bIsDie) return;
 	if (Elevator)
 	{
 		Elevator->OpenDoor();
@@ -618,6 +655,7 @@ void AXVCharacter::OpenDoor(const FInputActionValue& Value)
 
 void AXVCharacter::Reload(const FInputActionValue& Value)
 {
+	if (bIsDie) return;
 	if (CurrentWeaponType != EWeaponType::None)
 	{		
 		UE_LOG(LogTemp, Warning, TEXT("Reload"));
