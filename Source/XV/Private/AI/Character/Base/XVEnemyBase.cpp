@@ -136,7 +136,16 @@ void AXVEnemyBase::GetDamage(float Damage)
 	// ▼ 체력이 0 이하로 떨어졌을 때만 사망 처리!
 	if (AIStatusComponent->CurrentHealth() <= 0.f)
 	{
-
+		if(AXVBaseGameMode* BaseGameMode = GetWorld()->GetAuthGameMode<AXVBaseGameMode>())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("OnEnemyKilled Succeed"));
+			BaseGameMode->OnEnemyKilled();
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("OnEnemyKilled failed"));
+		}
+		
 		bIsDead = true;
 
 		AIController->AIBlackBoard->SetValueAsBool(TEXT("bIsDead"), true);
@@ -190,7 +199,7 @@ void AXVEnemyBase::GetDamage(float Damage)
 		return;
 	}
 	
-	// 기본 : 50% 확률로 애니메이션 실행
+	// 기본 : 10% 확률로 애니메이션 실행
 	if (AIStatusComponent->CurrentHealth() > 10.f && false == bIsAvoid && FMath::FRand() < AvoidChance)
 	{
 		AIController->AIBlackBoard->SetValueAsBool(TEXT("bIsAvoiding"), true);
@@ -214,10 +223,23 @@ void AXVEnemyBase::GetDamage(float Damage)
 		
 		FOnMontageEnded PainMontageEndedDelegate;
 		PainMontageEndedDelegate.BindLambda([this](UAnimMontage*, bool){OnDamageEnded();});
-				
-		AnimInstance->Montage_Play(PainMontage);
-		AnimInstance->Montage_SetEndDelegate(PainMontageEndedDelegate, PainMontage);
-		AnimInstance->Montage_SetPlayRate(PainMontage, 1.0f);
+
+		// PainMontages에 하나라도 있으면
+		if (PainMontages.Num() > 0)
+		{
+			int32 Index = FMath::RandRange(0, PainMontages.Num() - 1);
+			UAnimMontage* SelectedMontage = PainMontages[Index];
+
+			if (SelectedMontage)
+			{
+				if (AnimInstance)
+				{
+					AnimInstance->Montage_Play(SelectedMontage);
+					AnimInstance->Montage_SetEndDelegate(PainMontageEndedDelegate, SelectedMontage);
+					AnimInstance->Montage_SetPlayRate(SelectedMontage, 1.0f);
+				}
+			}
+		}
 		// ▲ 맞으면 피격 처리 몽타주 재생 로직
 	}
 	

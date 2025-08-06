@@ -2,6 +2,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "NiagaraSystem.h"
+
 #include "XVEnemyBase.generated.h"
 
 class AAIWeaponBase;
@@ -22,7 +24,7 @@ protected:
 	virtual void Destroyed() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
-// === 컴포넌트 ========================================================================================================//
+	// === 컴포넌트 ========================================================================================================//
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
 	TObjectPtr<UAIConfigComponent> AIConfigComponent;
@@ -94,8 +96,8 @@ public:
 	UAnimMontage* DeathMontage; // 죽는 애니메이션
 
 	UPROPERTY(EditDefaultsOnly, Category=Animation)
-	UAnimMontage* PainMontage; // 피격 애니메이션
-
+	TArray<UAnimMontage*> PainMontages;
+	
 	// 회피 애니메이션
 	UPROPERTY(EditDefaultsOnly, Category = Animation)
 	UAnimMontage* AvoidMontageLeft;
@@ -121,6 +123,5 @@ protected:
 
 	UPROPERTY()
 	AXVControllerBase* CachedAIController;
-
-
+	
 };

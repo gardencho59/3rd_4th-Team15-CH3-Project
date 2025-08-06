@@ -5,9 +5,12 @@
 #include "AI/AIComponents/AIStatusComponent.h"
 #include "Engine/World.h"
 #include "DrawDebugHelpers.h"
+#include "NiagaraFunctionLibrary.h"
 #include "AI/System/AIController/Base/XVControllerBase.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "NiagaraSystem.h"
+#include "Sound/SoundBase.h"
 
 void URangedCheckHit::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference)
 {
@@ -94,6 +97,7 @@ void URangedCheckHit::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenc
             float RandomValue = FMath::FRand();
             if (RandomValue < HitProbability)
             {
+                PlayHitEffects(Enemy->GetWorld(), Start);
                 float Damage = 10.f;
                 if (UAIStatusComponent* Status = Enemy->FindComponentByClass<UAIStatusComponent>())
                     Damage = Status->AttackDamage;
@@ -107,4 +111,37 @@ void URangedCheckHit::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenc
         }
     }
     // 아무도 맞지 않으면 미스 처리 (사운드 등)
+}
+
+
+void URangedCheckHit::PlayHitEffects(UWorld* World, const FVector& SpawnLocation)
+{
+    if (!World) return;
+
+    if (NiagaraEffect_Muzzle)
+    {
+        UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+            World,
+            NiagaraEffect_Muzzle,
+            SpawnLocation
+        );
+    }
+    if (NiagaraEffect_Flash)
+    {
+        UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+            World,
+            NiagaraEffect_Flash,
+            SpawnLocation
+        );
+    }
+
+    if (HitSound)
+    {
+        UGameplayStatics::PlaySoundAtLocation(
+            World,
+            HitSound,
+            SpawnLocation
+        );
+    }
+
 }
