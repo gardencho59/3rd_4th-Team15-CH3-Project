@@ -1,7 +1,11 @@
 ﻿#include "AI/Notify/AI_PauseAnim.h"
 
 #include "AIController.h"
+#include "BrainComponent.h"
+#include "BehaviorTree/BehaviorTreeComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "GameFramework/Character.h"
+#include "GameFramework/Actor.h"
 
 void UAI_PauseAnim::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration,const FAnimNotifyEventReference& EventReference)
 {
@@ -27,11 +31,47 @@ void UAI_PauseAnim::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceB
 				if (AIController)
 				{
 					AIController->ClearFocus(EAIFocusPriority::Gameplay);
-					Character->Destroy();
+					
+					AIController->BrainComponent->StopLogic(TEXT("Dead"));
+
+					UBehaviorTreeComponent* BTComp = Cast<UBehaviorTreeComponent>(AIController->BrainComponent);
+					if (BTComp)
+					{
+						BTComp->StopTree(EBTStopMode::Safe); // 또는 ForceImmediate
+					}
+					UCapsuleComponent* Capsule = Character->GetCapsuleComponent();
+					if (Capsule)
+					{
+						Capsule->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+						Capsule->SetCanEverAffectNavigation(false);
+
+						// Mesh의 콜리전도 끄기
+						if (USkeletalMeshComponent* Mesh = Character->GetMesh())
+						{
+							Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+						}
+
+						// 모든 MeshComponent의 콜리전 해제(자식까지 포함)
+						TArray<UMeshComponent*> MeshComps;
+						Character->GetComponents<UMeshComponent>(MeshComps);
+
+						for (UMeshComponent* Mesh_Comp : MeshComps)
+						{
+							Mesh_Comp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+						}
+
+					}
+
+					// 타이머로 파괴
+					FTimerHandle DestroyTimerHandle;
+					if (UWorld* World = Character->GetWorld())
+					{
+						World->GetTimerManager().SetTimer(DestroyTimerHandle,[Character](){if (IsValid(Character)){Character->Destroy();}},DestroyDelayTime,false);
+					}
 				}
+				
 			}
 		}
 	}
-
 }
 

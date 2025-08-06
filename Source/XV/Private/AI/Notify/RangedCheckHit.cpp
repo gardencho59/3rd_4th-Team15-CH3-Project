@@ -5,6 +5,9 @@
 #include "AI/AIComponents/AIStatusComponent.h"
 #include "Engine/World.h"
 #include "DrawDebugHelpers.h"
+#include "AI/System/AIController/Base/XVControllerBase.h"
+#include "BehaviorTree/BlackboardComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 void URangedCheckHit::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference)
 {
@@ -16,10 +19,22 @@ void URangedCheckHit::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenc
     AXVEnemyBase* Enemy = Cast<AXVEnemyBase>(Owner);
     if (!Enemy) return;
 
-    FVector Start = Enemy->GetActorLocation() + Enemy->GetActorForwardVector() * 80.0f;
-    FVector End = Start + Enemy->GetActorForwardVector() * TraceDistance;
+    AXVControllerBase* AIController = Cast<AXVControllerBase>(Enemy->GetController());
+    bool CheckAvoiding = AIController ? AIController->AIBlackBoard->GetValueAsBool(TEXT("bIsAvoiding")) : false;
 
-    FRotator Orientation = Enemy->GetActorRotation();
+    if (CheckAvoiding)
+    {
+        return;
+    }
+
+    // 플레이어 캐릭터를 찾음 (싱글플레이 기준)
+    AXVCharacter* PlayerChar = Cast<AXVCharacter>(UGameplayStatics::GetPlayerCharacter(Enemy->GetWorld(), 0));
+    if (!PlayerChar) return;
+
+    FVector Start = Enemy->GetActorLocation() + Enemy->GetActorForwardVector() * 80.0f;
+    FVector End = PlayerChar->GetActorLocation();
+
+    FRotator Orientation = (End - Start).Rotation();
 
     // 트레이스 박스 시각화용
     DrawDebugBox(Enemy->GetWorld(), Start, BoxHalfSize, Orientation.Quaternion(), FColor::Blue, false, 2.0f, 0, 2.0f);
@@ -61,24 +76,21 @@ void URangedCheckHit::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenc
                 BlockCheckHit,
                 TraceStart,
                 TraceEnd,
-                ECollisionChannel::ECC_Visibility, // 벽 체크: 프로젝트에 맞게 채널 지정
+                ECollisionChannel::ECC_Visibility,
                 FCollisionQueryParams(FName(TEXT("RangedHitBlock")), false, Enemy)
             );
 
-            // 디버그: 벽에 막히는지 확인
             DrawDebugLine(Enemy->GetWorld(),
                 TraceStart,
                 TraceEnd,
                 bBlocked ? FColor::Red : FColor::Green,
                 false, 2.0f, 0, 2.5f);
 
-            // (A) 벽에 막혀있다면(맞는 캐릭터 이전에 막는 액터가 있다면) 명중X
             if (bBlocked && (BlockCheckHit.GetActor() != Character))
             {
-                continue; // 넘어감 (다음 캐릭터 Hit 검사)
+                continue;
             }
 
-            // (B) 명중 확률 체크
             float RandomValue = FMath::FRand();
             if (RandomValue < HitProbability)
             {

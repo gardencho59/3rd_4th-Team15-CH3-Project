@@ -14,6 +14,8 @@ class XV_API UAI_PauseAnim : public UAnimNotifyState
 public:
 	virtual void NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference) override;
 
+	UPROPERTY(EditAnywhere, Category = "Destroy")
+	float DestroyDelayTime = 10.0f;
 
 
 };
