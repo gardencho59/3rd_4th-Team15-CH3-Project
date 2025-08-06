@@ -17,18 +17,6 @@ ATestGun::ATestGun()
 void ATestGun::BeginPlay()
 {
     Super::BeginPlay();
-    
-    // 자동 발사 시작
-    if (bAutoFire)
-    {
-        GetWorld()->GetTimerManager().SetTimer(
-            AutoFireTimerHandle,
-            this,
-            &ATestGun::AutoFireTimerCallback,
-            AutoFireRate,
-            true
-        );
-    }
 }
 
 void ATestGun::FireBullet()
@@ -128,12 +116,6 @@ void ATestGun::FireBullet()
     {
         UE_LOG(LogTemp, Error, TEXT("ProjectileClass is NULL!"));
     }
-}
-
-
-void ATestGun::AutoFireTimerCallback()
-{
-    FireBullet();
 }
 
 void ATestGun::Reload()

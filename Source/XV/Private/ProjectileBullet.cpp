@@ -61,9 +61,17 @@ void AProjectileBullet::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
 		{
 			Enemy->GetDamage(100.f);
 		}
-		
+		 
 		// 프렉처 관련 오류 남
-		OtherComp->AddImpulseAtLocation(GetVelocity() * 1000.0f, Hit.ImpactPoint);
+		if (OtherComp && OtherComp->IsSimulatingPhysics())
+		{
+			FVector Impulse = GetVelocity() * 1000.0f;
+			OtherComp->AddImpulseAtLocation(Impulse, Hit.ImpactPoint);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("No physics applied to %s (Static or no SimulatePhysics)"), *OtherComp->GetName());
+		}
 		
 		// 충돌 확인 로그
 		UE_LOG(LogTemp, Warning, TEXT("Bullet HIT: %s"), *OtherActor->GetName());
