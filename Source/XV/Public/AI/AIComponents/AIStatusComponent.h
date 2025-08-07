@@ -24,4 +24,13 @@ public:
 	UPROPERTY(EditAnywhere, Category = "AI Status")
 	float AttackDamage;
 
+private:
+	float DamagedAmount;
+public:
+	/* 이거 UI에 호출하는 거 아님*/
+	float D_Gettter(float Damage){return DamagedAmount = Damage;}
+
+public:
+	/*UI 용 데미지 받은 양 호출 함수*/
+	float DamageAmount(){return DamagedAmount;}
 };
