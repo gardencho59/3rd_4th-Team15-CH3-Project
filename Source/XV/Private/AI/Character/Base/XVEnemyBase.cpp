@@ -10,6 +10,7 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "System/XVBaseGameMode.h"
 #include "Components/CapsuleComponent.h"
+#include "Perception/AIPerceptionComponent.h"
 
 AXVEnemyBase::AXVEnemyBase()
 	: RotateSpeed(480.f)
@@ -138,6 +139,8 @@ void AXVEnemyBase::GetDamage(float Damage)
 	// ▼ 체력이 0 이하로 떨어졌을 때만 사망 처리!
 	if (AIStatusComponent->CurrentHealth() <= 0.f)
 	{
+		AIController->AIPerception->SetActive(false);
+
 		//
 		APawn* Pawn = AIController->GetPawn();
 		AXVEnemyBase* AIEnemy = Cast<AXVEnemyBase>(Pawn);
