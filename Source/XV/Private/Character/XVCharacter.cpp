@@ -3,7 +3,7 @@
 #include "Character/XVPlayerAnimInstance.h"
 #include "EnhancedInputComponent.h"
 #include "Camera/CameraComponent.h"
-#include "BaseGun.h"
+#include "Weapon/GunBase.h"
 #include "World/ElevatorDoor.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -156,8 +156,8 @@ void AXVCharacter::SetWeapon(EWeaponType Weapon)
 		SubWeaponOffset->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("Pistol_Equipped"));
 		PrimaryWeaponOffset->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("Rifle_Unequipped"));
 
-		CurrentWeaponActor = Cast<ABaseGun>(SubWeapon->GetChildActor());
-		Anim->PlayGunChangeAnim();
+		CurrentWeaponActor = Cast<AGunBase>(SubWeapon->GetChildActor());
+		Anim->PlayWeaponEquipAnim(CurrentWeaponActor);
 		break;
 		
 	case EWeaponType::Rifle:
@@ -165,8 +165,8 @@ void AXVCharacter::SetWeapon(EWeaponType Weapon)
 		SubWeaponOffset->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("Pistol_Unequipped"));
 		PrimaryWeaponOffset->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("Rifle_Equipped"));
 
-		CurrentWeaponActor = Cast<ABaseGun>(PrimaryWeapon->GetChildActor());
-		Anim->PlayGunChangeAnim();
+		CurrentWeaponActor = Cast<AGunBase>(PrimaryWeapon->GetChildActor());
+		Anim->PlayWeaponEquipAnim(CurrentWeaponActor);
 		break;
 
 	case EWeaponType::ShotGun:
@@ -179,8 +179,8 @@ void AXVCharacter::SetWeapon(EWeaponType Weapon)
 		SubWeaponOffset->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("Pistol_Unequipped"));
 		PrimaryWeaponOffset->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("Rifle_Unequipped"));
 
-		CurrentWeaponActor = Cast<ABaseGun>(SubWeapon->GetChildActor());
-		Anim->PlayGunChangeAnim();
+		CurrentWeaponActor = Cast<AGunBase>(SubWeapon->GetChildActor());
+		Anim->PlayWeaponUnequipAnim();
 		break;
 	}
 }
@@ -244,19 +244,19 @@ void AXVCharacter::OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor
 	}
 }
 
-void AXVCharacter::OnWeaponOverlapBegin(ABaseGun* Weapon)
+void AXVCharacter::OnWeaponOverlapBegin(AGunBase* Weapon)
 {
 	CurrentOverlappingWeapon = Weapon;
 
 	if (Weapon)
 	{
 		//CurrentWeaponType = Weapon->GetWeaponType();
-		FString WeaponTypeName = UEnum::GetValueAsString(Weapon->GetWeaponType());
-		UE_LOG(LogTemp, Log, TEXT("Overlapping Weapon Type: %s"), *WeaponTypeName);
+		//FString WeaponTypeName = UEnum::GetValueAsString(Weapon->GetWeaponType());
+		//UE_LOG(LogTemp, Log, TEXT("Overlapping Weapon Type: %s"), *WeaponTypeName);
 	}
 }
 
-void AXVCharacter::OnWeaponOverlapEnd(const ABaseGun* Weapon)
+void AXVCharacter::OnWeaponOverlapEnd(const AGunBase* Weapon)
 {
 	if (CurrentOverlappingWeapon == Weapon)
 	{
@@ -505,7 +505,7 @@ void AXVCharacter::Fire(const FInputActionValue& Value)
 		auto Anim = Cast<UXVPlayerAnimInstance>(GetMesh()->GetAnimInstance());
 		if (Anim)
 		{
-			Anim->PlayAttackAnim();
+			Anim->PlayAttackAnim(CurrentWeaponActor);
 		}
 
 		if (CurrentWeaponActor)
@@ -534,12 +534,12 @@ void AXVCharacter::Sit(const FInputActionValue& Value)
 {
 	if (bIsDie) return;
 	if (GetCharacterMovement())
-	{
+	{		
 		if (!bIsSit)
-		{
-		
+		{		
 			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, TEXT("Sit"));
 			GetCharacterMovement()->MaxWalkSpeed = SitSpeed;
+			bIsRun = false;
 			bIsSit = true;
 		}
 		else
@@ -548,7 +548,34 @@ void AXVCharacter::Sit(const FInputActionValue& Value)
 			GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
 			bIsSit = false;
 		}
+		if (!bIsSetCameraOffset)
+		{
+			bIsSetCameraOffset = true;
+			GetWorld()->GetTimerManager().SetTimer(
+				CameraOffsetTimerHandle,
+				this,
+				&AXVCharacter::UpdateCameraOffset,
+				0.01f,
+				true
+			);
+		}
 	}	
+}
+
+void AXVCharacter::UpdateCameraOffset()
+{
+	FVector TargetOffset = bIsSit ? SitCameraOffset : StandCameraOffset;
+	FVector CurrentOffset = SpringArmComp->SocketOffset;
+
+	FVector NewOffset = FMath::VInterpTo(CurrentOffset, TargetOffset, GetWorld()->GetDeltaSeconds(), CameraOffsetInterpSpeed);
+	SpringArmComp->SocketOffset = NewOffset;
+
+	if (FVector::Dist(NewOffset, TargetOffset) < 1.f)
+	{
+		SpringArmComp->SocketOffset = TargetOffset;
+		GetWorld()->GetTimerManager().ClearTimer(CameraOffsetTimerHandle);
+		bIsSetCameraOffset = false;
+	}
 }
 
 void AXVCharacter::StartZoom(const FInputActionValue& Value)
@@ -615,8 +642,9 @@ void AXVCharacter::PickUpWeapon(const FInputActionValue& Value)
 	{
 		if (CurrentOverlappingWeapon)
 		{
+			UE_LOG(LogTemp, Log, TEXT("PickUp"));
 			// 메인 총 및 현재 장착 총 변경
-			MainWeaponType = CurrentOverlappingWeapon->GetWeaponType();
+			/*MainWeaponType = CurrentOverlappingWeapon->GetWeaponType();
 			CurrentWeaponType = MainWeaponType;
 			UE_LOG(LogTemp, Log, TEXT("Picked up Weapon Type: %d"), (uint8)CurrentWeaponType);
 
@@ -625,7 +653,7 @@ void AXVCharacter::PickUpWeapon(const FInputActionValue& Value)
 			// 무기 액터 파괴
 			CurrentOverlappingWeapon->Destroy();
 			// 무기 획득 후 오버랩 무기 초기화
-			CurrentOverlappingWeapon = nullptr;
+			CurrentOverlappingWeapon = nullptr;*/
 		}
 	}
 }
@@ -662,7 +690,7 @@ void AXVCharacter::Reload(const FInputActionValue& Value)
 		auto Anim = Cast<UXVPlayerAnimInstance>(GetMesh()->GetAnimInstance());
 		if (Anim)
 		{
-			Anim->PlayReloadAnim();
+			Anim->PlayReloadAnim(CurrentWeaponActor);
 		}
 		//BPCurrentWeapon->Reload();
 	}
