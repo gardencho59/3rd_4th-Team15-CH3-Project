@@ -1,4 +1,4 @@
-#include "PistolRifleGun.h"
+#include "Weapon/PistolRifleGun.h"
 #include "Kismet/GameplayStatics.h"
 
 APistolRifleGun::APistolRifleGun()

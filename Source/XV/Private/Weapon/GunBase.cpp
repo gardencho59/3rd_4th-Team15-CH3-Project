@@ -1,6 +1,6 @@
-#include "GunBase.h"
+#include "Weapon/GunBase.h"
 #include "Kismet/GameplayStatics.h"
-#include "ProjectileBullet.h"
+#include "Weapon/ProjectileBullet.h"
 #include "NiagaraFunctionLibrary.h"
 
 AGunBase::AGunBase()

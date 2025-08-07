@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataTable.h"
-#include "WeaponTypes.h"
+#include "Weapon/WeaponTypes.h"
 #include "WeaponAnimRow.generated.h"
 
 USTRUCT(BlueprintType)
