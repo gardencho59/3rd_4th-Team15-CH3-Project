@@ -16,7 +16,6 @@ public:
     ATestGun();
 
     virtual void FireBullet() override;
-    void ProjectileBullet();
     virtual void Reload() override;
     virtual FName GetGunType() const override;
 
