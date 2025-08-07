@@ -1,4 +1,4 @@
-#include "BaseGun.h"
+#include "Weapon/BaseGun.h"
 
 ABaseGun::ABaseGun()
 {
