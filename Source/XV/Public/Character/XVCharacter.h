@@ -4,13 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "WeaponTypes.h"
+#include "Weapon/WeaponTypes.h"
 #include "XVCharacter.generated.h"
 
 class AElevatorDoor;
 class USpringArmComponent;
 class UCameraComponent;
-class ABaseGun;
+class AGunBase;
 
 UCLASS()
 class XV_API AXVCharacter : public ACharacter
@@ -55,6 +55,15 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
 	float ZoomCameraLength;
 
+	// 카메라 앉기 관련 변수들
+	UPROPERTY(EditDefaultsOnly, Category = "Camera")
+	FVector StandCameraOffset = FVector(0.f, 0.f, 0.f);  // 서 있을 때 카메라 높이
+	UPROPERTY(EditDefaultsOnly, Category = "Camera")
+	FVector SitCameraOffset = FVector(0.f, 0.f, -80.f);
+	UPROPERTY(EditDefaultsOnly, Category = "Camera")
+	float CameraOffsetInterpSpeed = 5.f; // 보간 속도
+	FTimerHandle CameraOffsetTimerHandle;
+	bool bIsSetCameraOffset = false;
 	// 카메라 줌 관련 변수들
 	UPROPERTY(EditDefaultsOnly, Category = "Camera")
 	float ZoomInterpSpeed = 10.f;
@@ -73,7 +82,6 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	bool bIsRun;	
 
-
 	// 주 무기 타입
 	UPROPERTY(BlueprintReadOnly, Category="Weapon")
 	EWeaponType MainWeaponType;
@@ -90,13 +98,13 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	USceneComponent* SubWeaponOffset;
 	UPROPERTY()
-	TSubclassOf<ABaseGun> BPPrimaryWeapon;
+	TSubclassOf<AGunBase> BPPrimaryWeapon;
 	UPROPERTY()
-	TSubclassOf<ABaseGun> BPSubWeapon;
+	TSubclassOf<AGunBase> BPSubWeapon;
 	UPROPERTY()	//현재 장착하고 있는 무기 BP
-	ABaseGun* CurrentWeaponActor; 
+	AGunBase* CurrentWeaponActor; 
 	UPROPERTY()
-	ABaseGun* CurrentOverlappingWeapon;	
+	AGunBase* CurrentOverlappingWeapon;	
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Overlap")
 	AElevatorDoor* Elevator;	
@@ -119,6 +127,7 @@ protected:
 	void Fire(const FInputActionValue& Value);
 	UFUNCTION()
 	void Sit(const FInputActionValue& Value);
+	void UpdateCameraOffset();
 	UFUNCTION()
 	void StartZoom(const FInputActionValue& Value);
 	UFUNCTION()
@@ -151,9 +160,9 @@ protected:
 		int32 OtherBodyIndex);
 
 	// 오버랩 시작 함수
-	void OnWeaponOverlapBegin(ABaseGun* Weapon);
+	void OnWeaponOverlapBegin(AGunBase* Weapon);
 	// 오버랩 끝 함수
-	void OnWeaponOverlapEnd(const ABaseGun* Weapon);
+	void OnWeaponOverlapEnd(const AGunBase* Weapon);
 
 private:
 	// 캐릭터 스테이터스
