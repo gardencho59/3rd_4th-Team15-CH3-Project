@@ -91,6 +91,11 @@ void AXVControllerBase::Tick(float DeltaSeconds)
 	Super::Tick(DeltaSeconds);
 	
 	APawn* ControlledPawn = GetPawn();
+
+	AXVEnemyBase* Controll_AI = Cast<AXVEnemyBase>(ControlledPawn);
+
+	if (true == Controll_AI->bIsDead) return;
+	
 	FVector MyLocation = ControlledPawn->GetActorLocation();
 
 	//[1] 본인 위치 실시간 업데이트
@@ -136,6 +141,12 @@ void AXVControllerBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void AXVControllerBase::OnTargetInfoUpdated(AActor* Actor, FAIStimulus Stimulus)
 {
+	APawn* ControlledPawn = GetPawn();
+	
+	AXVEnemyBase* Controll_AI = Cast<AXVEnemyBase>(ControlledPawn);
+
+	if (true == Controll_AI->bIsDead) return;
+	
 	// 액터 감지 되지 않았거나 블랙보드 없는지 확인
     if (!Actor || !AIBlackBoard)
     {
