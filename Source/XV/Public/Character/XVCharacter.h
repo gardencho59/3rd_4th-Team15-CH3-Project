@@ -170,5 +170,6 @@ private:
 	float MaxHealth;
 	float TurnRate;
 	bool bIsDie;
+	bool bIsLookLeft;
 	FTimerHandle DieTimerHandle;
 };
