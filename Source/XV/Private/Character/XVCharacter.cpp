@@ -15,7 +15,7 @@ AXVCharacter::AXVCharacter()
 {
 	PrimaryActorTick.bCanEverTick = false;		
 	
-	DefaultCameraLength = 250.0f;
+	DefaultCameraLength = 150.0f;
 	ZoomCameraLength = 100.0f;
 	
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
@@ -217,8 +217,7 @@ void AXVCharacter::OnBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* O
 	{
 		//UE_LOG(LogTemp, Log, TEXT("Overlap Actor: %s"), *OtherActor->GetName());
 		// 엘리베이터 클래스인지 확인
-		AElevatorDoor* OverlapElevator = Cast<AElevatorDoor>(OtherActor);
-		if (OverlapElevator)
+		if (AElevatorDoor* OverlapElevator = Cast<AElevatorDoor>(OtherActor))
 		{
 			Elevator = OverlapElevator;
 			UE_LOG(LogTemp, Log, TEXT("Elevator: %s"), *Elevator->GetName());
@@ -233,7 +232,7 @@ void AXVCharacter::OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor
 	{
 		//UE_LOG(LogTemp, Log, TEXT("End Overlap Actor: %s"), *OtherActor->GetName());
 		// 엘리베이터 클래스인지 확인
-		if (AElevatorDoor* OverlapElevator = Cast<AElevatorDoor>(OtherActor))
+		if (Elevator == Cast<AElevatorDoor>(OtherActor))
 		{			
 			Elevator = nullptr;
 			if (!Elevator)
@@ -348,7 +347,7 @@ void AXVCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	    		// IA_Zoom 마우스 우클릭 할 때 StartZoom() 호출
 	    		EnhancedInput->BindAction(
 					PlayerController->ZoomAction,
-					ETriggerEvent::Triggered,
+					ETriggerEvent::Started,
 					this,
 					&AXVCharacter::StartZoom
 				);
@@ -477,12 +476,22 @@ void AXVCharacter::Look(const FInputActionValue& Value)
 	
 	AddControllerYawInput(LookInput.X);
 	AddControllerPitchInput(LookInput.Y);
+	if (LookInput.X > 0.f)
+	{
+		// 오른쪽으로 회전 중
+		bIsLookLeft = false;
+	}
+	else if (LookInput.X < 0.f)
+	{
+		// 왼쪽으로 회전 중
+		bIsLookLeft = true;
+	}
 	TurnRate = FMath::Clamp(LookInput.X, -1 ,1);
 }
 
 void AXVCharacter::StartSprint(const FInputActionValue& Value)
 {
-	if (bIsDie) return;
+	if (bIsDie || CurrentWeaponActor->IsReloading()) return;
 	if (GetCharacterMovement() && !bIsSit)
 	{
 		GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
@@ -510,7 +519,6 @@ void AXVCharacter::Fire(const FInputActionValue& Value)
 
 		if (CurrentWeaponActor)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, TEXT("Fire"));
 			CurrentWeaponActor->FireBullet();
 		}
 
@@ -580,9 +588,8 @@ void AXVCharacter::UpdateCameraOffset()
 
 void AXVCharacter::StartZoom(const FInputActionValue& Value)
 {
-	if (Value.Get<bool>())
-	{
 		bIsAim = true;
+		UE_LOG(LogTemp, Log, TEXT("Is Look Left %s"), bIsLookLeft ? TEXT("True") : TEXT("False"));
 
 		if (!bIsZooming)
 		{
@@ -595,7 +602,6 @@ void AXVCharacter::StartZoom(const FInputActionValue& Value)
 				true
 			);
 		}
-	}
 }
 
 void AXVCharacter::StopZoom(const FInputActionValue& Value)
@@ -620,16 +626,38 @@ void AXVCharacter::StopZoom(const FInputActionValue& Value)
 
 void AXVCharacter::UpdateZoom()
 {
+	// 줌 거리 보간
 	float TargetLength = bIsAim ? ZoomCameraLength : DefaultCameraLength;
 	float CurrentLength = SpringArmComp->TargetArmLength;
 
-	// 보간 계산
 	float NewLength = FMath::FInterpTo(CurrentLength, TargetLength, GetWorld()->GetDeltaSeconds(), ZoomInterpSpeed);
 	SpringArmComp->TargetArmLength = NewLength;
-	
-	if (FMath::Abs(NewLength - TargetLength) < 1.f)
+
+	// 카메라 위치 보간 조건에 따라 설정
+	FVector TargetLocation;
+
+	if (!bIsAim) // 조준 중이 아니면 카메라 원래 대로
+	{
+		TargetLocation = FVector::ZeroVector;
+	}
+	else // 현재 바라보고 있는 방향에 따라 카메라 위치 이동
+	{
+		TargetLocation = bIsLookLeft ? FVector(0.f, -100.f, 0.f) : FVector(0.f, 60.f, 0.f);
+	}
+
+	FVector CurrentLocation = CameraComp->GetRelativeLocation();
+	FVector NewLocation = FMath::VInterpTo(CurrentLocation, TargetLocation, GetWorld()->GetDeltaSeconds(), ZoomInterpSpeed);
+	CameraComp->SetRelativeLocation(NewLocation);
+
+	// 줌 및 위치 전환 완료 조건
+	bool bZoomDone = FMath::Abs(NewLength - TargetLength) < 1.f;
+	bool bLocationDone = FVector::Dist(NewLocation, TargetLocation) < 1.f;
+
+	if (bZoomDone && bLocationDone)
 	{
 		SpringArmComp->TargetArmLength = TargetLength;
+		CameraComp->SetRelativeLocation(TargetLocation);
+
 		GetWorld()->GetTimerManager().ClearTimer(ZoomTimerHandle);
 		bIsZooming = false;
 	}
@@ -642,18 +670,7 @@ void AXVCharacter::PickUpWeapon(const FInputActionValue& Value)
 	{
 		if (CurrentOverlappingWeapon)
 		{
-			UE_LOG(LogTemp, Log, TEXT("PickUp"));
-			// 메인 총 및 현재 장착 총 변경
-			/*MainWeaponType = CurrentOverlappingWeapon->GetWeaponType();
-			CurrentWeaponType = MainWeaponType;
-			UE_LOG(LogTemp, Log, TEXT("Picked up Weapon Type: %d"), (uint8)CurrentWeaponType);
-
-			SetWeapon(CurrentWeaponType);
-			
-			// 무기 액터 파괴
-			CurrentOverlappingWeapon->Destroy();
-			// 무기 획득 후 오버랩 무기 초기화
-			CurrentOverlappingWeapon = nullptr;*/
+			UE_LOG(LogTemp, Log, TEXT("PickUp"));			
 		}
 	}
 }
@@ -683,15 +700,14 @@ void AXVCharacter::OpenDoor(const FInputActionValue& Value)
 
 void AXVCharacter::Reload(const FInputActionValue& Value)
 {
-	if (bIsDie) return;
-	if (CurrentWeaponType != EWeaponType::None)
+	if (bIsDie || bIsRun) return;
+	if (CurrentWeaponType != EWeaponType::None && !CurrentWeaponActor->IsReloading())
 	{		
-		UE_LOG(LogTemp, Warning, TEXT("Reload"));
 		auto Anim = Cast<UXVPlayerAnimInstance>(GetMesh()->GetAnimInstance());
 		if (Anim)
 		{
 			Anim->PlayReloadAnim(CurrentWeaponActor);
 		}
-		//BPCurrentWeapon->Reload();
+		CurrentWeaponActor->Reload();
 	}
 }
