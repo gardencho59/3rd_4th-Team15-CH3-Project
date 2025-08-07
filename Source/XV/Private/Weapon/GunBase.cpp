@@ -39,9 +39,13 @@ void AGunBase::BeginPlay()
 
 void AGunBase::FireBullet()
 {
-    if (!WeaponDataAsset || bIsReloading || !bCanFire || CurrentAmmo <= 0)
+    if (CurrentAmmo <= 0 && !bCanFire)
     {
         PlaySoundAtMuzzle(WeaponDataAsset->EmptySound);
+        return;
+    }
+    if (!WeaponDataAsset || bIsReloading)
+    {
         return;
     }
 
@@ -56,10 +60,11 @@ void AGunBase::FireBullet()
         bCanFire = true;
     }, WeaponDataAsset->FireRate, false);
 
-    if (CurrentAmmo <= 0)
-    {
-        Reload();
-    }
+    // 자동 재장전이 필요할 경우 주석 해제
+    // if (CurrentAmmo <= 0)
+    // {
+    //     Reload();
+    // }
 }
 
 void AGunBase::Reload()
