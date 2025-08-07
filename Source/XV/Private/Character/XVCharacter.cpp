@@ -15,8 +15,10 @@ AXVCharacter::AXVCharacter()
 {
 	PrimaryActorTick.bCanEverTick = false;		
 	
-	DefaultCameraLength = 150.0f;
-	ZoomCameraLength = 100.0f;
+	DefaultCameraLength = 90.0f; // 기본 스프링암 길이
+	ZoomCameraLength = 20.0f; // 줌 스프링암 길이
+	StandCameraOffset = FVector(0.f, 0.f, 0.f); // 서 있을 때 카메라 높이
+	SitCameraOffset = FVector(0.f, 0.f, -30.f); // 앉아 있을 때 카메라 높이
 	
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArmComp->SetupAttachment(RootComponent);
@@ -27,9 +29,9 @@ AXVCharacter::AXVCharacter()
 	CameraComp->SetupAttachment(SpringArmComp, USpringArmComponent::SocketName);
 	CameraComp->bUsePawnControlRotation = false;
 
-	NormalSpeed = 300.0f;
-	SprintSpeed = 500.0f;
-	SitSpeed = 250.0f;
+	NormalSpeed = 300.0f; // 기본 이동 속도
+	SprintSpeed = 500.0f; // 달리기 속도
+	SitSpeed = 250.0f; // 앉았을 때 속도
 
 	bIsRun = false;
 	bIsSit = false;
@@ -490,8 +492,13 @@ void AXVCharacter::Look(const FInputActionValue& Value)
 }
 
 void AXVCharacter::StartSprint(const FInputActionValue& Value)
-{
-	if (bIsDie || CurrentWeaponActor->IsReloading()) return;
+{	
+	if (bIsDie) return;
+	if (CurrentWeaponActor)
+	{
+		if (CurrentWeaponActor->IsReloading()) return;
+	}
+	
 	if (GetCharacterMovement() && !bIsSit)
 	{
 		GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
@@ -642,7 +649,7 @@ void AXVCharacter::UpdateZoom()
 	}
 	else // 현재 바라보고 있는 방향에 따라 카메라 위치 이동
 	{
-		TargetLocation = bIsLookLeft ? FVector(0.f, -100.f, 0.f) : FVector(0.f, 60.f, 0.f);
+		TargetLocation = bIsLookLeft ? FVector(0.f, -90.f, 0.f) : FVector(0.f, 40.f, 0.f);
 	}
 
 	FVector CurrentLocation = CameraComp->GetRelativeLocation();
@@ -702,7 +709,7 @@ void AXVCharacter::Reload(const FInputActionValue& Value)
 {
 	if (bIsDie || bIsRun) return;
 	if (CurrentWeaponType != EWeaponType::None && !CurrentWeaponActor->IsReloading())
-	{		
+	{
 		auto Anim = Cast<UXVPlayerAnimInstance>(GetMesh()->GetAnimInstance());
 		if (Anim)
 		{
