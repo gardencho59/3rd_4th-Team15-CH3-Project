@@ -127,6 +127,7 @@ void AXVEnemyBase::GetDamage(float Damage)
 	}
 	
 	AIStatusComponent->CurrentHealth();
+	AIStatusComponent->D_Gettter(Damage);
 	
 	UE_LOG(Log_XV_AI, Warning, TEXT("GetDamage : %f"),AIStatusComponent->CurrentHealth());
 	UE_LOG(Log_XV_AI, Warning, TEXT("GetDamage : GetDamage Start"));
