@@ -93,7 +93,6 @@ protected:
 	
 public:
 
-	UPROPERTY()
 	FTimerHandle DestroyTimerHandle;
 	
 	UPROPERTY(EditDefaultsOnly, Category=Animation)
