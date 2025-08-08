@@ -105,7 +105,7 @@ void URangedCheckHit::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenc
             }
             else
             {
-                // 미스 처리, 사운드 등
+                PlayHitEffects(Enemy->GetWorld(), Start);
             }
             return; // 한 명만 판정 후 종료
         }
@@ -118,7 +118,7 @@ void URangedCheckHit::PlayHitEffects(UWorld* World, const FVector& SpawnLocation
 {
     if (!World) return;
 
-    FVector AcitveLocation = SpawnLocation + FVector(-10.0f, 0.0f, 70.0f);
+    FVector AcitveLocation = SpawnLocation + FVector(-18.0f, 20.0f, 68.0f);
     
     if (NiagaraEffect_MuzzleFlash)
     {
@@ -133,7 +133,7 @@ void URangedCheckHit::PlayHitEffects(UWorld* World, const FVector& SpawnLocation
         UNiagaraFunctionLibrary::SpawnSystemAtLocation(
             World,
             NiagaraEffect_ShellEject,
-            AcitveLocation+FVector(0.0f, -30.0f, 0.0f)
+            AcitveLocation+FVector(-10.0f, -50.0f, 0.0f)
         );
     }
 
@@ -145,5 +145,4 @@ void URangedCheckHit::PlayHitEffects(UWorld* World, const FVector& SpawnLocation
             AcitveLocation
         );
     }
-
 }
