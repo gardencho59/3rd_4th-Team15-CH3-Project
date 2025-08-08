@@ -163,13 +163,24 @@ protected:
 	void OnWeaponOverlapBegin(AGunBase* Weapon);
 	// 오버랩 끝 함수
 	void OnWeaponOverlapEnd(const AGunBase* Weapon);
+	
+	UFUNCTION(BlueprintImplementableEvent, Category="State")
+	void BP_OnDied();
+
+	UFUNCTION(BlueprintImplementableEvent, Category="State")
+	void BP_OnRevived();
+	
+	UPROPERTY(BlueprintReadOnly, Category="State")
+	bool bIsDie;
 
 private:
+	
+	
 	// 캐릭터 스테이터스
 	float CurrentHealth;
 	float MaxHealth;
 	float TurnRate;
-	bool bIsDie;
+	
 	bool bIsLookLeft;
 	FTimerHandle DieTimerHandle;
 };
