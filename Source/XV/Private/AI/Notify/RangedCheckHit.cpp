@@ -40,9 +40,9 @@ void URangedCheckHit::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenc
     FRotator Orientation = (End - Start).Rotation();
 
     // 트레이스 박스 시각화용
-    DrawDebugBox(Enemy->GetWorld(), Start, BoxHalfSize, Orientation.Quaternion(), FColor::Blue, false, 2.0f, 0, 2.0f);
-    DrawDebugBox(Enemy->GetWorld(), End, BoxHalfSize, Orientation.Quaternion(), FColor::Green, false, 2.0f, 0, 2.0f);
-    DrawDebugLine(Enemy->GetWorld(), Start, End, FColor::Red, false, 2.0f, 0, 3.0f);
+    //DrawDebugBox(Enemy->GetWorld(), Start, BoxHalfSize, Orientation.Quaternion(), FColor::Blue, false, 2.0f, 0, 2.0f);
+    //DrawDebugBox(Enemy->GetWorld(), End, BoxHalfSize, Orientation.Quaternion(), FColor::Green, false, 2.0f, 0, 2.0f);
+    //DrawDebugLine(Enemy->GetWorld(), Start, End, FColor::Red, false, 2.0f, 0, 3.0f);
 
     TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
     ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_Pawn));
@@ -59,7 +59,7 @@ void URangedCheckHit::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenc
         ObjectTypes,
         false,
         IgnoreActors,
-        EDrawDebugTrace::ForDuration,
+        EDrawDebugTrace::None,
         OutHits,
         true
     );
@@ -83,11 +83,11 @@ void URangedCheckHit::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenc
                 FCollisionQueryParams(FName(TEXT("RangedHitBlock")), false, Enemy)
             );
 
-            DrawDebugLine(Enemy->GetWorld(),
-                TraceStart,
-                TraceEnd,
-                bBlocked ? FColor::Red : FColor::Green,
-                false, 2.0f, 0, 2.5f);
+            //DrawDebugLine(Enemy->GetWorld(),
+            //    TraceStart,
+            //    TraceEnd,
+            //    bBlocked ? FColor::Red : FColor::Green,
+            //   false, 2.0f, 0, 2.5f);
 
             if (bBlocked && (BlockCheckHit.GetActor() != Character))
             {
@@ -118,20 +118,22 @@ void URangedCheckHit::PlayHitEffects(UWorld* World, const FVector& SpawnLocation
 {
     if (!World) return;
 
-    if (NiagaraEffect_Muzzle)
+    FVector AcitveLocation = SpawnLocation + FVector(-10.0f, 0.0f, 70.0f);
+    
+    if (NiagaraEffect_MuzzleFlash)
     {
         UNiagaraFunctionLibrary::SpawnSystemAtLocation(
             World,
-            NiagaraEffect_Muzzle,
-            SpawnLocation
+            NiagaraEffect_MuzzleFlash,
+            AcitveLocation
         );
     }
-    if (NiagaraEffect_Flash)
+    if (NiagaraEffect_ShellEject)
     {
         UNiagaraFunctionLibrary::SpawnSystemAtLocation(
             World,
-            NiagaraEffect_Flash,
-            SpawnLocation
+            NiagaraEffect_ShellEject,
+            AcitveLocation+FVector(0.0f, -30.0f, 0.0f)
         );
     }
 
@@ -140,7 +142,7 @@ void URangedCheckHit::PlayHitEffects(UWorld* World, const FVector& SpawnLocation
         UGameplayStatics::PlaySoundAtLocation(
             World,
             HitSound,
-            SpawnLocation
+            AcitveLocation
         );
     }
 

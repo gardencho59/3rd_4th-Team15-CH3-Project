@@ -33,10 +33,10 @@ public:
 	
 	// 총 쏘기 연출
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="VFX")
-	UNiagaraSystem* NiagaraEffect_Muzzle;
+	UNiagaraSystem* NiagaraEffect_MuzzleFlash;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="VFX")
-	UNiagaraSystem* NiagaraEffect_Flash;
+	UNiagaraSystem* NiagaraEffect_ShellEject;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="SFX")
 	USoundBase* HitSound;
