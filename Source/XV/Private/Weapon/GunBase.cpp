@@ -39,13 +39,21 @@ void AGunBase::BeginPlay()
 
 void AGunBase::FireBullet()
 {
-    if (CurrentAmmo <= 0 && !bCanFire)
+    if (!WeaponDataAsset || bIsReloading || !bCanFire)
     {
-        PlaySoundAtMuzzle(WeaponDataAsset->EmptySound);
         return;
     }
-    if (!WeaponDataAsset || bIsReloading)
+    
+    if (CurrentAmmo <= 0 && bCanFire)
     {
+        bCanFire = false;
+        
+        PlaySoundAtMuzzle(WeaponDataAsset->EmptySound);
+        GetWorld()->GetTimerManager().SetTimer(FireCooldownHandle, [this]()
+        {
+            bCanFire = true;
+        },WeaponDataAsset->FireRate, false);
+        
         return;
     }
 
@@ -94,6 +102,7 @@ void AGunBase::FinishReload()
     CurrentAmmo += ReloadAmount;
     RemainingAmmo -= ReloadAmount;
     bIsReloading = false;
+    bCanFire = true;
 }
 
 void AGunBase::SpawnBullet()
@@ -145,6 +154,8 @@ void AGunBase::PlaySoundAtMuzzle(USoundBase* Sound)
 }
 
 bool AGunBase::IsReloading() const { return bIsReloading; }
+bool AGunBase::IsFire() const { return bCanFire; }
+
 int32 AGunBase::GetCurrentAmmo() const { return CurrentAmmo; }
 
 UAnimMontage* AGunBase::GetEquipMontage() const { return WeaponDataAsset->PlayerEquipAnimMontage; }
