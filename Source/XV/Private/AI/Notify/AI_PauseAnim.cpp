@@ -60,7 +60,6 @@ void UAI_PauseAnim::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceB
 						{
 							Mesh_Comp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 						}
-
 					}
 
 					// 타이머로 파괴
