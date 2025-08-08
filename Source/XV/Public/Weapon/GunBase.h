@@ -31,6 +31,9 @@ public:
 	virtual UAnimMontage* GetReloadMontage() const override;
 
 protected:
+	FVector GetAimDirection() const;
+	FVector GetMuzzleLocation() const;
+	
 	void SpawnBullet();
 	void PlayEffects();
 	void PlaySoundAtMuzzle(USoundBase* Sound);

@@ -16,6 +16,58 @@ AGunBase::AGunBase()
     RemainingAmmo = 100;
 }
 
+FVector AGunBase::GetAimDirection() const
+{
+    APlayerController* PC = Cast<APlayerController>(GetWorld()->GetFirstPlayerController());
+    if (!PC) return FVector::ZeroVector;
+
+    FVector WorldLocation;
+    FVector WorldDirection;
+
+    int32 ViewportX, ViewportY;
+    PC->GetViewportSize(ViewportX, ViewportY);
+    FVector2D ScreenCenter(ViewportX / 2.f, ViewportY / 2.f);
+
+    if (PC->DeprojectScreenPositionToWorld(ScreenCenter.X, ScreenCenter.Y, WorldLocation, WorldDirection))
+    {
+        FHitResult Hit;
+        FVector TraceEnd = WorldLocation + WorldDirection * 10000.0f;
+
+        if (GetWorld()->LineTraceSingleByChannel(Hit, WorldLocation, TraceEnd, ECC_Visibility))
+        {
+            // 최소 거리 기준
+            const float MinAimDistance = 500.0f;
+            float DistanceToHit = FVector::Dist(WorldLocation, Hit.ImpactPoint);
+
+            if (DistanceToHit >= MinAimDistance)
+            {
+                // 충분히 멀리 있으면, 그 지점으로 조준
+                return (Hit.ImpactPoint - GetMuzzleLocation()).GetSafeNormal();
+            }
+            else
+            {
+                // 너무 가까우면 그냥 직선으로 발사
+                return WorldDirection.GetSafeNormal();
+            }
+        }
+        else
+        {
+            // 맞은 게 없으면 그냥 정면으로
+            return WorldDirection.GetSafeNormal();
+        }
+    }
+
+    return FVector::ZeroVector;
+}
+
+
+FVector AGunBase::GetMuzzleLocation() const
+{
+    return GunMesh->GetSocketLocation(WeaponDataAsset->MuzzleSocketName);
+}
+
+
+
 void AGunBase::BeginPlay()
 {
     Super::BeginPlay();
@@ -107,18 +159,21 @@ void AGunBase::FinishReload()
 
 void AGunBase::SpawnBullet()
 {
-    FVector MuzzleLoc = GunMesh->GetSocketLocation(WeaponDataAsset->MuzzleSocketName);
-    FRotator MuzzleRot = GunMesh->GetSocketRotation(WeaponDataAsset->MuzzleSocketName);
+    if (!WeaponDataAsset || !WeaponDataAsset->BulletClass) return;
 
-    FActorSpawnParameters Params;
-    Params.Owner = this;
-    Params.Instigator = GetInstigator();
+    FVector MuzzleLocation = GetMuzzleLocation();
+    FVector AimDirection = GetAimDirection();
+    FRotator BulletRotation = AimDirection.Rotation();
+
+    FActorSpawnParameters SpawnParams;
+    SpawnParams.Owner = this;
+    SpawnParams.Instigator = GetInstigator();
 
     AProjectileBullet* Bullet = GetWorld()->SpawnActor<AProjectileBullet>(
         WeaponDataAsset->BulletClass,
-        MuzzleLoc,
-        MuzzleRot,
-        Params
+        MuzzleLocation,
+        BulletRotation,
+        SpawnParams
     );
 
     if (Bullet)
@@ -126,6 +181,7 @@ void AGunBase::SpawnBullet()
         Bullet->InitBullet(1000.0f, 25.0f);
     }
 }
+
 
 void AGunBase::PlayEffects()
 {
