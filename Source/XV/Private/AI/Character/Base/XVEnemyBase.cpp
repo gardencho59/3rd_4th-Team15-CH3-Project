@@ -70,10 +70,16 @@ void AXVEnemyBase::BeginPlay()
 
 void AXVEnemyBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+	// 무기 파괴
+	if (AIWeaponBase)
+	{
+		AIWeaponBase->Destroy();
+	}
+	
 	if (DestroyTimerHandle.IsValid())
 	{
 		GetWorldTimerManager().ClearTimer(DestroyTimerHandle);
-		UE_LOG(LogTemp, Warning, TEXT("DestroyTimerHandle Clear"));
+		UE_LOG(LogTemp, Warning, TEXT("DestroyTimerHandle Clear in EndPlay"));
 	}
 
 	Super::EndPlay(EndPlayReason);
@@ -85,6 +91,12 @@ void AXVEnemyBase::Destroyed()
 	if (AIWeaponBase)
 	{
 		AIWeaponBase->Destroy();
+	}
+
+	if (DestroyTimerHandle.IsValid())
+	{
+		GetWorldTimerManager().ClearTimer(DestroyTimerHandle);
+		UE_LOG(LogTemp, Warning, TEXT("DestroyTimerHandle Clear in Destroyed"));
 	}
 	
 	Super::Destroyed();
