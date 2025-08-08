@@ -92,6 +92,10 @@ protected:
 	float DestroyDelayTime;
 	
 public:
+
+	UPROPERTY()
+	FTimerHandle DestroyTimerHandle;
+	
 	UPROPERTY(EditDefaultsOnly, Category=Animation)
 	UAnimMontage* DeathMontage; // 죽는 애니메이션
 

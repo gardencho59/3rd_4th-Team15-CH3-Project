@@ -70,6 +70,12 @@ void AXVEnemyBase::BeginPlay()
 
 void AXVEnemyBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+	if (DestroyTimerHandle.IsValid())
+	{
+		GetWorldTimerManager().ClearTimer(DestroyTimerHandle);
+		UE_LOG(LogTemp, Warning, TEXT("DestroyTimerHandle Clear"));
+	}
+
 	Super::EndPlay(EndPlayReason);
 }
 
@@ -320,7 +326,6 @@ void AXVEnemyBase::DeathTimer()
 		}
 	}
 	
-	FTimerHandle DestroyTimerHandle;
 	GetWorld()->GetTimerManager().SetTimer(
 		DestroyTimerHandle,
 		[this]()
