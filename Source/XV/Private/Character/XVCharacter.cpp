@@ -123,6 +123,7 @@ void AXVCharacter::Die()
 	2.0f,
 	false
 	);
+	BP_OnDied();
 }
 
 void AXVCharacter::OnDieAnimationFinished()

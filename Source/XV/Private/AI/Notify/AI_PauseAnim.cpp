@@ -2,6 +2,7 @@
 
 #include "AIController.h"
 #include "BrainComponent.h"
+#include "AI/Character/Base/XVEnemyBase.h"
 #include "BehaviorTree/BehaviorTreeComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/Character.h"
@@ -59,14 +60,15 @@ void UAI_PauseAnim::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceB
 						{
 							Mesh_Comp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 						}
-
 					}
 
 					// 타이머로 파괴
-					FTimerHandle DestroyTimerHandle;
+					AXVEnemyBase* Enemy = Cast<AXVEnemyBase>(OwnerActor);
+					if (!Enemy) return;
+
 					if (UWorld* World = Character->GetWorld())
 					{
-						World->GetTimerManager().SetTimer(DestroyTimerHandle,[Character](){if (IsValid(Character)){Character->Destroy();}},DestroyDelayTime,false);
+						World->GetTimerManager().SetTimer(Enemy->DestroyTimerHandle,[Character](){if (IsValid(Character)){Character->Destroy();}},DestroyDelayTime,false);
 					}
 				}
 				
