@@ -57,9 +57,9 @@ protected:
 
 	// 카메라 앉기 관련 변수들
 	UPROPERTY(EditDefaultsOnly, Category = "Camera")
-	FVector StandCameraOffset = FVector(0.f, 0.f, 0.f);  // 서 있을 때 카메라 높이
+	FVector StandCameraOffset; // 서 있을 때 카메라 높이
 	UPROPERTY(EditDefaultsOnly, Category = "Camera")
-	FVector SitCameraOffset = FVector(0.f, 0.f, -80.f);
+	FVector SitCameraOffset; // 로테이션 추가
 	UPROPERTY(EditDefaultsOnly, Category = "Camera")
 	float CameraOffsetInterpSpeed = 5.f; // 보간 속도
 	FTimerHandle CameraOffsetTimerHandle;
@@ -170,5 +170,6 @@ private:
 	float MaxHealth;
 	float TurnRate;
 	bool bIsDie;
+	bool bIsLookLeft;
 	FTimerHandle DieTimerHandle;
 };
