@@ -1,5 +1,3 @@
-#include "Blueprint/UserWidget.h"
-#include "Components/WidgetComponent.h"
 #include "Character/XVCharacter.h"
 #include "Character/XVPlayerController.h"
 #include "Character/XVPlayerAnimInstance.h"
@@ -12,12 +10,6 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Perception/AISense_Hearing.h" // AI 총소리 듣기 용입니다.
 #include "System/XVBaseGameMode.h"
-
-void AXVCharacter::SetTestHUDRef(UUserWidget* HUD)
-{
-	TestHUDRef = HUD;
-	UpdateUIForAim(); // 현재 조준 상태에 맞춰 즉시 가시성 정리
-}
 
 AXVCharacter::AXVCharacter()
 {
@@ -605,7 +597,6 @@ void AXVCharacter::UpdateCameraOffset()
 void AXVCharacter::StartZoom(const FInputActionValue& Value)
 {
 		bIsAim = true;
-	    UpdateUIForAim();
 		UE_LOG(LogTemp, Log, TEXT("Is Look Left %s"), bIsLookLeft ? TEXT("True") : TEXT("False"));
 
 		if (!bIsZooming)
@@ -626,7 +617,7 @@ void AXVCharacter::StopZoom(const FInputActionValue& Value)
 	if (!Value.Get<bool>())
 	{
 		bIsAim = false;
-		UpdateUIForAim();
+
 		if (!bIsZooming)
 		{
 			bIsZooming = true;
@@ -726,50 +717,5 @@ void AXVCharacter::Reload(const FInputActionValue& Value)
 			Anim->PlayReloadAnim(CurrentWeaponActor);
 		}
 		CurrentWeaponActor->Reload();
-	}
-}
-void AXVCharacter::BeginPlay()
-{
-	Super::BeginPlay();
-
-	TArray<UWidgetComponent*> Widgets;
-	GetComponents<UWidgetComponent>(Widgets);
-	for (auto* W : Widgets)
-	{
-		if (W && (W->ComponentHasTag(TEXT("WorldSideUI")) || W->GetName().Equals(TEXT("WorldSideUI"))))
-		{
-			WorldSideUIRef = W;
-			break;
-		}
-	}
-	UpdateUIForAim();
-}
-void AXVCharacter::UpdateUIForAim()
-{
-	UE_LOG(LogTemp, Warning, TEXT("Aim=%d  HUD=%p  3D=%p"),
-		bIsAim ? 1 : 0, TestHUDRef, WorldSideUIRef);
-
-	// 3D 위젯은 컴포넌트 가시성으로 토글
-	if (WorldSideUIRef)
-	{
-		WorldSideUIRef->SetHiddenInGame(!bIsAim);   // 조준=true면 보이기
-	}
-
-	// 2D HUD는 위젯 내부 애니메이션 이벤트 호출
-	if (TestHUDRef)
-	{
-		static const FName FuncName(TEXT("SetAimState")); // UMG에 만든 이벤트 이름과 같아야 함
-		if (UFunction* Fn = TestHUDRef->FindFunction(FuncName))
-		{
-			struct FParams { bool bAiming; };
-			FParams P{ bIsAim };
-			TestHUDRef->ProcessEvent(Fn, &P);  // ✅ UMG 애니 실행(정방향/역재생)
-		}
-		else
-		{
-			// (백업) 이벤트가 없으면 최소한 보이기/숨기기만 처리
-			TestHUDRef->SetVisibility(bIsAim ? ESlateVisibility::Collapsed
-											 : ESlateVisibility::HitTestInvisible);
-		}
 	}
 }

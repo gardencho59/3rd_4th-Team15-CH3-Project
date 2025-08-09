@@ -21,12 +21,6 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
-	UPROPERTY(EditAnywhere, Category="UI")
-	float SideDistance = 80.f;
-
-	UPROPERTY(EditAnywhere, Category="UI")
-	float SurfaceOffset = 10.f;
-	
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 private:
