@@ -4,7 +4,7 @@
 #include "EnhancedInputComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Weapon/GunBase.h"
-#include "World/XVDoor.h"
+#include "World/ElevatorDoor.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -66,7 +66,7 @@ AXVCharacter::AXVCharacter()
 	CurrentHealth = MaxHealth;
 
 	//오버랩 이벤트
-	Door = nullptr;
+	Elevator = nullptr;
 	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &AXVCharacter::OnBeginOverlap);
 	GetCapsuleComponent()->OnComponentEndOverlap.AddDynamic(this, &AXVCharacter::OnEndOverlap);
 }
@@ -220,10 +220,10 @@ void AXVCharacter::OnBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* O
 	{
 		//UE_LOG(LogTemp, Log, TEXT("Overlap Actor: %s"), *OtherActor->GetName());
 		// 엘리베이터 클래스인지 확인
-		if (AXVDoor* OverlapDoor = Cast<AXVDoor>(OtherActor))
+		if (AElevatorDoor* OverlapElevator = Cast<AElevatorDoor>(OtherActor))
 		{
-			Door = OverlapDoor;
-			UE_LOG(LogTemp, Log, TEXT("Door: %s"), *Door->GetName());
+			Elevator = OverlapElevator;
+			UE_LOG(LogTemp, Log, TEXT("Elevator: %s"), *Elevator->GetName());
 		}
 	}
 }
@@ -235,12 +235,12 @@ void AXVCharacter::OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor
 	{
 		//UE_LOG(LogTemp, Log, TEXT("End Overlap Actor: %s"), *OtherActor->GetName());
 		// 엘리베이터 클래스인지 확인
-		if (Door == Cast<AXVDoor>(OtherActor))
+		if (Elevator == Cast<AElevatorDoor>(OtherActor))
 		{			
-			Door = nullptr;
-			if (!Door)
+			Elevator = nullptr;
+			if (!Elevator)
 			{
-				UE_LOG(LogTemp, Log, TEXT("Door: null"));
+				UE_LOG(LogTemp, Log, TEXT("Elevator: null"));
 			}
 		}
 	}
@@ -700,9 +700,9 @@ void AXVCharacter::ChangeToSubWeapon(const FInputActionValue& Value)
 void AXVCharacter::OpenDoor(const FInputActionValue& Value)
 {
 	if (bIsDie) return;
-	if (Door)
+	if (Elevator)
 	{
-		Door->OpenDoor();
+		Elevator->OpenDoor();
 	}		
 }
 

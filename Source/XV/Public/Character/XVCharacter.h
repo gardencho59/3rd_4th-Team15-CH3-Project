@@ -7,7 +7,7 @@
 #include "Weapon/WeaponTypes.h"
 #include "XVCharacter.generated.h"
 
-class AXVDoor;
+class AElevatorDoor;
 class USpringArmComponent;
 class UCameraComponent;
 class AGunBase;
@@ -107,7 +107,7 @@ protected:
 	AGunBase* CurrentOverlappingWeapon;	
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Overlap")
-	AXVDoor* Door;	
+	AElevatorDoor* Elevator;	
 	
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
