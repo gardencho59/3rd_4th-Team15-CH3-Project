@@ -13,14 +13,12 @@ class XV_API AGunBase : public AActor, public IWeaponInterface
 
 public:
 	AGunBase();
-	
+
 	virtual void BeginPlay() override;
 
 	virtual void FireBullet() override;
 	virtual void Reload() override;
 	virtual bool IsReloading() const override;
-	bool IsFire() const;
-	
 	virtual int32 GetCurrentAmmo() const override;
 
 	virtual UWeaponDataAsset* GetWeaponData() const override { return WeaponDataAsset; }
@@ -31,9 +29,6 @@ public:
 	virtual UAnimMontage* GetReloadMontage() const override;
 
 protected:
-	FVector GetAimDirection() const;
-	FVector GetMuzzleLocation() const;
-	
 	void SpawnBullet();
 	void PlayEffects();
 	void PlaySoundAtMuzzle(USoundBase* Sound);
