@@ -20,6 +20,9 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	UStaticMeshComponent* BulletMesh;
 
+	UPROPERTY(EditAnywhere, Category = "VFX")
+	UMaterialInterface* BulletImpactDecal;
+
 	UPROPERTY(VisibleAnywhere)
 	UProjectileMovementComponent* ProjectileMovement;
 
