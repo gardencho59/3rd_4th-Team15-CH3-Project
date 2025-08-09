@@ -1,4 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -7,6 +6,8 @@
 #include "Weapon/WeaponTypes.h"
 #include "XVCharacter.generated.h"
 
+class UUserWidget;
+class UWidgetComponent;
 class AXVDoor;
 class USpringArmComponent;
 class UCameraComponent;
@@ -43,6 +44,24 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category="Weapon")
 	EWeaponType CurrentWeaponType;
 
+	virtual void BeginPlay() override;
+
+	UFUNCTION(BlueprintCallable, Category="UI")
+	void SetTestHUDRef(UUserWidget* HUD);
+	
+	// 2D HUD
+	UPROPERTY(EditDefaultsOnly, Category="UI")
+	TSubclassOf<UUserWidget> TestHUDClass;   // WBP_TestHUD 지정할 슬롯
+
+	UPROPERTY() UUserWidget* TestHUDRef = nullptr;
+
+	// 3D 위젯(블루프린트에 붙어있는 WorldSideUI를 런타임에 찾아서 담을 포인터)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="UI")
+	UWidgetComponent* WorldSideUIRef = nullptr;
+	
+	// 조준 상태에 따라 보이기/숨기기
+	void UpdateUIForAim();
+	
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	USpringArmComponent* SpringArmComp;
@@ -163,7 +182,7 @@ protected:
 	void OnWeaponOverlapBegin(AGunBase* Weapon);
 	// 오버랩 끝 함수
 	void OnWeaponOverlapEnd(const AGunBase* Weapon);
-	
+
 	UFUNCTION(BlueprintImplementableEvent, Category="State")
 	void BP_OnDied();
 

@@ -44,60 +44,59 @@ void UUIFollowerComponent::UpdateWidgetLocation()
     ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
     if (!OwnerCharacter) return;
 
+    // 카메라 위치/방향 가져오기
+    APlayerController* PC = Cast<APlayerController>(OwnerCharacter->GetController());
+    if (!PC) return;
+
+    FVector CamLoc; FRotator CamRot;
+    PC->GetPlayerViewPoint(CamLoc, CamRot);
+
+    const FVector CamRight = FRotationMatrix(CamRot).GetUnitAxis(EAxis::Y);
+
+    // 카메라가 캐릭터 왼쪽(음수) / 오른쪽(양수)에 있는지 판정
+    const FVector ToCam = (CamLoc - OwnerCharacter->GetActorLocation()).GetSafeNormal();
+    const float sideDot = FVector::DotProduct(ToCam, OwnerCharacter->GetActorRightVector());
+    const float sideSign = (sideDot < 0.f) ? -1.f : 1.f; // 왼쪽:-1, 오른쪽:+1
+
     USkeletalMeshComponent* Mesh = OwnerCharacter->GetMesh();
     if (!Mesh) return;
 
-    FVector StartLocation = Mesh->GetSocketLocation("head");
-    FVector ForwardVector = OwnerCharacter->GetActorForwardVector();
-    FVector EndLocation = StartLocation + ForwardVector * TraceDistance;
+    const FVector StartLocation = Mesh->GetSocketLocation(TEXT("head"));
+    const FVector Forward = OwnerCharacter->GetActorForwardVector();
+    const FVector EndLocation = StartLocation + Forward * TraceDistance;
 
-    FHitResult HitResult;
-    FCollisionQueryParams QueryParams;
-    QueryParams.AddIgnoredActor(OwnerCharacter);
+    FHitResult Hit;
+    FCollisionQueryParams Params;
+    Params.AddIgnoredActor(OwnerCharacter);
 
-    bool bHit = GetWorld()->LineTraceSingleByChannel(
-        HitResult,
-        StartLocation,
-        EndLocation,
-        ECC_Visibility,
-        QueryParams
-    );
+    const bool bHit = GetWorld()->LineTraceSingleByChannel(
+        Hit, StartLocation, EndLocation, ECC_Visibility, Params);
 
     if (bHit)
     {
-        FVector HitLocation = HitResult.ImpactPoint;
-        FVector HitNormal = HitResult.ImpactNormal;
+        // 벽에 붙이는 경우: 벽의 right 쪽으로 좌/우 오프셋
+        const FVector WallRight = FVector::CrossProduct(Hit.ImpactNormal, FVector::UpVector).GetSafeNormal();
+        const FVector SideOffset = (sideSign > 0.f ? WallRight : -WallRight) * SideDistance;
 
-        FVector WallRight = FVector::CrossProduct(HitNormal, FVector::UpVector).GetSafeNormal();
-        FVector ViewDirection = OwnerCharacter->GetControlRotation().Vector();
-
-        float Dot = FVector::DotProduct(ViewDirection, WallRight);
-
-        const float LeftSideDistance = 200.f;
-        const float RightSideDistance = 0.f;
-
-        FVector SideOffset = (Dot > 0.f) 
-            ? (WallRight * RightSideDistance) 
-            : (-WallRight * LeftSideDistance);
-
-        FVector WidgetLocation = HitLocation + HitNormal * 10.f + SideOffset;
-        FRotator WidgetRotation = HitNormal.ToOrientationRotator();
+        const FVector WidgetLocation = Hit.ImpactPoint + Hit.ImpactNormal * SurfaceOffset + SideOffset;
+        const FRotator WidgetRotation = Hit.ImpactNormal.ToOrientationRotator();
 
         TargetWidget->SetWorldLocationAndRotation(WidgetLocation, WidgetRotation);
     }
     else
     {
-        FVector DefaultLocation = StartLocation + ForwardVector * TraceDistance + DefaultOffset - ForwardVector * 50.f;
+        // 평상시: 카메라의 오른쪽/왼쪽 방향으로 치우치게 배치
+        const FVector SideOffset = CamRight * sideSign * SideDistance;
+        FVector DefaultLocation = StartLocation + Forward * TraceDistance - Forward * 50.f + DefaultOffset + SideOffset;
+
         TargetWidget->SetWorldLocation(DefaultLocation);
 
-        FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(DefaultLocation, StartLocation);
-        LookAtRotation.Yaw += 20.0f;
-
-        TargetWidget->SetWorldRotation(LookAtRotation);
+        // 카메라를 바라보게
+        const FRotator LookAt = UKismetMathLibrary::FindLookAtRotation(DefaultLocation, CamLoc);
+        TargetWidget->SetWorldRotation(LookAt);
     }
 
 #if WITH_EDITOR
     DrawDebugLine(GetWorld(), StartLocation, EndLocation, FColor::Green, false, 0.1f, 0, 1.0f);
 #endif
 }
-
