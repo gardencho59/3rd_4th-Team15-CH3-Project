@@ -251,50 +251,98 @@ void AXVEnemyBase::GetDamage(float Damage)
 		return;
 	}
 	
-	// 기본 : 10% 확률로 애니메이션 실행
-	if (AIStatusComponent->CurrentHealth() > 10.f && false == bIsAvoid && FMath::FRand() < AvoidChance)
+	if (false == AIController->AIBlackBoard->GetValueAsBool(TEXT("bIsBoss")))
 	{
-		AIController->AIBlackBoard->SetValueAsBool(TEXT("bIsAvoiding"), true);
-		
-		UE_LOG(Log_XV_AI, Warning, TEXT("AvoidChance Succeed"));
-		ACharacter* PlayerCharacter = Cast<ACharacter>(GetWorld()->GetFirstPlayerController()->GetCharacter());
-		if (PlayerCharacter)
+		// 기본 : 10% 확률로 애니메이션 실행
+		if (AIStatusComponent->CurrentHealth() > 10.f && false == bIsAvoid && FMath::FRand() < AvoidChance)
 		{
-			AIController->BrainComponent->StopLogic(TEXT("Dead"));
-			TryRandomAvoid(PlayerCharacter->GetActorLocation());
-		}
-	}
-	else if (AIStatusComponent->CurrentHealth() > 5.f && false == bIsAvoid && FMath::FRand() > AvoidChance)
-	{
-		UE_LOG(Log_XV_AI, Warning, TEXT("AvoidChance Fail"));
-		// 데미지 받기
-		AIStatusComponent->Sub_Health(Damage);
+			AIController->AIBlackBoard->SetValueAsBool(TEXT("bIsAvoiding"), true);
 		
-		// ▼ 맞으면 피격 처리 몽타주 재생 로직
-		AIController->GetBrainComponent()->StopLogic(TEXT("일시정지"));
-		
-		FOnMontageEnded PainMontageEndedDelegate;
-		PainMontageEndedDelegate.BindLambda([this](UAnimMontage*, bool){OnDamageEnded();});
-
-		// PainMontages에 하나라도 있으면
-		if (PainMontages.Num() > 0)
-		{
-			int32 Index = FMath::RandRange(0, PainMontages.Num() - 1);
-			UAnimMontage* SelectedMontage = PainMontages[Index];
-
-			if (SelectedMontage)
+			UE_LOG(Log_XV_AI, Warning, TEXT("AvoidChance Succeed"));
+			ACharacter* PlayerCharacter = Cast<ACharacter>(GetWorld()->GetFirstPlayerController()->GetCharacter());
+			if (PlayerCharacter)
 			{
-				if (AnimInstance)
-				{
-					AnimInstance->Montage_Play(SelectedMontage);
-					AnimInstance->Montage_SetEndDelegate(PainMontageEndedDelegate, SelectedMontage);
-					AnimInstance->Montage_SetPlayRate(SelectedMontage, 1.0f);
-				}
+				AIController->BrainComponent->StopLogic(TEXT("Dead"));
+				TryRandomAvoid(PlayerCharacter->GetActorLocation());
 			}
 		}
-		// ▲ 맞으면 피격 처리 몽타주 재생 로직
+		else if (AIStatusComponent->CurrentHealth() > 5.f && false == bIsAvoid && FMath::FRand() > AvoidChance)
+		{
+			UE_LOG(Log_XV_AI, Warning, TEXT("AvoidChance Fail"));
+			// 데미지 받기
+			AIStatusComponent->Sub_Health(Damage);
+		
+			// ▼ 맞으면 피격 처리 몽타주 재생 로직
+			AIController->GetBrainComponent()->StopLogic(TEXT("일시정지"));
+		
+			FOnMontageEnded PainMontageEndedDelegate;
+			PainMontageEndedDelegate.BindLambda([this](UAnimMontage*, bool){OnDamageEnded();});
+
+			// PainMontages에 하나라도 있으면
+			if (PainMontages.Num() > 0)
+			{
+				int32 Index = FMath::RandRange(0, PainMontages.Num() - 1);
+				UAnimMontage* SelectedMontage = PainMontages[Index];
+
+				if (SelectedMontage)
+				{
+					if (AnimInstance)
+					{
+						AnimInstance->Montage_Play(SelectedMontage);
+						AnimInstance->Montage_SetEndDelegate(PainMontageEndedDelegate, SelectedMontage);
+						AnimInstance->Montage_SetPlayRate(SelectedMontage, 1.0f);
+					}
+				}
+			}
+			// ▲ 맞으면 피격 처리 몽타주 재생 로직
+		}
 	}
-	
+	else if (true == AIController->AIBlackBoard->GetValueAsBool(TEXT("bIsBoss")))
+	{
+		// 기본 : 30% 확률로 애니메이션 실행
+		if (AIStatusComponent->CurrentHealth() > 10.f && false == bIsAvoid && FMath::FRand() < 0.3f)
+		{
+			AIController->AIBlackBoard->SetValueAsBool(TEXT("bIsAvoiding"), true);
+		
+			UE_LOG(Log_XV_AI, Warning, TEXT("AvoidChance Succeed"));
+			ACharacter* PlayerCharacter = Cast<ACharacter>(GetWorld()->GetFirstPlayerController()->GetCharacter());
+			if (PlayerCharacter)
+			{
+				AIController->BrainComponent->StopLogic(TEXT("Dead"));
+				TryRandomAvoid(PlayerCharacter->GetActorLocation());
+			}
+		}
+		else if (AIStatusComponent->CurrentHealth() > 5.f && false == bIsAvoid && FMath::FRand() > 0.3f)
+		{
+			UE_LOG(Log_XV_AI, Warning, TEXT("AvoidChance Fail"));
+			// 데미지 받기
+			AIStatusComponent->Sub_Health(Damage);
+		
+			// ▼ 맞으면 피격 처리 몽타주 재생 로직
+			AIController->GetBrainComponent()->StopLogic(TEXT("일시정지"));
+		
+			FOnMontageEnded PainMontageEndedDelegate;
+			PainMontageEndedDelegate.BindLambda([this](UAnimMontage*, bool){OnDamageEnded();});
+
+			// PainMontages에 하나라도 있으면
+			if (PainMontages.Num() > 0)
+			{
+				int32 Index = FMath::RandRange(0, PainMontages.Num() - 1);
+				UAnimMontage* SelectedMontage = PainMontages[Index];
+
+				if (SelectedMontage)
+				{
+					if (AnimInstance)
+					{
+						AnimInstance->Montage_Play(SelectedMontage);
+						AnimInstance->Montage_SetEndDelegate(PainMontageEndedDelegate, SelectedMontage);
+						AnimInstance->Montage_SetPlayRate(SelectedMontage, 1.0f);
+					}
+				}
+			}
+			// ▲ 맞으면 피격 처리 몽타주 재생 로직
+		}
+	}
 }
 
 void AXVEnemyBase::SetAttackMode()
