@@ -132,6 +132,7 @@ protected:
 	void StartZoom(const FInputActionValue& Value);
 	UFUNCTION()
 	void StopZoom(const FInputActionValue& Value);
+	void StopZoomManual();
 	void UpdateZoom();
 	UFUNCTION()
 	void PickUpWeapon(const FInputActionValue& Value);
