@@ -13,8 +13,12 @@ class XV_API UXVGameInstance : public UGameInstance
 public:
 	UXVGameInstance();
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Game Date")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Game Data")
 	int32 CurrentLevelIdx;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Game Date")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Game Data")
 	bool IsWaiting;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Game Data")
+	bool WasCinePlay;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Game Data")
+	bool IsOutdoor;
 };
