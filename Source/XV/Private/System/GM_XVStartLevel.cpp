@@ -7,27 +7,54 @@
 
 AGM_XVStartLevel::AGM_XVStartLevel()
 {
-	IsOutdoor = true;
+	bWavePending = false;
+	Delay = 60.0f;
 }
 
 void AGM_XVStartLevel::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (UGameInstance* GI = GetGameInstance())
+	{
+		if (UXVGameInstance* XVGI = Cast<UXVGameInstance>(GI))
+		{
+			if (XVGI->WasCinePlay)
+			{
+				Delay = 0.2f;
+			}
+		}
+	}
+	
+	GetWorld()->GetTimerManager().ClearTimer(Delayer);
+
+	TWeakObjectPtr<AGM_XVStartLevel> WeakThis = this;
+
+	FTimerDelegate TimerDel;
+	TimerDel.BindLambda([WeakThis]()
+	{
+		if (WeakThis.IsValid())
+		{
+			WeakThis->StartGame();
+		}
+	});
+
 	GetWorld()->GetTimerManager().SetTimer(
-			Delayer, 
-			this, 
-			&AGM_XVStartLevel::StartGame,
-			60.0f, 
-			false
-	  );
+		Delayer,
+		TimerDel,
+		Delay,
+		false
+	);
 }
 
 void AGM_XVStartLevel::StartGame()
 {
+	if (!IsValid(this)) return;
 	Super::StartGame();
+	
 }
 
-void AGM_XVStartLevel::SpawnEnemies() const
+void AGM_XVStartLevel::SpawnEnemies()
 {
 	if (IsOutdoor)
 	{
@@ -66,49 +93,98 @@ void AGM_XVStartLevel::SpawnEnemies() const
 			}
 		}
 	}
+	
 	else
 	{
 		Super::SpawnEnemies();
 	}
-	
 }
 
 void AGM_XVStartLevel::OnEnemyKilled()
 {
-	UE_LOG(LogTemp, Warning, TEXT("a"));
 	if (IsOutdoor)
 	{
 		if (AXVGameState* GS = GetGameState<AXVGameState>())
 		{
 			GS->KilledEnemyCount++;
+			UE_LOG(LogTemp, Warning, TEXT("Killed Enemy Count: %d"), GS->KilledEnemyCount);
 			if (GS->KilledEnemyCount > 0 && GS->KilledEnemyCount >= GS->SpawnedEnemyCount)
 			{
-				IsOutdoor = false;
+				UE_LOG(LogTemp, Warning, TEXT("Start"));
+				IsOutdoor = false;	
 				StartGame();
 			}	
 		}
 	}
 	else
 	{
-		Super::OnEnemyKilled();
+		OnWaveTriggered();
+		if (AXVGameState* GS = GetGameState<AXVGameState>())
+		{
+			GS->KilledEnemyCount++;
+			UE_LOG(LogTemp, Warning, TEXT("Killed Enemy Count: %d"), GS->KilledEnemyCount);
+			if (GS->KilledEnemyCount > 0 && GS->KilledEnemyCount >= GS->SpawnedEnemyCount)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Arrival Point Activated"))
+				GS->CanActiveArrivalPoint = true;
+			}	
+		}
 	}
 }
 
 void AGM_XVStartLevel::OnWaveTriggered()
 {
-	Super::OnWaveTriggered();
+	AXVGameState* GS = GetGameState<AXVGameState>();
+	if (!GS) return;
+
+	if (bWavePending || GS->IsWaveTriggered) return;
+
+	bWavePending = true;
+	
+	GetWorld()->GetTimerManager().SetTimer(
+		WaveTriggerDelayHandle,
+		this,
+		&AGM_XVStartLevel::DelayedWaveTrigger,
+		1.0f,
+		false
+	);
+}
+
+void AGM_XVStartLevel::DelayedWaveTrigger()
+{
+	if (AXVGameState* GS = GetGameState<AXVGameState>())
+	{
+		GS->IsWaveTriggered = true;
+		GS->CanActiveArrivalPoint = false;
+
+		UE_LOG(LogTemp, Warning, TEXT("Delayed Wave Triggered!"));
+		
+		Super::SpawnEnemies();
+	}
 }
 
 void AGM_XVStartLevel::EndGame(bool bIsClear)
 {
-	if (UGameInstance* GI = GetGameInstance())
+	if (GetWorld())
 	{
-		if (UXVGameInstance* XVGI = Cast<UXVGameInstance>(GI))
+		GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
+	}
+	
+	if (bIsClear)
+	{
+		if (UGameInstance* GI = GetGameInstance())
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Level Clear!"));
-			XVGI->IsWaiting = true;
-			UGameplayStatics::OpenLevel(GetWorld(), "BaseLevel");
+			if (UXVGameInstance* XVGI = Cast<UXVGameInstance>(GI))
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Level Clear!"));
+				XVGI->IsWaiting = true;
+				UGameplayStatics::OpenLevel(GetWorld(), "BaseLevel");
+			}
 		}
+	}
+	else
+	{
+		UGameplayStatics::OpenLevel(GetWorld(), "Showcase");
 	}
 }
 

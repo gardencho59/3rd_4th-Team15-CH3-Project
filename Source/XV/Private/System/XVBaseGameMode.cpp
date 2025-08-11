@@ -4,6 +4,7 @@
 #include "World/SpawnVolume.h"
 #include "AI/Character/Base/XVEnemyBase.h"
 #include "GameFramework/PlayerController.h"
+#include "System/XVGameInstance.h"
 
 void AXVBaseGameMode::BeginPlay()
 {
@@ -14,7 +15,6 @@ void AXVBaseGameMode::StartGame()
 {
 	if (AXVGameState* GS = GetGameState<AXVGameState>())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Level Starts!"));
 		GS->SpawnedEnemyCount = 0;
 		GS->KilledEnemyCount = 0;
 	}
@@ -22,7 +22,7 @@ void AXVBaseGameMode::StartGame()
 	SpawnEnemies();
 }
 	
-void AXVBaseGameMode::SpawnEnemies() const
+void AXVBaseGameMode::SpawnEnemies()
 {
 	TArray<AActor*> FoundVolumes;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ASpawnVolume::StaticClass(), FoundVolumes);
@@ -83,14 +83,6 @@ void AXVBaseGameMode::OnEnemyKilled()
 void AXVBaseGameMode::OnWaveTriggered()
 {
 	
-	if (AXVGameState* GS = GetGameState<AXVGameState>())
-	{
-		GS->CanActiveArrivalPoint = false;
-		if (GS->IsWaveTriggered) return;
-		
-		GS->IsWaveTriggered = true;
-		SpawnEnemies();
-	}
 }
 
 void AXVBaseGameMode::OnTimeLimitExceeded()
@@ -100,10 +92,7 @@ void AXVBaseGameMode::OnTimeLimitExceeded()
 
 void AXVBaseGameMode::EndGame(bool bIsClear)
 {
-	if (APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0))
-	{
-		PC->SetPause(true);	
-	}
+	
 }
 
 

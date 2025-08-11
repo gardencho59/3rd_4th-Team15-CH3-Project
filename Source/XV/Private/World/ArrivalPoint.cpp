@@ -1,6 +1,7 @@
 #include "World/ArrivalPoint.h"
 #include "Components/BoxComponent.h"
-#include "System/XVGameMode.h"
+#include "Kismet/GameplayStatics.h"
+#include "System/XVBaseGameMode.h"
 #include "System/XVGameInstance.h"
 #include "System/XVGameState.h"
 
@@ -32,21 +33,41 @@ void AArrivalPoint::OnArrivalPointBeginOverlap(
 		if (GS->CanActiveArrivalPoint)
 		{
 			if (OtherActor && OtherActor->ActorHasTag("Player"))
-			{	
+			{
 				ActivateArrivalPoint(OtherActor);
 			}
 		}
-		else UE_LOG(LogTemp, Warning, TEXT("Kill All Enemies!"));
 	}
 }
+
 void AArrivalPoint::ActivateArrivalPoint(AActor* Activator)
 {
 	if (Activator && Activator->ActorHasTag("Player"))
 	{
-		if (AXVGameMode* GM = Cast<AXVGameMode>(GetWorld()->GetAuthGameMode()))
+		if (AXVBaseGameMode* BaseGM = Cast<AXVBaseGameMode>(GetWorld()->GetAuthGameMode()))
 		{
-			GM->EndGame(true);
-			Destroy();
+			if (UGameInstance* GI = GetGameInstance())
+			{
+				if (UXVGameInstance* XVGI = Cast<UXVGameInstance>(GI))
+				{
+					if (!XVGI->IsWaiting)
+					{
+						BaseGM->EndGame(true);
+						Destroy();
+					}
+					else
+					{
+						if (LevelNames.IsValidIndex(XVGI->CurrentLevelIdx))
+						{
+							XVGI->IsWaiting = false;
+							UE_LOG(LogTemp, Warning, TEXT("OpenLevel: %s"), *LevelNames[XVGI->CurrentLevelIdx].ToString());
+							UGameplayStatics::OpenLevel(GetWorld(), LevelNames[XVGI->CurrentLevelIdx]);
+						}
+					}
+				}
+			}
+			
+			
 		}
 	}
 }

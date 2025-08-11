@@ -10,7 +10,8 @@ AXVDoor::AXVDoor()
 	Door = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Door"));
 	Door->SetupAttachment(SceneRoot);
 
-	OpenOffset = FVector(150.f, 0.f, 0.f);
+	OpenOffset = FVector(0.f, 0.f, 235.f);
+	IsOpening = false;
 
 	PrimaryActorTick.bCanEverTick = true;
 }
@@ -30,23 +31,18 @@ void AXVDoor::Tick(float DeltaTime)
 	{
 		const float Speed = 1.f;
 		Door->SetRelativeLocation(FMath::VInterpTo(Door->GetRelativeLocation(), TargetPos, DeltaTime, Speed));
-
-		const float Threshold = 1.0f;
+	
+		const float Threshold = 15.0f;
 		if (FVector::Dist(Door->GetRelativeLocation(), TargetPos) < Threshold)
-		{
-			if (IsOpening) IsOpening = false;
+		{	
+			UE_LOG(LogTemp, Warning, TEXT("Door Opened"));
+			PrimaryActorTick.bCanEverTick = false;
 		}
 	}
-	else DestroyDoor();
 }
 
 void AXVDoor::OpenDoor()
 {
 	TargetPos = ClosedPos + OpenOffset;
 	IsOpening = true;
-}
-
-void AXVDoor::DestroyDoor()
-{
-	Destroy();
 }

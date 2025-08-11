@@ -19,6 +19,8 @@ public:
 	UBoxComponent* BoxComponent;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UStaticMeshComponent* StaticMeshComponent;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Level")
+	TArray<FName> LevelNames;
 	
 	UFUNCTION()
 	virtual void OnArrivalPointBeginOverlap(
