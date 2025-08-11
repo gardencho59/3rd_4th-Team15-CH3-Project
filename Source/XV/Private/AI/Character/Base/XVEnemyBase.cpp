@@ -315,6 +315,7 @@ void AXVEnemyBase::GetDamage(float Damage)
 		else if (AIStatusComponent->CurrentHealth() > 5.f && false == bIsAvoid && FMath::FRand() > 0.3f)
 		{
 			UE_LOG(Log_XV_AI, Warning, TEXT("AvoidChance Fail"));
+			
 			// 데미지 받기
 			AIStatusComponent->Sub_Health(Damage);
 		
