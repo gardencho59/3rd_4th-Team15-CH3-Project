@@ -11,6 +11,8 @@ class AXVDoor;
 class USpringArmComponent;
 class UCameraComponent;
 class AGunBase;
+class UUIFollowerComponent;
+
 
 UCLASS()
 class XV_API AXVCharacter : public ACharacter
@@ -18,6 +20,12 @@ class XV_API AXVCharacter : public ACharacter
 	GENERATED_BODY()
 
 public:
+	
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="UI", meta=(AllowPrivateAccess="true"))
+	UUIFollowerComponent* UIFollowerComp = nullptr;
+	virtual void BeginPlay() override;
+	
 	AXVCharacter();
 
 	void SetHealth(float Value);
@@ -169,11 +177,6 @@ protected:
 	// 오버랩 끝 함수
 	void OnWeaponOverlapEnd(const AGunBase* Weapon);
 	
-	UFUNCTION(BlueprintImplementableEvent, Category="State")
-	void BP_OnDied();
-
-	UFUNCTION(BlueprintImplementableEvent, Category="State")
-	void BP_OnRevived();
 	
 	UPROPERTY(BlueprintReadOnly, Category="State")
 	bool bIsDie;
