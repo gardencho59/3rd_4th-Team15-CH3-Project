@@ -1,3 +1,6 @@
+
+
+#include "UIFollowerComponent.h"
 #include "Character/XVCharacter.h"
 #include "Character/XVPlayerController.h"
 #include "Character/XVPlayerAnimInstance.h"
@@ -10,6 +13,18 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Perception/AISense_Hearing.h" // AI 총소리 듣기 용입니다.
 #include "System/XVBaseGameMode.h"
+
+void AXVCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+
+	// BP에 붙어있는 C++ 컴포넌트(이름: UIFollower)를 잡아옴
+	UIFollowerComp = FindComponentByClass<UUIFollowerComponent>();
+	if (!UIFollowerComp)
+	{
+		UE_LOG(LogTemp, Error, TEXT("UIFollowerComponent not found on %s"), *GetName());
+	}
+}
 
 AXVCharacter::AXVCharacter()
 {
@@ -125,7 +140,6 @@ void AXVCharacter::Die()
 	2.0f,
 	false
 	);
-	BP_OnDied();
 }
 
 void AXVCharacter::OnDieAnimationFinished()
@@ -627,6 +641,10 @@ void AXVCharacter::StartZoom(const FInputActionValue& Value)
 		bIsAim = true;
 
 		bZoomLookLeft = bIsLookLeft; // 줌 하고 회전 시 위치 바뀌는 경우 예방
+	if (UIFollowerComp)
+	{
+		UIFollowerComp->SetAimState(true, bZoomLookLeft ? ESideUI::Left : ESideUI::Right);
+	}
 		UE_LOG(LogTemp, Log, TEXT("Is Look Left %s"), bZoomLookLeft ? TEXT("True") : TEXT("False"));
 		if (!bIsZooming)
 		{
@@ -653,6 +671,10 @@ void AXVCharacter::StopZoomManual()
 {
 	// 줌 해제 신호
 	bIsAim = false;
+	if (UIFollowerComp)
+	{
+		UIFollowerComp->SetAimState(false, ESideUI::Right);
+	}
 
 	// 이미 보간중이 아니면 보간 타이머 시작
 	if (!bIsZooming)
