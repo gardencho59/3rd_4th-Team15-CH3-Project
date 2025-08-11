@@ -43,6 +43,10 @@ public:
 	UInputAction* OpenDoorAction;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
 	UInputAction* ReloadAction;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
+	UInputAction* InventoryAction;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
+	UInputAction* ItemInteractAction;
 	
 	virtual void BeginPlay() override;
 };

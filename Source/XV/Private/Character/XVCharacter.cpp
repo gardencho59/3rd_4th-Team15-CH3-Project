@@ -4,7 +4,7 @@
 #include "EnhancedInputComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Weapon/GunBase.h"
-#include "World/ElevatorDoor.h"
+#include "World/XVDoor.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -37,6 +37,8 @@ AXVCharacter::AXVCharacter()
 	bIsSit = false;
 	bIsAim = false;
 	bIsZooming = false;
+	bIsLookLeft = false;
+	bZoomLookLeft = false;
 	bIsDie = false;
 
 	GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
@@ -66,7 +68,7 @@ AXVCharacter::AXVCharacter()
 	CurrentHealth = MaxHealth;
 
 	//오버랩 이벤트
-	Elevator = nullptr;
+	Door = nullptr;
 	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &AXVCharacter::OnBeginOverlap);
 	GetCapsuleComponent()->OnComponentEndOverlap.AddDynamic(this, &AXVCharacter::OnEndOverlap);
 }
@@ -219,11 +221,11 @@ void AXVCharacter::OnBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* O
 	if (OtherActor)
 	{
 		//UE_LOG(LogTemp, Log, TEXT("Overlap Actor: %s"), *OtherActor->GetName());
-		// 엘리베이터 클래스인지 확인
-		if (AElevatorDoor* OverlapElevator = Cast<AElevatorDoor>(OtherActor))
+		// 문인지 확인
+		if (AXVDoor* OverlapDoor = Cast<AXVDoor>(OtherActor))
 		{
-			Elevator = OverlapElevator;
-			UE_LOG(LogTemp, Log, TEXT("Elevator: %s"), *Elevator->GetName());
+			Door = OverlapDoor;
+			UE_LOG(LogTemp, Log, TEXT("Elevator: %s"), *Door->GetName());
 		}
 	}
 }
@@ -235,10 +237,10 @@ void AXVCharacter::OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor
 	{
 		//UE_LOG(LogTemp, Log, TEXT("End Overlap Actor: %s"), *OtherActor->GetName());
 		// 엘리베이터 클래스인지 확인
-		if (Elevator == Cast<AElevatorDoor>(OtherActor))
+		if (Door == Cast<AXVDoor>(OtherActor))
 		{			
-			Elevator = nullptr;
-			if (!Elevator)
+			Door = nullptr;
+			if (!Door)
 			{
 				UE_LOG(LogTemp, Log, TEXT("Elevator: null"));
 			}
@@ -423,7 +425,28 @@ void AXVCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 					this,
 					&AXVCharacter::Reload
 				);
-	    	}	    	
+	    	}
+	    	if (PlayerController->InventoryAction)
+	    	{
+	    		// IA_Reload I키 누를 때 Inventory() 호출
+	    		EnhancedInput->BindAction(
+					PlayerController->ReloadAction,
+					ETriggerEvent::Started,
+					this,
+					&AXVCharacter::Inventory
+				);
+	    	}
+	    	if (PlayerController->ItemInteractAction)
+	    	{
+	    		// IA_Reload E키 누를 때 ItemInteract() 호출
+	    		EnhancedInput->BindAction(
+					PlayerController->ReloadAction,
+					ETriggerEvent::Started,
+					this,
+					&AXVCharacter::ItemInteract
+				);
+	    	}
+	    	
 	    }
 	}
 }
@@ -495,6 +518,11 @@ void AXVCharacter::Look(const FInputActionValue& Value)
 void AXVCharacter::StartSprint(const FInputActionValue& Value)
 {	
 	if (bIsDie) return;
+	if (bIsZooming || bIsAim) // 줌 중이면 해제
+	{
+		StopZoomManual();
+	}
+	
 	if (CurrentWeaponActor)
 	{
 		if (CurrentWeaponActor->IsReloading()) return;
@@ -597,8 +625,9 @@ void AXVCharacter::UpdateCameraOffset()
 void AXVCharacter::StartZoom(const FInputActionValue& Value)
 {
 		bIsAim = true;
-		UE_LOG(LogTemp, Log, TEXT("Is Look Left %s"), bIsLookLeft ? TEXT("True") : TEXT("False"));
 
+		bZoomLookLeft = bIsLookLeft; // 줌 하고 회전 시 위치 바뀌는 경우 예방
+		UE_LOG(LogTemp, Log, TEXT("Is Look Left %s"), bZoomLookLeft ? TEXT("True") : TEXT("False"));
 		if (!bIsZooming)
 		{
 			bIsZooming = true;
@@ -616,21 +645,30 @@ void AXVCharacter::StopZoom(const FInputActionValue& Value)
 {
 	if (!Value.Get<bool>())
 	{
-		bIsAim = false;
-
-		if (!bIsZooming)
-		{
-			bIsZooming = true;
-			GetWorld()->GetTimerManager().SetTimer(
-				ZoomTimerHandle,
-				this,
-				&AXVCharacter::UpdateZoom,
-				0.01f,
-				true
-			);
-		}
+		StopZoomManual();
 	}
 }
+
+void AXVCharacter::StopZoomManual()
+{
+	// 줌 해제 신호
+	bIsAim = false;
+
+	// 이미 보간중이 아니면 보간 타이머 시작
+	if (!bIsZooming)
+	{
+		bIsZooming = true;
+		UpdateZoom(); // 즉시 한번 호출해서 반응성 보정
+		GetWorld()->GetTimerManager().SetTimer(
+			ZoomTimerHandle,
+			this,
+			&AXVCharacter::UpdateZoom,
+			0.01f,
+			true
+		);
+	}
+}
+
 
 void AXVCharacter::UpdateZoom()
 {
@@ -650,7 +688,7 @@ void AXVCharacter::UpdateZoom()
 	}
 	else // 현재 바라보고 있는 방향에 따라 카메라 위치 이동
 	{
-		TargetLocation = bIsLookLeft ? FVector(0.f, -90.f, 0.f) : FVector(0.f, 40.f, 0.f);
+		TargetLocation = bZoomLookLeft ? FVector(0.f, -90.f, 0.f) : FVector(0.f, 40.f, 0.f);
 	}
 
 	FVector CurrentLocation = CameraComp->GetRelativeLocation();
@@ -700,9 +738,9 @@ void AXVCharacter::ChangeToSubWeapon(const FInputActionValue& Value)
 void AXVCharacter::OpenDoor(const FInputActionValue& Value)
 {
 	if (bIsDie) return;
-	if (Elevator)
+	if (Door)
 	{
-		Elevator->OpenDoor();
+		Door->OpenDoor();
 	}		
 }
 
@@ -718,4 +756,12 @@ void AXVCharacter::Reload(const FInputActionValue& Value)
 		}
 		CurrentWeaponActor->Reload();
 	}
+}
+
+void AXVCharacter::Inventory(const FInputActionValue& Value)
+{
+}
+
+void AXVCharacter::ItemInteract(const FInputActionValue& Value)
+{
 }
