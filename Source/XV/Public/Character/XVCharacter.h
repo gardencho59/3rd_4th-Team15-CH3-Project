@@ -182,5 +182,6 @@ private:
 	float TurnRate;
 	
 	bool bIsLookLeft;
+	bool bZoomLookLeft;		
 	FTimerHandle DieTimerHandle;
 };
