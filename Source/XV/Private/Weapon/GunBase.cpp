@@ -39,7 +39,7 @@ void AGunBase::BeginPlay()
 
 void AGunBase::FireBullet()
 {
-    if (CurrentAmmo <= 0 && !bCanFire)
+    if (CurrentAmmo <= 0 && !bCanFire && !bIsReloading)
     {
         PlaySoundAtMuzzle(WeaponDataAsset->EmptySound);
         return;
