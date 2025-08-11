@@ -425,7 +425,28 @@ void AXVCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 					this,
 					&AXVCharacter::Reload
 				);
-	    	}	    	
+	    	}
+	    	if (PlayerController->InventoryAction)
+	    	{
+	    		// IA_Reload I키 누를 때 Inventory() 호출
+	    		EnhancedInput->BindAction(
+					PlayerController->ReloadAction,
+					ETriggerEvent::Started,
+					this,
+					&AXVCharacter::Inventory
+				);
+	    	}
+	    	if (PlayerController->ItemInteractAction)
+	    	{
+	    		// IA_Reload E키 누를 때 ItemInteract() 호출
+	    		EnhancedInput->BindAction(
+					PlayerController->ReloadAction,
+					ETriggerEvent::Started,
+					this,
+					&AXVCharacter::ItemInteract
+				);
+	    	}
+	    	
 	    }
 	}
 }
@@ -721,4 +742,12 @@ void AXVCharacter::Reload(const FInputActionValue& Value)
 		}
 		CurrentWeaponActor->Reload();
 	}
+}
+
+void AXVCharacter::Inventory(const FInputActionValue& Value)
+{
+}
+
+void AXVCharacter::ItemInteract(const FInputActionValue& Value)
+{
 }

@@ -14,7 +14,9 @@ AXVPlayerController::AXVPlayerController()
 	  MainWeaponAction(nullptr),
 	  SubWeaponAction(nullptr),
 	  OpenDoorAction(nullptr),
-	  ReloadAction(nullptr)
+	  ReloadAction(nullptr),
+	  InventoryAction(nullptr),
+	  ItemInteractAction(nullptr)
 {
 }
 
