@@ -13,7 +13,7 @@ public:
 	virtual void BeginPlay() override;
 	
 	virtual void StartGame();
-	virtual void SpawnEnemies() const;
+	virtual void SpawnEnemies();
 	virtual void OnEnemyKilled();
 	virtual void OnWaveTriggered();
 	virtual void OnTimeLimitExceeded();

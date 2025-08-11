@@ -58,24 +58,28 @@ FVector ASpawnVolume::GetEnemySpawnPoint() const
 	return SpawningBox->GetComponentLocation();
 }
 
-AActor* ASpawnVolume::SpawnEnemy(TSubclassOf<AActor> EnemyClass)
+AActor* ASpawnVolume::SpawnEnemy(TSubclassOf<AActor> EnemyClass, const FActorSpawnParameters& SpawnParams)
 {
 	if (!EnemyClass) return nullptr;
 	
 	AActor* SpawnedActor = GetWorld()->SpawnActor<AActor>(
 		EnemyClass,	
 		GetEnemySpawnPoint(),
-		FRotator::ZeroRotator
+		FRotator::ZeroRotator,
+		SpawnParams
 	);
 	return SpawnedActor;
 }
 AActor* ASpawnVolume::SpawnRandomEnemy()
 {
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+	
 	if (FEnemySpawnRow* SelectedRow = GetRandomEnemy())
 	{
 		if (UClass* ActualClass = SelectedRow->EnemyClass.Get())
 		{
-			return SpawnEnemy(ActualClass);
+			return SpawnEnemy(ActualClass, SpawnParams);
 		}
 	}
 	return nullptr;

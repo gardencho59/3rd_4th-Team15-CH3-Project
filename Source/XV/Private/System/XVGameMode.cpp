@@ -13,13 +13,7 @@ AXVGameMode::AXVGameMode()
 void AXVGameMode::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	FString CurrentMapName = GetWorld()->GetMapName();
-	CurrentMapName.RemoveFromStart(GetWorld()->StreamingLevelsPrefix);
-	if (CurrentMapName != "BaseLevel")	
-	{
-		StartGame();
-	}
+	StartGame();
 }
 
 void AXVGameMode::StartGame()
@@ -28,46 +22,65 @@ void AXVGameMode::StartGame()
 	{
 		if (UXVGameInstance* XVGI = Cast<UXVGameInstance>(GI))
 		{
-			if (XVGI->IsWaiting)	
+			if (!XVGI->IsWaiting)	
 			{
-				XVGI->IsWaiting = false;
-				
-				if (LevelNames.IsValidIndex(XVGI->CurrentLevelIdx))
+				Super::StartGame();
+				if (!GetWorldTimerManager().IsTimerActive(XVGameTimerHandle))
 				{
-					UE_LOG(LogTemp, Warning, TEXT("OpenLevel: %s"), *LevelNames[XVGI->CurrentLevelIdx].ToString());
-					UGameplayStatics::OpenLevel(GetWorld(), LevelNames[XVGI->CurrentLevelIdx]);
-					return;			
+					if (AXVGameState* GS = GetGameState<AXVGameState>())
+					{
+						TWeakObjectPtr<AXVGameMode> WeakThis = this;
+
+						FTimerDelegate TimerDel;
+						TimerDel.BindLambda([WeakThis]()
+						{
+							if (WeakThis.IsValid())
+							{
+								WeakThis->OnTimeLimitExceeded();
+							}
+						});
+
+						GetWorldTimerManager().SetTimer(
+							XVGameTimerHandle,
+							TimerDel,
+							GS->TimeLimit,
+							false
+						);
+					}
 				}
 			}
 		}
 	}
-
-	Super::StartGame();
-	if (AXVGameState* GS = GetGameState<AXVGameState>())
-	{
-		GetWorldTimerManager().SetTimer(
-			XVGameTimerHandle,
-			this,
-			&AXVGameMode::OnTimeLimitExceeded,
-			GS->TimeLimit,
-			false);
-	}
 }
 	
-void AXVGameMode::SpawnEnemies() const
+void AXVGameMode::SpawnEnemies()
 {
 	Super::SpawnEnemies();
 }
 
 void AXVGameMode::OnEnemyKilled()
 {
-	Super::OnEnemyKilled();
+	OnWaveTriggered();
+	if (AXVGameState* GS = GetGameState<AXVGameState>())
+	{
+		GS->KilledEnemyCount++;
+		if (GS->KilledEnemyCount > 0 && GS->KilledEnemyCount >= GS->SpawnedEnemyCount)
+		{
+			GS->CanActiveArrivalPoint = true;
+		}	
+	}
 }
 
 void AXVGameMode::OnWaveTriggered()
 {
-	
-	Super::OnWaveTriggered();
+	if (AXVGameState* GS = GetGameState<AXVGameState>())
+	{
+		GS->CanActiveArrivalPoint = false;
+		if (GS->IsWaveTriggered) return;
+		
+		GS->IsWaveTriggered = true;
+		SpawnEnemies();
+	}
 }
 
 void AXVGameMode::OnTimeLimitExceeded()
@@ -77,6 +90,17 @@ void AXVGameMode::OnTimeLimitExceeded()
 
 void AXVGameMode::EndGame(bool bIsClear)
 {
+	if (GetWorld())
+	{
+		FTimerManager& TimerManager = GetWorld()->GetTimerManager();
+		TimerManager.ClearAllTimersForObject(this);
+		
+		if (TimerManager.IsTimerActive(XVGameTimerHandle))
+		{
+			TimerManager.ClearTimer(XVGameTimerHandle);
+		}
+	}
+	
 	Super::EndGame(bIsClear);
 	
 	if (bIsClear)
@@ -90,7 +114,6 @@ void AXVGameMode::EndGame(bool bIsClear)
 			{
 				if (XVGI->CurrentLevelIdx <	MaxLevel)
 				{
-					UE_LOG(LogTemp, Warning, TEXT("Level %d Clear!"), XVGI->CurrentLevelIdx + 1);
 					XVGI->CurrentLevelIdx++;
 					XVGI->IsWaiting = true;
 					UGameplayStatics::OpenLevel(GetWorld(), "BaseLevel");
@@ -104,7 +127,14 @@ void AXVGameMode::EndGame(bool bIsClear)
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Game Over!"));
+		if (UGameInstance* GI = GetGameInstance())
+		{
+			if (UXVGameInstance* XVGI = Cast<UXVGameInstance>(GI))
+			{
+				XVGI->IsWaiting = true;
+				UGameplayStatics::OpenLevel(GetWorld(), "BaseLevel");
+			}
+		}
 	}
 }
 

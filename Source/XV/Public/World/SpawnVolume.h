@@ -26,6 +26,6 @@ public:
 
 	FEnemySpawnRow* GetRandomEnemy() const;
 	FVector GetEnemySpawnPoint() const;
-	AActor* SpawnEnemy(TSubclassOf<AActor> EnemyClass);
+	AActor* SpawnEnemy(TSubclassOf<AActor> EnemyClass, const FActorSpawnParameters& SpawnParams);
 	AActor* SpawnRandomEnemy();
 };

@@ -15,7 +15,7 @@ public:
 	virtual void BeginPlay() override;
 
 	virtual void StartGame() override;
-	virtual void SpawnEnemies() const override;
+	virtual void SpawnEnemies() override;
 	virtual void OnEnemyKilled() override;
 	virtual void OnWaveTriggered() override;
 	virtual void OnTimeLimitExceeded() override;
@@ -23,8 +23,6 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Level")
 	int32 MaxLevel;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Level")
-	TArray<FName> LevelNames;
 	
 	FTimerHandle XVGameTimerHandle;
 };

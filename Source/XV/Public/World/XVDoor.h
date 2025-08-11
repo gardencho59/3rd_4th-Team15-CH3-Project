@@ -29,5 +29,4 @@ public:
 	bool IsOpening;
 
 	void OpenDoor();
-	void DestroyDoor();
 };
