@@ -18,6 +18,7 @@ public:
 	virtual void FireBullet() = 0;
 	virtual void Reload() = 0;
 	virtual bool IsReloading() const = 0;
+	virtual bool IsFire() const = 0;
 	virtual int32 GetCurrentAmmo() const = 0;
 
 	virtual class UWeaponDataAsset* GetWeaponData() const = 0;

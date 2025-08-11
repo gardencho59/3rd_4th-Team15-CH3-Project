@@ -19,6 +19,7 @@ public:
 	virtual void FireBullet() override;
 	virtual void Reload() override;
 	virtual bool IsReloading() const override;
+	virtual bool IsCanFire() const;
 	virtual int32 GetCurrentAmmo() const override;
 
 	virtual UWeaponDataAsset* GetWeaponData() const override { return WeaponDataAsset; }
