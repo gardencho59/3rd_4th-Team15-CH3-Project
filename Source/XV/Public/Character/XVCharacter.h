@@ -142,7 +142,11 @@ protected:
 	UFUNCTION()
 	void OpenDoor(const FInputActionValue& Value);
 	UFUNCTION()
-	void Reload(const FInputActionValue& Value);	
+	void Reload(const FInputActionValue& Value);
+	UFUNCTION()
+	void Inventory(const FInputActionValue& Value);
+	UFUNCTION()
+	void ItemInteract(const FInputActionValue& Value);		
 
 	UFUNCTION()
 	void OnBeginOverlap(
@@ -182,5 +186,6 @@ private:
 	float TurnRate;
 	
 	bool bIsLookLeft;
+	bool bZoomLookLeft;		
 	FTimerHandle DieTimerHandle;
 };
