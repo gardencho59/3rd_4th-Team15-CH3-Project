@@ -7,7 +7,7 @@
 #include "Weapon/WeaponTypes.h"
 #include "XVCharacter.generated.h"
 
-class AElevatorDoor;
+class AXVDoor;
 class USpringArmComponent;
 class UCameraComponent;
 class AGunBase;
@@ -107,7 +107,7 @@ protected:
 	AGunBase* CurrentOverlappingWeapon;	
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Overlap")
-	AElevatorDoor* Elevator;	
+	AXVDoor* Door;	
 	
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
@@ -132,6 +132,7 @@ protected:
 	void StartZoom(const FInputActionValue& Value);
 	UFUNCTION()
 	void StopZoom(const FInputActionValue& Value);
+	void StopZoomManual();
 	void UpdateZoom();
 	UFUNCTION()
 	void PickUpWeapon(const FInputActionValue& Value);
