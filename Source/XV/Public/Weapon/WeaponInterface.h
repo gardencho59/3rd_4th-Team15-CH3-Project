@@ -19,6 +19,9 @@ public:
 	virtual void Reload() = 0;
 	virtual bool IsReloading() const = 0;
 	virtual bool IsCanFire() const = 0;
+	virtual FVector GetAimDirection() const = 0;
+	virtual FVector GetMuzzleLocation() const = 0;
+	virtual int32 GetRemainingAmmo() const = 0;
 	virtual int32 GetCurrentAmmo() const = 0;
 
 	virtual class UWeaponDataAsset* GetWeaponData() const = 0;

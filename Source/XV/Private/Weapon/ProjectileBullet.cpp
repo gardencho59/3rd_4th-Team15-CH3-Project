@@ -61,6 +61,19 @@ void AProjectileBullet::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
 		{
 			Enemy->GetDamage(100.f);
 		}
+
+		if (BulletImpactDecal)
+		{
+			// 디칼 붙이기
+			UGameplayStatics::SpawnDecalAtLocation(
+				GetWorld(),
+				BulletImpactDecal,
+				FVector(10.f, 10.f, 10.f),     // 디칼 크기
+				Hit.ImpactPoint,               // 부딪힌 지점
+				Hit.ImpactNormal.Rotation(),   // 방향
+				10.0f                          // 지속 시간
+			);
+		}
 		 
 		// 프렉처 관련 오류 남
 		if (OtherComp && OtherComp->IsSimulatingPhysics())
