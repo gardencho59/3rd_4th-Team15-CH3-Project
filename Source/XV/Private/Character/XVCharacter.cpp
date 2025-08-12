@@ -16,6 +16,11 @@
 #include "Item/HealthPotionItem.h"
 #include "Item/InteractableItem.h"
 
+void AXVCharacter::BroadcastHealth()
+{
+	OnHealthChanged.Broadcast(CurrentHealth, MaxHealth);
+}
+
 void AXVCharacter::BeginPlay()
 {
 	Super::BeginPlay();
@@ -26,7 +31,18 @@ void AXVCharacter::BeginPlay()
 	{
 		UE_LOG(LogTemp, Error, TEXT("UIFollowerComponent not found on %s"), *GetName());
 	}
+	if (bDebugGivePotionOnStart)
+	{
+		FTimerHandle Tmp;
+		GetWorldTimerManager().SetTimer(
+			Tmp,
+			FTimerDelegate::CreateUObject(this, &AXVCharacter::DebugGivePotion, DebugGivePotionCount),
+			0.1f, false
+		);
+	}
+	BroadcastHealth();
 }
+
 
 AXVCharacter::AXVCharacter()
 {
@@ -99,6 +115,7 @@ AXVCharacter::AXVCharacter()
 void AXVCharacter::SetHealth(float Value)
 {
 	CurrentHealth = FMath::Clamp( Value, 0.0f, MaxHealth);
+	BroadcastHealth();
 }
 
 float AXVCharacter::GetHealth() const
@@ -113,6 +130,7 @@ void AXVCharacter::AddHealth(float Value)
 {
 	CurrentHealth = FMath::Clamp(CurrentHealth + Value, 0.0f, MaxHealth);
 	UE_LOG(LogTemp, Log, TEXT("AddHealth : %f, Now Health : %f"), Value , CurrentHealth);
+	BroadcastHealth();
 }
 
 void AXVCharacter::AddDamage(float Value)
@@ -121,6 +139,8 @@ void AXVCharacter::AddDamage(float Value)
 	FString Str = FString::Printf(TEXT("%f Damaged, Now Health : %f"), Value, CurrentHealth);
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, Str);
 	// 피격 애니메이션 추가
+	
+	BroadcastHealth();
 	
 	if (CurrentHealth <= 0.0f)
 	{
@@ -494,21 +514,19 @@ void AXVCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	    	}
 	    	if (PlayerController->HealAction)
 	    	{
-	    		// IA_Heal V키 누를 때 UseItem() 호출
 	    		EnhancedInput->BindAction(
 					PlayerController->HealAction,
 					ETriggerEvent::Started,
 					this,
-					&AXVCharacter::UseItem
+					&AXVCharacter::StartUseCurrentItem   // ★ 변경
 				);
-	    		// IA_Heal V키 땔 때 UseItem() 호출
 	    		EnhancedInput->BindAction(
 					PlayerController->HealAction,
 					ETriggerEvent::Completed,
 					this,
-					&AXVCharacter::StopUseItem
+					&AXVCharacter::StopUseCurrentItem    // ★ 변경
 				);
-	    	}	    	
+	    	}	
 	    }
 	}
 }
@@ -856,41 +874,104 @@ void AXVCharacter::Inventory(const FInputActionValue& Value)
 
 void AXVCharacter::ItemInteract(const FInputActionValue& Value)
 {
-	if (!InteractionComp)
-	{
-		return;
-	}
+	if (!InteractionComp) return;
+
 	InteractionComp->HandleItemInteract();
-	/*if ((CurrentItem = Cast<AInteractableItem>(InteractionComp->GetActor())))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("CurrentItem : %s"), *CurrentItem->GetName());
-	}*/
 }
 
-void AXVCharacter::UseItem(const FInputActionValue& Value)
+
+void AXVCharacter::SetCurrentItem(AInteractableItem* Item)
 {
-	if (CurrentItem)
+	if (CurrentItem == Item) return;        // ★ 중복 방지
+
+	CurrentItem = Item;
+	OnCurrentItemChanged.Broadcast(CurrentItem);   // HUD/3D 위젯에 알림
+}
+void AXVCharacter::StartUseCurrentItem()
+{
+	if (bIsDie) return;
+	
+	if (!CurrentItem)
+	{
+		if (HealthPotionCount <= 0)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("No health potions."));
+			return;
+		}
+		SpawnPotionForUse(); // SetCurrentItem 내부에서 브로드캐스트 됨
+	}
+
+	if (AHealthPotionItem* Potion = Cast<AHealthPotionItem>(CurrentItem))
+	{
+		UE_LOG(LogTemp, Log, TEXT("StartUseCurrentItem: HealthPotion StartUse"));
+		Potion->StartUse();
+	}
+	else if (CurrentItem)
 	{
 		CurrentItem->UseItem();
 	}
 }
-void AXVCharacter::StopUseItem(const FInputActionValue& Value)
+
+void AXVCharacter::StopUseCurrentItem()
 {
-	if (AHealthPotionItem* HealthPotion = Cast<AHealthPotionItem>(CurrentItem))
+	if (bIsDie) return;
+
+	if (AHealthPotionItem* Potion = Cast<AHealthPotionItem>(CurrentItem))
 	{
-		HealthPotion->StopUse();
+		UE_LOG(LogTemp, Log, TEXT("StopUseCurrentItem: HealthPotion StopUse"));
+		Potion->StopUse();
 	}
 }
 
-void AXVCharacter::SetCurrentItem(AInteractableItem* Item)
+
+void AXVCharacter::DebugGivePotion(int32 Count /*=1*/)
 {
-	CurrentItem = Item;
-	if (!CurrentItem)
+	if (Count <= 0) return;
+	UWorld* World = GetWorld();
+	if (!World) return;
+
+	// 1) 포션 액터 스폰
+	FActorSpawnParameters Params;
+	Params.Owner = this;
+	const FVector SpawnLoc = GetActorLocation() + FVector(50.f, 0.f, 0.f);
+	const FRotator SpawnRot = GetActorRotation();
+
+	AHealthPotionItem* NewPotion =
+		World->SpawnActor<AHealthPotionItem>(AHealthPotionItem::StaticClass(), SpawnLoc, SpawnRot, Params);
+
+	// 2) 현재 아이템으로 설정(→ HUD/3D 위젯 RebindToPotion 트리거)
+	if (NewPotion)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("CurrentItem : NULL"));
+		SetCurrentItem(NewPotion);
+		UE_LOG(LogTemp, Warning, TEXT("DebugGivePotion: spawned %s"), *NewPotion->GetName());
 	}
-	else
+
+	// 3) 인벤 개수 + 방송(→ 개수 텍스트 즉시 갱신)
+	HealthPotionCount += Count;
+	OnHealthPotionCountChanged.Broadcast(HealthPotionCount);
+
+	UE_LOG(LogTemp, Warning, TEXT("DebugGivePotion: +%d, Now Count=%d"), Count, HealthPotionCount);
+}
+
+AHealthPotionItem* AXVCharacter::SpawnPotionForUse()
+{
+	if (!GetWorld()) return nullptr;
+
+	FActorSpawnParameters Params;
+	Params.Owner = this;
+	// 충돌로 인해 스폰 실패하지 않도록
+	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+	const FVector Loc = GetActorLocation() + GetActorForwardVector() * 40.f + FVector(0,0,10);
+	const FRotator Rot = GetActorRotation();
+
+	AHealthPotionItem* NewPotion =
+		GetWorld()->SpawnActor<AHealthPotionItem>(AHealthPotionItem::StaticClass(), Loc, Rot, Params);
+
+	if (NewPotion)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("CurrentItem : %s"), *CurrentItem->GetName());
+		// HUD/3D 위젯이 새 포션에 다시 바인딩되도록
+		SetCurrentItem(NewPotion);
 	}
+	return NewPotion;
 }
