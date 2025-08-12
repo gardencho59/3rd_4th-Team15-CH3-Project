@@ -1,6 +1,3 @@
-
-
-#include "UIFollowerComponent.h"
 #include "Character/XVCharacter.h"
 #include "Character/XVPlayerController.h"
 #include "Character/XVPlayerAnimInstance.h"
@@ -15,6 +12,7 @@
 #include "System/XVBaseGameMode.h"
 #include "Inventory/Component/InteractionComponent.h"
 #include "Components/WidgetComponent.h"
+#include "UIFollowerComponent.h"
 
 void AXVCharacter::BeginPlay()
 {
@@ -34,8 +32,8 @@ AXVCharacter::AXVCharacter()
 	
 	DefaultCameraLength = 90.0f; // 기본 스프링암 길이
 	ZoomCameraLength = 20.0f; // 줌 스프링암 길이
-	StandCameraOffset = FVector(0.f, 0.f, 0.f); // 서 있을 때 카메라 높이
-	SitCameraOffset = FVector(0.f, 0.f, -30.f); // 앉아 있을 때 카메라 높이
+	StandCameraOffset = FVector(-50.f, 30.f, 80.f); // 서 있을 때 카메라 높이
+	SitCameraOffset = FVector(-50.f, 30.f, 30.f); // 앉아 있을 때 카메라 높이
 	
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArmComp->SetupAttachment(RootComponent);
@@ -105,7 +103,10 @@ float AXVCharacter::GetHealth() const
 {
 	return CurrentHealth;
 }
-
+float AXVCharacter::GetMaxHealth() const
+{
+	return MaxHealth;
+}
 void AXVCharacter::AddHealth(float Value)
 {
 	CurrentHealth = FMath::Clamp(CurrentHealth + Value, 0.0f, MaxHealth);
@@ -460,7 +461,7 @@ void AXVCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	    	}
 	    	if (PlayerController->ItemInteractAction)
 	    	{
-	    		// IA_Reload E키 누를 때 ItemInteract() 호출
+	    		// IA_Reload G키 누를 때 ItemInteract() 호출
 	    		EnhancedInput->BindAction(
 					PlayerController->ItemInteractAction,
 					ETriggerEvent::Started,
@@ -468,7 +469,26 @@ void AXVCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 					&AXVCharacter::ItemInteract
 				);
 	    	}
-	    	
+	    	if (PlayerController->ChangeZoomLeftAction)
+	    	{
+	    		// IA_ChangeZoomLeft E키 누를 때 ItemInteract() 호출
+	    		EnhancedInput->BindAction(
+					PlayerController->ChangeZoomLeftAction,
+					ETriggerEvent::Started,
+					this,
+					&AXVCharacter::ChangeLeftZoom
+				);
+	    	}
+	    	if (PlayerController->ChangeZoomRightAction)
+	    	{
+	    		// IA_ChangeZoomRight Q키 누를 때 ChangeRightZoom() 호출
+	    		EnhancedInput->BindAction(
+					PlayerController->ChangeZoomRightAction,
+					ETriggerEvent::Started,
+					this,
+					&AXVCharacter::ChangeRightZoom
+				);
+	    	}
 	    }
 	}
 }
@@ -631,14 +651,14 @@ void AXVCharacter::Sit(const FInputActionValue& Value)
 void AXVCharacter::UpdateCameraOffset()
 {
 	FVector TargetOffset = bIsSit ? SitCameraOffset : StandCameraOffset;
-	FVector CurrentOffset = SpringArmComp->SocketOffset;
+	FVector CurrentOffset =  SpringArmComp->GetRelativeLocation();
 
 	FVector NewOffset = FMath::VInterpTo(CurrentOffset, TargetOffset, GetWorld()->GetDeltaSeconds(), CameraOffsetInterpSpeed);
-	SpringArmComp->SocketOffset = NewOffset;
+	SpringArmComp->SetRelativeLocation(NewOffset);
 
 	if (FVector::Dist(NewOffset, TargetOffset) < 1.f)
 	{
-		SpringArmComp->SocketOffset = TargetOffset;
+		SpringArmComp->SetRelativeLocation(TargetOffset);
 		GetWorld()->GetTimerManager().ClearTimer(CameraOffsetTimerHandle);
 		bIsSetCameraOffset = false;
 	}
@@ -646,25 +666,23 @@ void AXVCharacter::UpdateCameraOffset()
 
 void AXVCharacter::StartZoom(const FInputActionValue& Value)
 {
-		bIsAim = true;
-
-		bZoomLookLeft = bIsLookLeft; // 줌 하고 회전 시 위치 바뀌는 경우 예방
+	bIsAim = true;
+	bZoomLookLeft = true; // 줌 하고 회전 시 위치 바뀌는 경우 예방
 	if (UIFollowerComp)
 	{
 		UIFollowerComp->SetAimState(true, bZoomLookLeft ? ESideUI::Left : ESideUI::Right);
 	}
-		UE_LOG(LogTemp, Log, TEXT("Is Look Left %s"), bZoomLookLeft ? TEXT("True") : TEXT("False"));
-		if (!bIsZooming)
-		{
-			bIsZooming = true;
-			GetWorld()->GetTimerManager().SetTimer(
-				ZoomTimerHandle,
-				this,
-				&AXVCharacter::UpdateZoom,
-				0.01f,
-				true
-			);
-		}
+	if (!bIsZooming)
+	{
+		bIsZooming = true;
+		GetWorld()->GetTimerManager().SetTimer(
+			ZoomTimerHandle,
+			this,
+			&AXVCharacter::UpdateZoom,
+			0.01f,
+			true
+		);
+	}
 }
 
 void AXVCharacter::StopZoom(const FInputActionValue& Value)
@@ -683,7 +701,6 @@ void AXVCharacter::StopZoomManual()
 	{
 		UIFollowerComp->SetAimState(false, ESideUI::Right);
 	}
-
 	// 이미 보간중이 아니면 보간 타이머 시작
 	if (!bIsZooming)
 	{
@@ -699,6 +716,30 @@ void AXVCharacter::StopZoomManual()
 	}
 }
 
+void AXVCharacter::ChangeLeftZoom(const FInputActionValue& Value)
+{
+	SetZoomDirection(true);
+}
+void AXVCharacter::ChangeRightZoom(const FInputActionValue& Value)
+{
+	SetZoomDirection(false);
+}
+
+void AXVCharacter::SetZoomDirection(bool bIsLookLeftDirection)
+{
+	if (bIsAim) // 줌 상태일 때만 작동
+	{
+		bZoomLookLeft = bIsLookLeftDirection;
+		UpdateZoom();
+		GetWorld()->GetTimerManager().SetTimer(
+			ZoomTimerHandle,
+			this,
+			&AXVCharacter::UpdateZoom,
+			0.01f,
+			true
+		);
+	}
+}
 
 void AXVCharacter::UpdateZoom()
 {

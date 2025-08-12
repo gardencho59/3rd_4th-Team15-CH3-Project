@@ -47,6 +47,10 @@ public:
 	UInputAction* InventoryAction;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
 	UInputAction* ItemInteractAction;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
+	UInputAction* ChangeZoomLeftAction;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
+	UInputAction* ChangeZoomRightAction;
 	
 	virtual void BeginPlay() override;
 };
