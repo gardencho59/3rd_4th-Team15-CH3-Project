@@ -3,17 +3,15 @@
 #include "CoreMinimal.h"
 #include "ItemInterface.h"
 #include "GameFramework/Actor.h"
-#include "BaseItem.generated.h"
-
-class USphereComponent;
+#include "InteractableItem.generated.h"
 
 UCLASS()
-class XV_API ABaseItem : public AActor, public IItemInterface
+class XV_API AInteractableItem : public AActor, public IItemInterface
 {
 	GENERATED_BODY()
 
 public:
-	ABaseItem();
+	AInteractableItem();
 
 protected:
 
@@ -21,11 +19,15 @@ protected:
 	USceneComponent* Scene;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item|Component")
-	USphereComponent* Collision;
+	class USphereComponent* Collision;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item|Component")
 	UStaticMeshComponent* StaticMesh;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	class UItemDataComponent* ItemDataComp;
+
+	
 	virtual void Interact() override;
 	
 };
