@@ -3,4 +3,3 @@
 ADummyItem::ADummyItem()
 {
 }
-

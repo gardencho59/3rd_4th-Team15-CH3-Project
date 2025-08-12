@@ -4,17 +4,17 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "Inventory.generated.h"
+#include "InventoryComponent.generated.h"
 
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
-class XV_API UInventory : public UActorComponent
+class XV_API UInventoryComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
 public:
 	// Sets default values for this component's properties
-	UInventory();
+	UInventoryComponent();
 
 protected:
 	// Called when the game starts

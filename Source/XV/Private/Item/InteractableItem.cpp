@@ -1,8 +1,8 @@
-#include "Item/BaseItem.h"
+#include "Item/InteractableItem.h"
 #include "Components/SphereComponent.h"
-#include "EventManager.h"
+#include "Inventory/Component/ItemDataComponent.h"
 
-ABaseItem::ABaseItem()
+AInteractableItem::AInteractableItem()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
@@ -15,8 +15,10 @@ ABaseItem::ABaseItem()
 
 	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMesh"));
 	StaticMesh->SetupAttachment(Scene);
+	
+	ItemDataComp = CreateDefaultSubobject<UItemDataComponent>(TEXT("ItemData"));
 }
 
-void ABaseItem::Interact()
+void AInteractableItem::Interact()
 {
 }

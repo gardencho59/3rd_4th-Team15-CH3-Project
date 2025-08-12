@@ -13,6 +13,8 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Perception/AISense_Hearing.h" // AI 총소리 듣기 용입니다.
 #include "System/XVBaseGameMode.h"
+#include "Inventory/Component/InteractionComponent.h"
+#include "Components/WidgetComponent.h"
 
 void AXVCharacter::BeginPlay()
 {
@@ -43,6 +45,12 @@ AXVCharacter::AXVCharacter()
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	CameraComp->SetupAttachment(SpringArmComp, USpringArmComponent::SocketName);
 	CameraComp->bUsePawnControlRotation = false;
+
+	// 인벤토리 관련
+	InteractionWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("InteractionWidget"));
+	InteractionWidget->SetupAttachment(RootComponent);
+	
+	InteractionComp = CreateDefaultSubobject<UInteractionComponent>(TEXT("Interaction"));
 
 	NormalSpeed = 300.0f; // 기본 이동 속도
 	SprintSpeed = 500.0f; // 달리기 속도
@@ -444,7 +452,7 @@ void AXVCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	    	{
 	    		// IA_Reload I키 누를 때 Inventory() 호출
 	    		EnhancedInput->BindAction(
-					PlayerController->ReloadAction,
+					PlayerController->InventoryAction,
 					ETriggerEvent::Started,
 					this,
 					&AXVCharacter::Inventory
@@ -454,7 +462,7 @@ void AXVCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	    	{
 	    		// IA_Reload E키 누를 때 ItemInteract() 호출
 	    		EnhancedInput->BindAction(
-					PlayerController->ReloadAction,
+					PlayerController->ItemInteractAction,
 					ETriggerEvent::Started,
 					this,
 					&AXVCharacter::ItemInteract
@@ -784,6 +792,12 @@ void AXVCharacter::Inventory(const FInputActionValue& Value)
 {
 }
 
+
 void AXVCharacter::ItemInteract(const FInputActionValue& Value)
 {
+	if (!InteractionComp)
+	{
+		return;
+	}
+	InteractionComp->HandleItemInteract();
 }
