@@ -11,19 +11,28 @@ class XV_API AHealthPotionItem : public AInteractableItem
 	GENERATED_BODY()
 public:
 	AHealthPotionItem();
-	virtual void BeginPlay() override;
-	void ResetHealthPotion();
+	virtual void UseItem() override;
+
+	float GetChargeTime() const;
+	float GetChargeRemainTime() const;
+	float GetChargeCurrentTime() const;
+	
 	void StartUse();
 	void StopUse();
-	void HealTick();
-	void UseItem();
+	UFUNCTION()
+	void FinishUse(); // 회복 실행
+	
 protected:
-	void Interact() override;
+	UPROPERTY(EditDefaultsOnly, Category="Potion")
+	float ChargeTime; // 사용까지 필요한 시간 (초)
+	UPROPERTY(EditDefaultsOnly, Category="Potion")
+	float HealAmount; // 회복량
+
+	FTimerHandle HealTimerHandle;
+
+	virtual void Interact() override;
+
 	
 private:
-	float TotalHealAmount; 
-	float HealDuration;
-	float HealPerTick;
-	float RemainingHealAmount;
-	FTimerHandle HealTimerHandle;
+	bool bIsUsing;
 };

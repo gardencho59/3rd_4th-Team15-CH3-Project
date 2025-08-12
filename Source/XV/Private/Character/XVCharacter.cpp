@@ -13,6 +13,7 @@
 #include "Inventory/Component/InteractionComponent.h"
 #include "Components/WidgetComponent.h"
 #include "UIFollowerComponent.h"
+#include "Item/HealthPotionItem.h"
 #include "Item/InteractableItem.h"
 
 void AXVCharacter::BeginPlay()
@@ -111,6 +112,7 @@ float AXVCharacter::GetMaxHealth() const
 void AXVCharacter::AddHealth(float Value)
 {
 	CurrentHealth = FMath::Clamp(CurrentHealth + Value, 0.0f, MaxHealth);
+	UE_LOG(LogTemp, Log, TEXT("AddHealth : %f, Now Health : %f"), Value , CurrentHealth);
 }
 
 void AXVCharacter::AddDamage(float Value)
@@ -492,14 +494,21 @@ void AXVCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	    	}
 	    	if (PlayerController->HealAction)
 	    	{
-	    		// IA_ChangeZoomRight Q키 누를 때 ChangeRightZoom() 호출
+	    		// IA_Heal V키 누를 때 UseItem() 호출
 	    		EnhancedInput->BindAction(
 					PlayerController->HealAction,
-					ETriggerEvent::Triggered,
+					ETriggerEvent::Started,
 					this,
 					&AXVCharacter::UseItem
 				);
-	    	}
+	    		// IA_Heal V키 땔 때 UseItem() 호출
+	    		EnhancedInput->BindAction(
+					PlayerController->HealAction,
+					ETriggerEvent::Completed,
+					this,
+					&AXVCharacter::StopUseItem
+				);
+	    	}	    	
 	    }
 	}
 }
@@ -852,8 +861,10 @@ void AXVCharacter::ItemInteract(const FInputActionValue& Value)
 		return;
 	}
 	InteractionComp->HandleItemInteract();
-	CurrentItem = Cast<AInteractableItem>(InteractionComp->GetActor());
-	UE_LOG(LogTemp, Warning, TEXT("CurrentItem : %s"), *CurrentItem->GetName());
+	/*if ((CurrentItem = Cast<AInteractableItem>(InteractionComp->GetActor())))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("CurrentItem : %s"), *CurrentItem->GetName());
+	}*/
 }
 
 void AXVCharacter::UseItem(const FInputActionValue& Value)
@@ -861,6 +872,13 @@ void AXVCharacter::UseItem(const FInputActionValue& Value)
 	if (CurrentItem)
 	{
 		CurrentItem->UseItem();
+	}
+}
+void AXVCharacter::StopUseItem(const FInputActionValue& Value)
+{
+	if (AHealthPotionItem* HealthPotion = Cast<AHealthPotionItem>(CurrentItem))
+	{
+		HealthPotion->StopUse();
 	}
 }
 

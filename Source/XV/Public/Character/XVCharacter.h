@@ -176,6 +176,7 @@ protected:
 	UFUNCTION()
 	void ItemInteract(const FInputActionValue& Value);
 	void UseItem(const FInputActionValue& Value);
+	void StopUseItem(const FInputActionValue& Value);
 
 	UFUNCTION()
 	void OnBeginOverlap(
