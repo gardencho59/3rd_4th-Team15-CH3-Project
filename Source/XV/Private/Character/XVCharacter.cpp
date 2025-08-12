@@ -13,6 +13,7 @@
 #include "Inventory/Component/InteractionComponent.h"
 #include "Components/WidgetComponent.h"
 #include "UIFollowerComponent.h"
+#include "Item/InteractableItem.h"
 
 void AXVCharacter::BeginPlay()
 {
@@ -489,6 +490,16 @@ void AXVCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 					&AXVCharacter::ChangeRightZoom
 				);
 	    	}
+	    	if (PlayerController->HealAction)
+	    	{
+	    		// IA_ChangeZoomRight Q키 누를 때 ChangeRightZoom() 호출
+	    		EnhancedInput->BindAction(
+					PlayerController->HealAction,
+					ETriggerEvent::Triggered,
+					this,
+					&AXVCharacter::UseItem
+				);
+	    	}
 	    }
 	}
 }
@@ -841,4 +852,27 @@ void AXVCharacter::ItemInteract(const FInputActionValue& Value)
 		return;
 	}
 	InteractionComp->HandleItemInteract();
+	CurrentItem = Cast<AInteractableItem>(InteractionComp->GetActor());
+	UE_LOG(LogTemp, Warning, TEXT("CurrentItem : %s"), *CurrentItem->GetName());
+}
+
+void AXVCharacter::UseItem(const FInputActionValue& Value)
+{
+	if (CurrentItem)
+	{
+		CurrentItem->UseItem();
+	}
+}
+
+void AXVCharacter::SetCurrentItem(AInteractableItem* Item)
+{
+	CurrentItem = Item;
+	if (!CurrentItem)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("CurrentItem : NULL"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("CurrentItem : %s"), *CurrentItem->GetName());
+	}
 }

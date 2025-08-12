@@ -7,6 +7,7 @@
 #include "Weapon/WeaponTypes.h"
 #include "XVCharacter.generated.h"
 
+class AInteractableItem;
 class AXVDoor;
 class USpringArmComponent;
 class UCameraComponent;
@@ -47,6 +48,8 @@ public:
 	bool GetIsAim() const;
 	UFUNCTION(BlueprintCallable)
 	float GetTurnRate() const;
+	UFUNCTION(BlueprintCallable)
+	void SetCurrentItem(AInteractableItem* Item);
 
 	// 현재 장착 무기 타입
 	UPROPERTY(BlueprintReadOnly, Category="Weapon")
@@ -123,7 +126,10 @@ protected:
 	AGunBase* CurrentOverlappingWeapon;	
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Overlap")
-	AXVDoor* Door;	
+	AXVDoor* Door;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Overlap")
+	AInteractableItem* CurrentItem;
 	
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
@@ -168,7 +174,8 @@ protected:
 	UFUNCTION()
 	void Inventory(const FInputActionValue& Value);
 	UFUNCTION()
-	void ItemInteract(const FInputActionValue& Value);		
+	void ItemInteract(const FInputActionValue& Value);
+	void UseItem(const FInputActionValue& Value);
 
 	UFUNCTION()
 	void OnBeginOverlap(
@@ -194,9 +201,7 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category="State")
 	bool bIsDie;
 
-private:
-	
-	
+private:	
 	// 캐릭터 스테이터스
 	float CurrentHealth;
 	float MaxHealth;
