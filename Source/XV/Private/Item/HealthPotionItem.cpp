@@ -4,71 +4,79 @@
 
 AHealthPotionItem::AHealthPotionItem()
 {
-	ResetHealthPotion();
-}
-void AHealthPotionItem::ResetHealthPotion()
-{
-	TotalHealAmount = 30.f;					// 총 회복량
-	HealDuration = 10.f;						// 회복 시간(초)
-	HealPerTick = 0.f;						// 초당 회복량 (초기화 후 계산)
-	RemainingHealAmount = TotalHealAmount;  // 처음에는 전량 남음
-}
-
-void AHealthPotionItem::BeginPlay()
-{
-	Super::BeginPlay();
-	HealPerTick = TotalHealAmount / HealDuration;
+	ChargeTime = 3.0f;
+	HealAmount = 30.f;
+	bIsUsing = false;
 }
 
 void AHealthPotionItem::StartUse()
 {
-	if (RemainingHealAmount <= 0.f) return; // 이미 다 사용했으면 무시	
-	if (!XVCharacter) return;
-
-	// 1초마다 HealTick 실행
+	//UE_LOG(LogTemp, Warning, TEXT("charge Time : %.2f / %.2f") , GetChargeCurrentTime(), GetChargeTime());
+	if (bIsUsing) return;
+	UE_LOG(LogTemp, Warning, TEXT("StartUse called"));
+	bIsUsing = true;
+	
+	GetWorld()->GetTimerManager().SetTimer(HealTimerHandle, FTimerDelegate::CreateLambda([this]()
+	{
+		FinishUse();
+	}), ChargeTime, false);
+	/*// ChargeTime 후 FinishUse 호출
 	GetWorld()->GetTimerManager().SetTimer(
 		HealTimerHandle,
 		this,
-		&AHealthPotionItem::HealTick,
-		2.0f,
-		true
-	);
+		&AHealthPotionItem::Test,
+		1.0f,
+		false
+	);*/
 }
 
 void AHealthPotionItem::StopUse()
 {
+	// 키를 뗐으면 타이머 취소
+	UE_LOG(LogTemp, Warning, TEXT("StopUse called, cancelling timer"));
 	GetWorld()->GetTimerManager().ClearTimer(HealTimerHandle);
+	bIsUsing = false;
+}
 
-	// 남은 양이 0 이하 → 파괴
-	if (RemainingHealAmount <= 0.f)
+void AHealthPotionItem::FinishUse()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Finish Use"));
+	if (!XVCharacter)
 	{
+		XVCharacter = Cast<AXVCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
+	}	
+	if (XVCharacter)
+	{
+		// 캐릭터 체력 회복
+		XVCharacter->AddHealth(HealAmount);
+		bIsUsing = false;
+		
+		// 아이템 삭제
 		XVCharacter->SetCurrentItem(nullptr);
 		Destroy();
 	}
 }
 
-void AHealthPotionItem::HealTick()
-{
-	if (!XVCharacter)
-	{
-		XVCharacter = Cast<AXVCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
-	}
-	float HealThisTick = FMath::Min(HealPerTick, RemainingHealAmount);
-	
-	XVCharacter->AddHealth(HealThisTick);
-	RemainingHealAmount -= HealThisTick;
-	UE_LOG(LogTemp, Warning, TEXT("Heal RemainingHealAmount: %f / %f"), RemainingHealAmount, TotalHealAmount);
-	// 다 회복했으면 종료
-	if (RemainingHealAmount <= 0.f)
-	{
-		StopUse();
-	}
-}
-
 void AHealthPotionItem::UseItem()
 {
-	UE_LOG(LogTemp, Warning, TEXT("UseItem"));
-	HealTick();
+	StartUse();
+}
+
+float AHealthPotionItem::GetChargeTime() const
+{
+	return ChargeTime;
+}
+
+float AHealthPotionItem::GetChargeRemainTime() const
+{
+	float Remaining = GetWorld()->GetTimerManager().GetTimerRemaining(HealTimerHandle);
+	return Remaining;
+}
+
+float AHealthPotionItem::GetChargeCurrentTime() const
+{
+	float CurrentTime = ChargeTime- GetWorld()->GetTimerManager().GetTimerRemaining(HealTimerHandle);
+	return CurrentTime;
 }
 
 void AHealthPotionItem::Interact()
