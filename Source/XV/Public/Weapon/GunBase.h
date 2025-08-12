@@ -18,8 +18,14 @@ public:
 
 	virtual void FireBullet() override;
 	virtual void Reload() override;
+	
 	virtual bool IsReloading() const override;
-	virtual bool IsCanFire() const;
+	virtual bool IsCanFire() const override;
+	
+	virtual FVector GetAimDirection() const override;
+	virtual FVector GetMuzzleLocation() const override;
+	
+	virtual int32 GetRemainingAmmo() const override;
 	virtual int32 GetCurrentAmmo() const override;
 
 	virtual UWeaponDataAsset* GetWeaponData() const override { return WeaponDataAsset; }
@@ -32,10 +38,9 @@ public:
 protected:
 	void SpawnBullet();
 	void PlayEffects();
-	void PlaySoundAtMuzzle(USoundBase* Sound);
+	void PlaySoundAtMuzzle(USoundBase* Sound) const;
 	void FinishReload();
-
-protected:
+	
 	UPROPERTY(VisibleAnywhere, Category = "Mesh")
 	USkeletalMeshComponent* GunMesh;
 
