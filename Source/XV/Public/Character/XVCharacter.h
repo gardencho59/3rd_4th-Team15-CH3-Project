@@ -13,6 +13,11 @@ class USpringArmComponent;
 class UCameraComponent;
 class AGunBase;
 class UUIFollowerComponent;
+class AHealthPotionItem;
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnHealthChanged, float, Current, float, Max);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCurrentItemChanged, AInteractableItem*, NewItem);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHealthPotionCountChanged, int32, NewCount);
 
 
 UCLASS()
@@ -22,17 +27,44 @@ class XV_API AXVCharacter : public ACharacter
 
 public:
 	
+	UPROPERTY(BlueprintAssignable, Category="Health")
+	FOnHealthChanged OnHealthChanged;
+	UFUNCTION(BlueprintPure) float GetHealthPercent() const { return (GetMaxHealth() > 0.f) ? GetHealth() / GetMaxHealth() : 0.f; }
+	UPROPERTY(EditAnywhere, Category="Debug")
+	bool bDebugGivePotionOnStart = true;
+	UPROPERTY(EditAnywhere, Category="Debug", meta=(EditCondition="bDebugGivePotionOnStart"))
+	int32 DebugGivePotionCount = 10;
+	UFUNCTION(BlueprintCallable, Category="Debug")
+	void DebugGivePotion(int32 Count = 1);
+
+
+	UPROPERTY(BlueprintAssignable) FOnCurrentItemChanged OnCurrentItemChanged;
+	UPROPERTY(BlueprintAssignable) FOnHealthPotionCountChanged OnHealthPotionCountChanged;
+
+	UFUNCTION(BlueprintCallable) void SetCurrentItem(AInteractableItem* NewItem);
+	UFUNCTION(BlueprintPure)   AInteractableItem* GetCurrentItem() const { return CurrentItem; }
+	UFUNCTION(BlueprintPure)   int32 GetHealthPotionCount() const { return HealthPotionCount; }
+
+	void StartUseCurrentItem();
+	void StopUseCurrentItem();
+	void ConsumeHealthPotion() { HealthPotionCount = FMath::Max(0, HealthPotionCount-1); OnHealthPotionCountChanged.Broadcast(HealthPotionCount); }
+
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="UI", meta=(AllowPrivateAccess="true"))
 	UUIFollowerComponent* UIFollowerComp = nullptr;
 	virtual void BeginPlay() override;
 	
 	AXVCharacter();
-
+	
+	UFUNCTION(BlueprintCallable, Category="Health")
 	void SetHealth(float Value);
+	UFUNCTION(BlueprintCallable, Category="Health")
 	void AddHealth(float Value);
+	UFUNCTION(BlueprintPure, Category="Health")
 	float GetHealth() const;
+	UFUNCTION(BlueprintPure, Category="Health")
 	float GetMaxHealth() const;
+	
 	void AddDamage(float Value);
 	void Die();
 	void OnDieAnimationFinished();
@@ -48,12 +80,13 @@ public:
 	bool GetIsAim() const;
 	UFUNCTION(BlueprintCallable)
 	float GetTurnRate() const;
-	UFUNCTION(BlueprintCallable)
-	void SetCurrentItem(AInteractableItem* Item);
-
+	
 	// 현재 장착 무기 타입
 	UPROPERTY(BlueprintReadOnly, Category="Weapon")
 	EWeaponType CurrentWeaponType;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Inventory")
+	int32 HealthPotionCount = 0;
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
@@ -202,7 +235,10 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category="State")
 	bool bIsDie;
 
-private:	
+private:
+	AHealthPotionItem* SpawnPotionForUse();
+	void BroadcastHealth();
+	
 	// 캐릭터 스테이터스
 	float CurrentHealth;
 	float MaxHealth;
