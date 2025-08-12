@@ -51,6 +51,8 @@ public:
 	UInputAction* ChangeZoomLeftAction;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
 	UInputAction* ChangeZoomRightAction;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
+	UInputAction* HealAction;
 	
 	virtual void BeginPlay() override;
 };

@@ -5,6 +5,8 @@
 #include "GameFramework/Actor.h"
 #include "InteractableItem.generated.h"
 
+class AXVCharacter;
+
 UCLASS()
 class XV_API AInteractableItem : public AActor, public IItemInterface
 {
@@ -12,6 +14,8 @@ class XV_API AInteractableItem : public AActor, public IItemInterface
 
 public:
 	AInteractableItem();
+
+	virtual void UseItem();
 
 protected:
 
@@ -27,7 +31,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	class UItemDataComponent* ItemDataComp;
 
-	
 	virtual void Interact() override;
-	
+	AXVCharacter* XVCharacter;
 };
