@@ -474,7 +474,7 @@ void AXVCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	    	}
 	    	if (PlayerController->ChangeZoomLeftAction)
 	    	{
-	    		// IA_ChangeZoomLeft E키 누를 때 ItemInteract() 호출
+	    		// IA_ChangeZoomLeft Q키 누를 때 ItemInteract() 호출
 	    		EnhancedInput->BindAction(
 					PlayerController->ChangeZoomLeftAction,
 					ETriggerEvent::Started,
@@ -484,7 +484,7 @@ void AXVCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	    	}
 	    	if (PlayerController->ChangeZoomRightAction)
 	    	{
-	    		// IA_ChangeZoomRight Q키 누를 때 ChangeRightZoom() 호출
+	    		// IA_ChangeZoomRight E키 누를 때 ChangeRightZoom() 호출
 	    		EnhancedInput->BindAction(
 					PlayerController->ChangeZoomRightAction,
 					ETriggerEvent::Started,
@@ -687,7 +687,7 @@ void AXVCharacter::UpdateCameraOffset()
 void AXVCharacter::StartZoom(const FInputActionValue& Value)
 {
 	bIsAim = true;
-	bZoomLookLeft = true; // 줌 하고 회전 시 위치 바뀌는 경우 예방
+	bZoomLookLeft = false; // 기본 줌은 False로 고정 -> 캐릭터가 왼쪽으로
 	if (UIFollowerComp)
 	{
 		UIFollowerComp->SetAimState(true, bZoomLookLeft ? ESideUI::Left : ESideUI::Right);
