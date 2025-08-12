@@ -16,7 +16,9 @@ AXVPlayerController::AXVPlayerController()
 	  OpenDoorAction(nullptr),
 	  ReloadAction(nullptr),
 	  InventoryAction(nullptr),
-	  ItemInteractAction(nullptr)
+	  ItemInteractAction(nullptr),
+	  ChangeZoomLeftAction(nullptr),
+	  ChangeZoomRightAction(nullptr)
 {
 }
 

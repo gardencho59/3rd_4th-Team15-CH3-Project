@@ -31,6 +31,7 @@ public:
 	void SetHealth(float Value);
 	void AddHealth(float Value);
 	float GetHealth() const;
+	float GetMaxHealth() const;
 	void AddDamage(float Value);
 	void Die();
 	void OnDieAnimationFinished();
@@ -148,6 +149,11 @@ protected:
 	UFUNCTION()
 	void StopZoom(const FInputActionValue& Value);
 	void StopZoomManual();
+	UFUNCTION()
+	void ChangeLeftZoom(const FInputActionValue& Value);
+	UFUNCTION()
+	void ChangeRightZoom(const FInputActionValue& Value);
+	void SetZoomDirection(bool bIsLookLeft);
 	void UpdateZoom();
 	UFUNCTION()
 	void PickUpWeapon(const FInputActionValue& Value);
