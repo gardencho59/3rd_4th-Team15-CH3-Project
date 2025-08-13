@@ -1,19 +1,26 @@
 #include "Inventory/Component/ItemDataComponent.h"
-#include "Inventory/Data/ItemSlot.h"
+#include "Inventory/Data/ItemData.h"
+#include "Inventory/Component/InventoryComponent.h"
 
 UItemDataComponent::UItemDataComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
-FItemSlot* UItemDataComponent::GetItemData()
+FItemData* UItemDataComponent::GetItemData()
 {
 	if (!ItemDataHandle.DataTable)
 	{
 		return nullptr;
 	}
 
-	return ItemDataHandle.DataTable->FindRow<FItemSlot>(ItemDataHandle.RowName, TEXT("GetItemData"));
+	FItemData* ItemRow = ItemDataHandle.DataTable->FindRow<FItemData>(ItemDataHandle.RowName, TEXT("GetItemData"));
+	if (!ItemRow)
+	{
+		return nullptr;
+	}
+
+	return ItemRow;
 }
 
 FName UItemDataComponent::GetRowName()
@@ -21,13 +28,35 @@ FName UItemDataComponent::GetRowName()
 	return ItemDataHandle.RowName;
 }
 
-void UItemDataComponent::PickUp()
+void UItemDataComponent::PickUp(AActor* Interactor)
 {
 	AActor* Owner = GetOwner();
 	if (!Owner)
 	{
 		return;
 	}
-	UE_LOG(LogTemp, Log, TEXT("Pick Up!"));
-	Owner->Destroy();
+
+	if (!Interactor)
+	{
+		return;
+	}
+
+	UInventoryComponent* InvnetoryComp = Interactor->FindComponentByClass<UInventoryComponent>();
+	if (!InvnetoryComp)
+	{
+		return;
+	}
+
+	FItemData* ItemRow = GetItemData();
+	if (!ItemRow)
+	{
+		return;
+	}
+
+	// 인벤토리에 추가
+	if (InvnetoryComp->PickUp(ItemRow->ItemName, ItemQuantity))
+	{
+		Owner->Destroy();
+	}
+	
 }

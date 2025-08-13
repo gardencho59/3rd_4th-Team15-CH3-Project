@@ -25,4 +25,6 @@ public:
 	
 	void InteractionTrace();
 	void HandleItemInteract();
+
+	AActor* GetActor();
 };

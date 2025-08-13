@@ -12,18 +12,23 @@ struct FItemData : public FTableRowBase
 {
 	GENERATED_BODY()
 
+	// 아이템 이름
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FText ItemName;
+	FName ItemName;
 
+	// 아이템 아이콘
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UTexture2D* ItemIcon;
 
+	// 아이템 클래스
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<AInteractableItem> ItemClass;
 
+	// 아이템 사운드 이펙트
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FItemSFX ItemSFX;
 
+	// 아이템 별 최대 수량
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float ItemQuantity;
+	float SlotQuantity;
 };

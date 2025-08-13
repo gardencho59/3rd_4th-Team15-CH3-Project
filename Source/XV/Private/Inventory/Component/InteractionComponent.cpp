@@ -57,6 +57,7 @@ void UInteractionComponent::InteractionTrace()
 	}
 	else
 	{
+		TargetActor = nullptr;
 		if (UInteractionUI* UIInstance = GetUIInstance())
 		{
 			UIInstance->SetMessage(FText::GetEmpty());
@@ -101,6 +102,12 @@ void UInteractionComponent::BeginPlay()
 
 void UInteractionComponent::HandleItemInteract()
 {
+	AActor* Owner = GetOwner();
+	if (!Owner)
+	{
+		return;
+	}
+	
 	if (!TargetActor)
 	{
 		return;
@@ -112,5 +119,10 @@ void UInteractionComponent::HandleItemInteract()
 		return;
 	}
 	
-	ItemDataComp->PickUp();
+	ItemDataComp->PickUp(Owner);
+}
+
+AActor* UInteractionComponent::GetActor()
+{
+	return TargetActor;
 }

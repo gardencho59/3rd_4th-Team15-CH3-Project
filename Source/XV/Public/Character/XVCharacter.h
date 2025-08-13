@@ -103,6 +103,9 @@ protected:
 	// 인벤토리 관련
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	class UInteractionComponent* InteractionComp;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	class UInventoryComponent* InventoryComp;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item|UI")
 	class UWidgetComponent* InteractionWidget;
