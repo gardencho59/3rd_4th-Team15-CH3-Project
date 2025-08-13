@@ -6,12 +6,33 @@
 #include "WeaponInterface.h"
 #include "GunBase.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnMagAmmoChanged, int32, Current, int32, Max);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnReserveAmmoChanged, int32, Reserve);
+
 UCLASS()
 class XV_API AGunBase : public AActor, public IWeaponInterface
 {
 	GENERATED_BODY()
 
 public:
+
+	UPROPERTY(BlueprintAssignable, Category="Weapon|Ammo")
+	FOnMagAmmoChanged OnMagAmmoChanged;
+
+	UPROPERTY(BlueprintAssignable, Category="Weapon|Ammo")
+	FOnReserveAmmoChanged OnReserveAmmoChanged;
+	
+	UFUNCTION(BlueprintPure) int32 GetMagSize() const
+	{
+		return (WeaponDataAsset ? WeaponDataAsset->MaxAmmo : 0);
+	}
+
+	UFUNCTION(BlueprintPure) float GetMagPercent() const
+	{
+		const int32 Max = GetMagSize();
+		return (Max > 0) ? float(CurrentAmmo) / Max : 0.f;
+	}
+	
 	AGunBase();
 
 	virtual void BeginPlay() override;
@@ -24,8 +45,10 @@ public:
 	
 	virtual FVector GetAimDirection() const override;
 	virtual FVector GetMuzzleLocation() const override;
-	
+
+	UFUNCTION(BlueprintPure, Category="Weapon|Ammo")
 	virtual int32 GetRemainingAmmo() const override;
+	UFUNCTION(BlueprintPure, Category="Weapon|Ammo")
 	virtual int32 GetCurrentAmmo() const override;
 
 	virtual UWeaponDataAsset* GetWeaponData() const override { return WeaponDataAsset; }
@@ -34,6 +57,8 @@ public:
 	virtual UAnimMontage* GetEquipMontage() const override;
 	virtual UAnimMontage* GetFireMontage() const override;
 	virtual UAnimMontage* GetReloadMontage() const override;
+	
+	virtual TSubclassOf<class UCameraShakeBase>* GetCameraShake() const override;
 
 protected:
 	void SpawnBullet();
