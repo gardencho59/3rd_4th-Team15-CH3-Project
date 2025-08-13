@@ -217,6 +217,7 @@ void AXVCharacter::SetWeapon(EWeaponType Weapon)
 		PrimaryWeaponOffset->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("Rifle_Unequipped"));
 
 		CurrentWeaponActor = Cast<AGunBase>(SubWeapon->GetChildActor());
+		SetCameraShake(CurrentWeaponActor->GetCameraShake());
 		Anim->PlayWeaponEquipAnim(CurrentWeaponActor);
 		break;
 		
@@ -226,6 +227,7 @@ void AXVCharacter::SetWeapon(EWeaponType Weapon)
 		PrimaryWeaponOffset->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("Rifle_Equipped"));
 
 		CurrentWeaponActor = Cast<AGunBase>(PrimaryWeapon->GetChildActor());
+		SetCameraShake(CurrentWeaponActor->GetCameraShake());
 		Anim->PlayWeaponEquipAnim(CurrentWeaponActor);
 		break;
 
@@ -240,6 +242,7 @@ void AXVCharacter::SetWeapon(EWeaponType Weapon)
 		PrimaryWeaponOffset->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("Rifle_Unequipped"));
 
 		CurrentWeaponActor = Cast<AGunBase>(SubWeapon->GetChildActor());
+		SetCameraShake(nullptr);
 		Anim->PlayWeaponUnequipAnim();
 		break;
 	}
@@ -262,6 +265,12 @@ void AXVCharacter::SetWeapon(EWeaponType Weapon)
 void AXVCharacter::SetCameraShake(TSubclassOf<class UCameraShakeBase> Shake)
 {
 	CameraShake = Shake;
+	if (!CameraShake)
+	{
+		UE_LOG(LogTemp, Log, TEXT("CameraShake: null"));
+		return;
+	}
+	UE_LOG(LogTemp, Log, TEXT("CameraShake: %s"), *CameraShake->GetName());
 }
 
 EWeaponType AXVCharacter::GetWeapon() const
@@ -655,6 +664,7 @@ void AXVCharacter::Fire(const FInputActionValue& Value)
 	if (bIsDie) return;
 	if (Value.Get<bool>() && CurrentWeaponType != EWeaponType::None && !bIsRun) // 빈 손 일 때, 달릴 때 발사 금지
 	{
+		if (!CurrentWeaponActor->IsCanFire()) return;
 		auto Anim = Cast<UXVPlayerAnimInstance>(GetMesh()->GetAnimInstance());
 		if (Anim)
 		{
@@ -667,7 +677,10 @@ void AXVCharacter::Fire(const FInputActionValue& Value)
 		}
 
 		auto XVController = GetWorld()->GetFirstPlayerController();
-		XVController->PlayerCameraManager->StartCameraShake(CameraShake);
+		if (CameraShake)
+		{
+			XVController->PlayerCameraManager->StartCameraShake(CameraShake);
+		}
 
 		// AI 소리 듣기용입니다.
 		UAISense_Hearing::ReportNoiseEvent
