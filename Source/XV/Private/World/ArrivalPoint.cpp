@@ -44,30 +44,6 @@ void AArrivalPoint::ActivateArrivalPoint(AActor* Activator)
 {
 	if (Activator && Activator->ActorHasTag("Player"))
 	{
-		if (AXVBaseGameMode* BaseGM = Cast<AXVBaseGameMode>(GetWorld()->GetAuthGameMode()))
-		{
-			if (UGameInstance* GI = GetGameInstance())
-			{
-				if (UXVGameInstance* XVGI = Cast<UXVGameInstance>(GI))
-				{
-					if (!XVGI->IsWaiting)
-					{
-						BaseGM->EndGame(true);
-						Destroy();
-					}
-					else
-					{
-						if (LevelNames.IsValidIndex(XVGI->CurrentLevelIdx))
-						{
-							XVGI->IsWaiting = false;
-							UE_LOG(LogTemp, Warning, TEXT("OpenLevel: %s"), *LevelNames[XVGI->CurrentLevelIdx].ToString());
-							UGameplayStatics::OpenLevel(GetWorld(), LevelNames[XVGI->CurrentLevelIdx]);
-						}
-					}
-				}
-			}
-			
-			
-		}
+		UGameplayStatics::OpenLevel(GetWorld(), "Level_Laboratory_Demo");
 	}
 }

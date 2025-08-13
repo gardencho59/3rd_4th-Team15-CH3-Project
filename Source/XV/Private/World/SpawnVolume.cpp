@@ -78,7 +78,7 @@ AActor* ASpawnVolume::SpawnRandomEnemy()
 	if (FEnemySpawnRow* SelectedRow = GetRandomEnemy())
 	{
 		if (UClass* ActualClass = SelectedRow->EnemyClass.Get())
-		{
+		{	
 			return SpawnEnemy(ActualClass, SpawnParams);
 		}
 	}

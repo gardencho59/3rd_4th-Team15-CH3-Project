@@ -27,6 +27,10 @@ public:
 	FVector OpenOffset;
 	FVector TargetPos;
 	bool IsOpening;
-
+	float OpenTime;
+	
+	FTimerHandle DoorOpenTimerInWave;
+	
 	void OpenDoor();
+	void SetDoorOpening();
 };

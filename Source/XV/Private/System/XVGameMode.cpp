@@ -7,7 +7,7 @@
 
 AXVGameMode::AXVGameMode()
 {
-	MaxLevel = 3;
+	MaxLevel = 5;
 }
 
 void AXVGameMode::BeginPlay()
@@ -18,41 +18,15 @@ void AXVGameMode::BeginPlay()
 
 void AXVGameMode::StartGame()
 {
-	if (UGameInstance* GI = GetGameInstance())
-	{
-		if (UXVGameInstance* XVGI = Cast<UXVGameInstance>(GI))
-		{
-			if (!XVGI->IsWaiting)	
-			{
-				Super::StartGame();
-				if (!GetWorldTimerManager().IsTimerActive(XVGameTimerHandle))
-				{
-					if (AXVGameState* GS = GetGameState<AXVGameState>())
-					{
-						TWeakObjectPtr<AXVGameMode> WeakThis = this;
-
-						FTimerDelegate TimerDel;
-						TimerDel.BindLambda([WeakThis]()
-						{
-							if (WeakThis.IsValid())
-							{
-								WeakThis->OnTimeLimitExceeded();
-							}
-						});
-
-						GetWorldTimerManager().SetTimer(
-							XVGameTimerHandle,
-							TimerDel,
-							GS->TimeLimit,
-							false
-						);
-					}
-				}
-			}
-		}
-	}
+	Super::StartGame();
 }
-	
+
+void AXVGameMode::FindSpawnVolume()
+{
+	UE_LOG(LogTemp, Warning, TEXT("FindSpawnVolume!"));
+	Super::FindSpawnVolume();
+}
+
 void AXVGameMode::SpawnEnemies()
 {
 	Super::SpawnEnemies();
@@ -60,32 +34,20 @@ void AXVGameMode::SpawnEnemies()
 
 void AXVGameMode::OnEnemyKilled()
 {
-	OnWaveTriggered();
-	if (AXVGameState* GS = GetGameState<AXVGameState>())
-	{
-		GS->KilledEnemyCount++;
-		if (GS->KilledEnemyCount > 0 && GS->KilledEnemyCount >= GS->SpawnedEnemyCount)
-		{
-			GS->CanActiveArrivalPoint = true;
-		}	
-	}
+	Super::OnEnemyKilled();
 }
 
 void AXVGameMode::OnWaveTriggered()
 {
 	if (AXVGameState* GS = GetGameState<AXVGameState>())
 	{
-		GS->CanActiveArrivalPoint = false;
 		if (GS->IsWaveTriggered) return;
-		
+
+		UE_LOG(LogTemp, Warning, TEXT("WaveTriggered!"));
 		GS->IsWaveTriggered = true;
+		FindSpawnVolume();
 		SpawnEnemies();
 	}
-}
-
-void AXVGameMode::OnTimeLimitExceeded()
-{
-	Super::OnTimeLimitExceeded();
 }
 
 void AXVGameMode::EndGame(bool bIsClear)
@@ -94,20 +56,12 @@ void AXVGameMode::EndGame(bool bIsClear)
 	{
 		FTimerManager& TimerManager = GetWorld()->GetTimerManager();
 		TimerManager.ClearAllTimersForObject(this);
-		
-		if (TimerManager.IsTimerActive(XVGameTimerHandle))
-		{
-			TimerManager.ClearTimer(XVGameTimerHandle);
-		}
 	}
 	
 	Super::EndGame(bIsClear);
 	
 	if (bIsClear)
 	{
-		//Slow Motion
-		//UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.2);
-		
 		if (UGameInstance* GI = GetGameInstance())
 		{
 			if (UXVGameInstance* XVGI = Cast<UXVGameInstance>(GI))
@@ -115,8 +69,12 @@ void AXVGameMode::EndGame(bool bIsClear)
 				if (XVGI->CurrentLevelIdx <	MaxLevel)
 				{
 					XVGI->CurrentLevelIdx++;
-					XVGI->IsWaiting = true;
-					UGameplayStatics::OpenLevel(GetWorld(), "BaseLevel");
+					if (AXVGameState* GS = GetGameState<AXVGameState>())
+					{
+						if (!GS->IsWaveTriggered) return;
+						GS->IsWaveTriggered = false;
+						StartGame();
+					}
 				}
 				else
 				{
@@ -127,12 +85,14 @@ void AXVGameMode::EndGame(bool bIsClear)
 	}
 	else
 	{
+		//Slow Motion
+		//UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.2);
 		if (UGameInstance* GI = GetGameInstance())
 		{
 			if (UXVGameInstance* XVGI = Cast<UXVGameInstance>(GI))
 			{
-				XVGI->IsWaiting = true;
-				UGameplayStatics::OpenLevel(GetWorld(), "BaseLevel");
+				XVGI->CurrentLevelIdx = 1;
+				UGameplayStatics::OpenLevel(GetWorld(), "Level_Laboratory_Demo");
 			}
 		}
 	}

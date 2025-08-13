@@ -15,14 +15,13 @@ public:
 	virtual void BeginPlay() override;
 
 	virtual void StartGame() override;
+	virtual void FindSpawnVolume() override;
 	virtual void SpawnEnemies() override;
 	virtual void OnEnemyKilled() override;
 	virtual void OnWaveTriggered() override;
-	virtual void OnTimeLimitExceeded() override;
 	virtual void EndGame(bool bIsClear) override;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Level")
 	int32 MaxLevel;
 	
-	FTimerHandle XVGameTimerHandle;
 };
