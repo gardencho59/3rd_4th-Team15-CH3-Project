@@ -11,6 +11,7 @@
 #include "Perception/AISense_Hearing.h" // AI 총소리 듣기 용입니다.
 #include "System/XVBaseGameMode.h"
 #include "Inventory/Component/InteractionComponent.h"
+#include "Inventory/Component/InventoryComponent.h"
 #include "Components/WidgetComponent.h"
 #include "UIFollowerComponent.h"
 #include "Item/HealthPotionItem.h"
@@ -66,6 +67,7 @@ AXVCharacter::AXVCharacter()
 	InteractionWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("InteractionWidget"));
 	InteractionWidget->SetupAttachment(RootComponent);
 	
+	InventoryComp = CreateDefaultSubobject<UInventoryComponent>(TEXT("Inventory"));
 	InteractionComp = CreateDefaultSubobject<UInteractionComponent>(TEXT("Interaction"));
 
 	NormalSpeed = 300.0f; // 기본 이동 속도
@@ -869,6 +871,11 @@ void AXVCharacter::Reload(const FInputActionValue& Value)
 
 void AXVCharacter::Inventory(const FInputActionValue& Value)
 {
+	if (!InventoryComp)
+	{
+		return;
+	}
+	InventoryComp->ToggleInventory();
 }
 
 
