@@ -5,12 +5,12 @@
 UInventoryUI::UInventoryUI(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-
+	
 }
 
-void UInventoryUI::NativePreConstruct()
+void UInventoryUI::NativeConstruct()
 {
-	Super::NativePreConstruct();
+	Super::NativeConstruct();
 
 	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
 	if (!PlayerController)
@@ -18,10 +18,14 @@ void UInventoryUI::NativePreConstruct()
 		return;
 	}
 	
+	FInputModeGameAndUI InputMode;
+	InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+	InputMode.SetWidgetToFocus(TakeWidget());
+	
+	PlayerController->SetInputMode(InputMode);
 	PlayerController->bShowMouseCursor = true;
-	PlayerController->SetInputMode(FInputModeGameAndUI());
 }
-
+ 
 void UInventoryUI::NativeDestruct()
 {
 	Super::NativeDestruct();
@@ -31,11 +35,20 @@ void UInventoryUI::NativeDestruct()
 	{
 		return;
 	}
-	PlayerController->bShowMouseCursor = false;
+	
 	PlayerController->SetInputMode(FInputModeGameOnly());
-
+	PlayerController->bShowMouseCursor = false;
 }
 
+bool UInventoryUI::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation)
+{
+	if (!InOperation)
+	{
+		return false;
+	}
+	
+	return true;
+}
 void UInventoryUI::InitializeInventoryUI(UInventoryComponent* InInventoryComp)
 {
 	if (!InInventoryComp)
@@ -58,15 +71,19 @@ void UInventoryUI::CreateItemSlots()
 	}
 	ItemWrapBox->ClearChildren();
 
-	for (const auto& Item: InventoryComp->GetItemSlots())
+	const TArray<FItemSlot>& ItemSlots = InventoryComp->GetItemSlots();
+	for (int32 Index = 0; Index < ItemSlots.Num(); ++Index)
 	{
+		const FItemSlot& Item = ItemSlots[Index];
 		UItemSlotUI* NewSlot = CreateWidget<UItemSlotUI>(GetWorld(), ItemSlotWidgetClass);
 		if (!NewSlot)
 		{
 			return;
 		}
+		NewSlot->InventoryComp = InventoryComp;
 		NewSlot->ItemID = Item.ItemID;
 		NewSlot->ItemQuantity = Item.ItemQuantity;
+		NewSlot->Index = Index;
 		
 		NewSlot->SetItemData();
 

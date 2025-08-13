@@ -19,9 +19,11 @@ public:
 	
 protected:
 	
-	virtual void NativePreConstruct() override;
+	virtual void NativeConstruct() override;
 
 	virtual void NativeDestruct() override;
+
+	bool NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation) override;
 	
 	void CreateItemSlots();
 
@@ -30,9 +32,10 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	TSubclassOf<UItemSlotUI> ItemSlotWidgetClass;
-
+	
 	UPROPERTY(meta = (BindWidget))
 	UWrapBox* ItemWrapBox;
+
 	
 public:
 	
