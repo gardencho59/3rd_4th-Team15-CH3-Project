@@ -32,5 +32,4 @@ protected:
 	class UItemDataComponent* ItemDataComp;
 
 	virtual void Interact() override;
-	AXVCharacter* XVCharacter;
 };

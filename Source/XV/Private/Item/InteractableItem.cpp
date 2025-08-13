@@ -1,8 +1,6 @@
 #include "Item/InteractableItem.h"
 #include "Components/SphereComponent.h"
 #include "Inventory/Component/ItemDataComponent.h"
-#include "Kismet/GameplayStatics.h"
-#include "Character/XVCharacter.h"
 
 AInteractableItem::AInteractableItem()
 {
@@ -19,8 +17,7 @@ AInteractableItem::AInteractableItem()
 	StaticMesh->SetupAttachment(Scene);
 	
 	ItemDataComp = CreateDefaultSubobject<UItemDataComponent>(TEXT("ItemData"));
-
-	XVCharacter = Cast<AXVCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
+	
 }
 
 void AInteractableItem::UseItem()
