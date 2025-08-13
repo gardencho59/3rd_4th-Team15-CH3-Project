@@ -13,7 +13,7 @@ AGunBase::AGunBase()
     bIsReloading = false;
     bCanFire = true;
     CurrentAmmo = 0;
-    RemainingAmmo = 100;
+    RemainingAmmo = 150;
 }
 
 FVector AGunBase::GetAimDirection() const
@@ -89,10 +89,6 @@ void AGunBase::BeginPlay()
 
 void AGunBase::FireBullet()
 {
-    if (!WeaponDataAsset || bIsReloading || !bCanFire)
-    {
-        return;
-    }
     if (CurrentAmmo <= 0 && bCanFire)
     {
         bCanFire = false;
@@ -105,10 +101,31 @@ void AGunBase::FireBullet()
         
         return;
     }
+
+    if (!WeaponDataAsset || bIsReloading || !bCanFire)
+    {
+        return;
+    }
     
 
     CurrentAmmo--;
     bCanFire = false;
+
+    // 국인님 로그 지우실거면 여기부터 ▽
+
+
+    if (GEngine)
+    {
+        FString AmmoText = FString::Printf(TEXT("남은 장전된 탄약 : %d"), CurrentAmmo);
+        GEngine->AddOnScreenDebugMessage(
+            -1,              // Key (-1이면 새 메시지)
+            5.0f,            // 표시 시간(초)
+            FColor::Green,   // 색상
+            AmmoText         // 표시할 문자열
+        );
+    }
+
+    // 여기까지 지우시면 됩니다. △ 그리고 아래 174번째 줄에 하나 더 있어요.
 
     PlayEffects();
     SpawnBullet();
@@ -153,6 +170,21 @@ void AGunBase::FinishReload()
     RemainingAmmo -= ReloadAmount;
     bIsReloading = false;
     bCanFire = true;
+
+    // 국인님 로그 지우실거면 여기부터 ▽
+    
+    if (GEngine)
+    {
+        FString AmmoText = FString::Printf(TEXT("탄약 : %d / %d"), CurrentAmmo, RemainingAmmo);
+        GEngine->AddOnScreenDebugMessage(
+            -1,              // Key (-1이면 새 메시지)
+            5.0f,            // 표시 시간(초)
+            FColor::Green,   // 색상
+            AmmoText         // 표시할 문자열
+        );
+    }
+
+    // 여기까지 지우시면 됩니다. △ 
 }
 
 void AGunBase::SpawnBullet()
