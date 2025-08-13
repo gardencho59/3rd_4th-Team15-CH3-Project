@@ -3,6 +3,7 @@
 #include "Weapon/ProjectileBullet.h"
 #include "NiagaraFunctionLibrary.h"
 
+
 AGunBase::AGunBase()
 {
     PrimaryActorTick.bCanEverTick = false;
@@ -77,7 +78,6 @@ void AGunBase::BeginPlay()
         if (WeaponDataAsset->WeaponMesh)
         {
             GunMesh->SetSkeletalMesh(WeaponDataAsset->WeaponMesh);
-            UE_LOG(LogTemp, Error, TEXT("WeaponDataAsset is NULL on %s"), *GetName());
         }
     }
     else
@@ -85,6 +85,9 @@ void AGunBase::BeginPlay()
         UE_LOG(LogTemp, Error, TEXT("WeaponDataAsset is NULL on %s"), *GetName());
     }
 
+    // ★ 시작 상태도 UI에 알려주기
+    OnMagAmmoChanged.Broadcast(CurrentAmmo, GetMagSize());
+    OnReserveAmmoChanged.Broadcast(RemainingAmmo);
 }
 
 void AGunBase::FireBullet()
@@ -92,40 +95,22 @@ void AGunBase::FireBullet()
     if (CurrentAmmo <= 0 && bCanFire)
     {
         bCanFire = false;
-        
         PlaySoundAtMuzzle(WeaponDataAsset->EmptySound);
         GetWorld()->GetTimerManager().SetTimer(FireCooldownHandle, [this]()
         {
             bCanFire = true;
-        },WeaponDataAsset->FireRate, false);
-        
+        }, WeaponDataAsset->FireRate, false);
         return;
     }
 
     if (!WeaponDataAsset || bIsReloading || !bCanFire)
-    {
         return;
-    }
-    
 
-    CurrentAmmo--;
+    --CurrentAmmo;
     bCanFire = false;
 
-    // 국인님 로그 지우실거면 여기부터 ▽
-
-
-    if (GEngine)
-    {
-        FString AmmoText = FString::Printf(TEXT("남은 장전된 탄약 : %d"), CurrentAmmo);
-        GEngine->AddOnScreenDebugMessage(
-            -1,              // Key (-1이면 새 메시지)
-            5.0f,            // 표시 시간(초)
-            FColor::Green,   // 색상
-            AmmoText         // 표시할 문자열
-        );
-    }
-
-    // 여기까지 지우시면 됩니다. △ 그리고 아래 174번째 줄에 하나 더 있어요.
+    // ★ 탄창 이벤트 방송
+    OnMagAmmoChanged.Broadcast(CurrentAmmo, GetMagSize());
 
     PlayEffects();
     SpawnBullet();
@@ -134,12 +119,6 @@ void AGunBase::FireBullet()
     {
         bCanFire = true;
     }, WeaponDataAsset->FireRate, false);
-
-    // 자동 재장전이 필요할 경우 주석 해제
-    // if (CurrentAmmo <= 0)
-    // {
-    //     Reload();
-    // }
 }
 
 void AGunBase::Reload()
@@ -162,29 +141,18 @@ void AGunBase::Reload()
 
 void AGunBase::FinishReload()
 {
-    int32 MaxAmmo = WeaponDataAsset->MaxAmmo;
-    int32 NeededAmmo = MaxAmmo - CurrentAmmo;
-    int32 ReloadAmount = FMath::Min(NeededAmmo, RemainingAmmo);
+    const int32 MaxAmmo = WeaponDataAsset->MaxAmmo;
+    const int32 Needed  = MaxAmmo - CurrentAmmo;
+    const int32 ReloadAmount = FMath::Min(Needed, RemainingAmmo);
 
-    CurrentAmmo += ReloadAmount;
+    CurrentAmmo   += ReloadAmount;
     RemainingAmmo -= ReloadAmount;
     bIsReloading = false;
-    bCanFire = true;
+    bCanFire     = true;
 
-    // 국인님 로그 지우실거면 여기부터 ▽
-    
-    if (GEngine)
-    {
-        FString AmmoText = FString::Printf(TEXT("탄약 : %d / %d"), CurrentAmmo, RemainingAmmo);
-        GEngine->AddOnScreenDebugMessage(
-            -1,              // Key (-1이면 새 메시지)
-            5.0f,            // 표시 시간(초)
-            FColor::Green,   // 색상
-            AmmoText         // 표시할 문자열
-        );
-    }
-
-    // 여기까지 지우시면 됩니다. △ 
+    // ★ 둘 다 방송
+    OnMagAmmoChanged.Broadcast(CurrentAmmo, GetMagSize());
+    OnReserveAmmoChanged.Broadcast(RemainingAmmo);
 }
 
 void AGunBase::SpawnBullet()
@@ -246,3 +214,5 @@ int32 AGunBase::GetCurrentAmmo() const { return CurrentAmmo; }
 UAnimMontage* AGunBase::GetEquipMontage() const { return WeaponDataAsset->PlayerEquipAnimMontage; }
 UAnimMontage* AGunBase::GetFireMontage() const { return WeaponDataAsset->PlayerFireAnimMontage; }
 UAnimMontage* AGunBase::GetReloadMontage() const { return WeaponDataAsset->PlayerReloadAnimMontage; }
+
+//TSubclassOf<class UCameraShakeBase>* AGunBase::GetCameraShake() const { return WeaponDataAsset->CameraShake; }

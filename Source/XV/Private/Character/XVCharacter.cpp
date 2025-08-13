@@ -236,6 +236,20 @@ void AXVCharacter::SetWeapon(EWeaponType Weapon)
 		Anim->PlayWeaponUnequipAnim();
 		break;
 	}
+	// 무기 장착/해제 로직 끝난 다음…
+	OnCurrentWeaponChanged.Broadcast(CurrentWeaponActor);
+
+	// (선택) 새 무기의 현재 탄약 값도 즉시 반영되도록 한 번 더 쏴주기
+	if (CurrentWeaponActor)
+	{
+		CurrentWeaponActor->OnMagAmmoChanged.Broadcast(
+			CurrentWeaponActor->GetCurrentAmmo(),
+			CurrentWeaponActor->GetMagSize()
+		);
+		CurrentWeaponActor->OnReserveAmmoChanged.Broadcast(
+			CurrentWeaponActor->GetRemainingAmmo()
+		);
+	}
 }
 
 EWeaponType AXVCharacter::GetWeapon() const

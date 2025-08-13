@@ -31,8 +31,8 @@ public:
 	float ReloadTime;
 
 	// 총 반동
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Recoil")
-	class UAnimMontage* WeaponRecoilAnimMontage;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CameraShake")
+	TSubclassOf<class UCameraShakeBase> CameraShake;
 
 	// 발사 속도 (초당 발사 간격)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Firing")
@@ -77,4 +77,5 @@ public:
 	// 무기 재장전 몽타주
 	UPROPERTY(EditDefaultsOnly, Category = "WeaponAnim")
 	class UAnimMontage* ReloadAnimMontage;
+	
 };

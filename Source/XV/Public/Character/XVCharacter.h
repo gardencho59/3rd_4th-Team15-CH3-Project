@@ -7,6 +7,7 @@
 #include "Weapon/WeaponTypes.h"
 #include "XVCharacter.generated.h"
 
+
 class AInteractableItem;
 class AXVDoor;
 class USpringArmComponent;
@@ -18,6 +19,7 @@ class AHealthPotionItem;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnHealthChanged, float, Current, float, Max);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCurrentItemChanged, AInteractableItem*, NewItem);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHealthPotionCountChanged, int32, NewCount);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCurrentWeaponChanged, AGunBase*, NewWeapon);
 
 
 UCLASS()
@@ -26,6 +28,11 @@ class XV_API AXVCharacter : public ACharacter
 	GENERATED_BODY()
 
 public:
+	UPROPERTY(BlueprintAssignable, Category="Weapon")
+	FOnCurrentWeaponChanged OnCurrentWeaponChanged;
+	
+	UFUNCTION(BlueprintPure, Category="Weapon")
+	AGunBase* GetCurrentWeapon() const { return CurrentWeaponActor; }
 	
 	UPROPERTY(BlueprintAssignable, Category="Health")
 	FOnHealthChanged OnHealthChanged;

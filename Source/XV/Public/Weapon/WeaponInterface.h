@@ -30,4 +30,6 @@ public:
 	virtual class UAnimMontage* GetEquipMontage() const = 0;
 	virtual class UAnimMontage* GetFireMontage() const = 0;
 	virtual class UAnimMontage* GetReloadMontage() const = 0;
+
+	virtual TSubclassOf<class UCameraShakeBase>* GetCameraShake() const = 0;
 };
