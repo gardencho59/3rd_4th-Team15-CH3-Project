@@ -5,6 +5,7 @@
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
 #include "Engine/DataTable.h"
+#include "ItemSlotPreview.h"
 #include "ItemSlotUI.generated.h"
 
 UCLASS()
@@ -18,10 +19,16 @@ public:
 
 protected:
 	
-	virtual void NativePreConstruct() override;
+	virtual void NativeConstruct() override;
+	
+	virtual FReply NativeOnPreviewMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 
-	UPROPERTY()
-	class UInventoryComponent* InventoryComp;
+	virtual void NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& OutOperation) override;
+
+	virtual bool NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation) override;
+
+	virtual void NativeOnDragCancelled(const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation) override;
+	
 
 	UPROPERTY(meta = (BindWidget))
 	UImage* ItemIcon;
@@ -39,8 +46,17 @@ public:
 	void SetItemData();
 	
 	UPROPERTY()
+	class UInventoryComponent* InventoryComp;
+	
+	UPROPERTY()
 	FName ItemID;
 
 	UPROPERTY()
 	float ItemQuantity;
+
+	UPROPERTY()
+	int32 Index;
+
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	TSubclassOf<UItemSlotPreview> ItemSlotPreviewClass;
 };

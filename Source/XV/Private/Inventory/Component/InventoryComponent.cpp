@@ -4,6 +4,7 @@
 #include "Inventory/Data/ItemSFX.h"
 #include "Inventory/UI/InventoryUI.h"
 #include "Components/WidgetComponent.h"
+#include "Item/InteractableItem.h"
 #include "Kismet/GameplayStatics.h"
 
 UInventoryComponent::UInventoryComponent()
@@ -180,6 +181,55 @@ void UInventoryComponent::ToggleInventory()
         InventoryUI->RemoveFromParent();
         InventoryUI = nullptr;
     }
+}
+
+FVector UInventoryComponent::GetDropLocation()
+{
+	AActor* Owner = GetOwner();
+	if (!Owner)
+	{
+		return FVector::ZeroVector;
+	}
+	const FVector Location = Owner->GetActorLocation();
+	const FVector ForwardVector = Owner->GetActorForwardVector();
+
+	const float ConeHalfAngleRad = FMath::DegreesToRadians(55.0f);
+	const FVector RandomDirection = FMath::VRandCone(ForwardVector, ConeHalfAngleRad);
+	
+	const float DropDistance = 100.0f;
+	
+	return Location + RandomDirection * DropDistance;
+}
+
+void UInventoryComponent::DropFromInventory(FName ItemID, int32 ItemQuantity, int32 SlotIndex)
+{
+	for (int Index = 0; Index < ItemQuantity; ++Index)
+	{
+		FItemData* ItemRow = GetItemData(ItemID);
+
+		if (!ItemRow || !ItemRow->ItemClass)
+		{
+			UE_LOG(LogTemp, Log, TEXT("!ItemRow || !ItemRow->ItemClass"));
+			return;
+		}
+
+		AActor* DroppedItem = GetWorld()->SpawnActor<AInteractableItem>(
+			ItemRow->ItemClass,
+			GetDropLocation(),
+			FRotator::ZeroRotator);
+	}
+
+	ItemSlots[SlotIndex].ItemID = NAME_None;
+	ItemSlots[SlotIndex].ItemQuantity = 0;
+	
+	UpdateInventory();
+	
+	FItemSFX ItemSFX = GetItemSFX(ItemID);
+	if (!ItemSFX.Drop)
+	{
+		return;
+	}
+	PlaySFX(ItemSFX.Drop);
 }
 
 FItemSFX UInventoryComponent::GetItemSFX(const FName& ItemID)

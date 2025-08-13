@@ -2,6 +2,8 @@
 #include "Components/Image.h"
 #include "Inventory/Data/ItemData.h"
 #include "Components/TextBlock.h"
+#include "Blueprint/WidgetBlueprintLibrary.h"
+#include "Inventory/Component/InventoryComponent.h"
 
 UItemSlotUI::UItemSlotUI(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -9,11 +11,75 @@ UItemSlotUI::UItemSlotUI(const FObjectInitializer& ObjectInitializer)
 
 }
 
-void UItemSlotUI::NativePreConstruct()
+void UItemSlotUI::NativeConstruct()
 {
-	Super::NativePreConstruct();
+	Super::NativeConstruct();
 
 	SetItemData();
+}
+
+FReply UItemSlotUI::NativeOnPreviewMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+{
+	UE_LOG(LogTemp, Display, TEXT("NativeOnPreviewMouseButtonDown"));
+	if (InMouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
+	{
+		FEventReply ReplyResult = UWidgetBlueprintLibrary::DetectDragIfPressed(InMouseEvent, this, EKeys::LeftMouseButton);
+		return ReplyResult.NativeReply;
+	}
+	else
+	{
+		return FReply::Unhandled();
+	}
+}
+
+bool UItemSlotUI::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation)
+{
+	return false;
+}
+
+void UItemSlotUI::NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& OutOperation)
+{
+	UE_LOG(LogTemp, Display, TEXT("NativeOnDragDetected"));
+	
+	if (!ItemSlotPreviewClass)
+	{
+		return;
+	}
+	
+	UItemSlotPreview* ItemSlotPreview = CreateWidget<UItemSlotPreview>(GetWorld(), ItemSlotPreviewClass);
+	if (!ItemSlotPreview)
+	{
+		UE_LOG(LogTemp, Display, TEXT("Null ItemSlotPreview"));
+		return;
+	}
+	ItemSlotPreview->ItemID = ItemID;
+	ItemSlotPreview->ItemQuantity = ItemQuantity;
+	
+	UDragDropOperation* DragOp = NewObject<UDragDropOperation>();
+	if (!DragOp)
+	{
+		UE_LOG(LogTemp, Display, TEXT("Null DragOp"));
+		return;
+	}
+	DragOp->Pivot = EDragPivot::CenterCenter;
+	DragOp->DefaultDragVisual = ItemSlotPreview;
+	DragOp->Payload = this;
+
+	OutOperation = DragOp;
+}
+
+void UItemSlotUI::NativeOnDragCancelled(const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation)
+{
+	UE_LOG(LogTemp, Display, TEXT("NativeOnDragCancelled"));
+
+	if (!InventoryComp)
+	{
+		UE_LOG(LogTemp, Display, TEXT("!InventoryComp"));
+		return;
+	}
+
+	InventoryComp->DropFromInventory(ItemID, ItemQuantity, Index);
+	
 }
 
 void UItemSlotUI::SetItemData()

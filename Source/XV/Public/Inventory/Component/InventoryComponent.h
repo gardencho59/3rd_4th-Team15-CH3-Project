@@ -55,6 +55,10 @@ public:
 	void PlaySFX(USoundBase* Sound);
 
 	void ToggleInventory();
+	
+	FVector GetDropLocation();
+
+	void DropFromInventory(FName ItemID, int32 ItemQuantity, int32 SlotIndex);
 
 	FItemSFX GetItemSFX(const FName& ItemID);
 
