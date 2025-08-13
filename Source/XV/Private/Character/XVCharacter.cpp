@@ -185,6 +185,13 @@ void AXVCharacter::OnDieAnimationFinished()
 	}
 }
 
+void AXVCharacter::SetSpeed(float Value)
+{
+	NormalSpeed += Value;  // 기본 이동 속도
+	SprintSpeed += Value;  // 달리기 속도
+	SitSpeed += Value;     // 앉았을 때 속도
+}
+
 void AXVCharacter::SetWeapon(EWeaponType Weapon)
 { // 일단 타입마다 필요한게 있을 까 싶어 나눴는데 추가 기능 없으면 간략하게 변경해도 될듯
 	if (CurrentWeaponType == Weapon) // 현재 무기와 동일한 무기가 매개변수로 들어온 경우 => 장착 해제
@@ -250,6 +257,11 @@ void AXVCharacter::SetWeapon(EWeaponType Weapon)
 			CurrentWeaponActor->GetRemainingAmmo()
 		);
 	}
+}
+
+void AXVCharacter::SetCameraShake(TSubclassOf<class UCameraShakeBase> Shake)
+{
+	CameraShake = Shake;
 }
 
 EWeaponType AXVCharacter::GetWeapon() const

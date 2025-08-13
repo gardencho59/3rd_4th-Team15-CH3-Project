@@ -76,7 +76,11 @@ public:
 	void Die();
 	void OnDieAnimationFinished();
 
+	// 속도 관련
+	void SetSpeed(float Value);
+	
 	void SetWeapon(EWeaponType Weapon);
+	void SetCameraShake(TSubclassOf<class UCameraShakeBase> Shake);
 	UFUNCTION(BlueprintCallable)
 	EWeaponType GetWeapon() const;
 	UFUNCTION(BlueprintCallable)
