@@ -215,4 +215,5 @@ UAnimMontage* AGunBase::GetEquipMontage() const { return WeaponDataAsset->Player
 UAnimMontage* AGunBase::GetFireMontage() const { return WeaponDataAsset->PlayerFireAnimMontage; }
 UAnimMontage* AGunBase::GetReloadMontage() const { return WeaponDataAsset->PlayerReloadAnimMontage; }
 
-//TSubclassOf<class UCameraShakeBase>* AGunBase::GetCameraShake() const { return WeaponDataAsset->CameraShake; }
+
+TSubclassOf<class UCameraShakeBase> AGunBase::GetCameraShake() const { return WeaponDataAsset->CameraShake; }
