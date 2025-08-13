@@ -30,9 +30,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ammo")
 	float ReloadTime;
 
-	// 발사 속도 (초당 발사 간격)
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Firing")
-	float WeaponRecoil;
+	// 총 반동
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Recoil")
+	class UAnimMontage* WeaponRecoilAnimMontage;
 
 	// 발사 속도 (초당 발사 간격)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Firing")
