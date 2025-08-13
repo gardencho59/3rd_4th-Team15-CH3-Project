@@ -58,7 +58,7 @@ public:
 	virtual UAnimMontage* GetFireMontage() const override;
 	virtual UAnimMontage* GetReloadMontage() const override;
 	
-	virtual TSubclassOf<class UCameraShakeBase>* GetCameraShake() const override;
+	//virtual TSubclassOf<class UCameraShakeBase>* GetCameraShake() const override;
 
 protected:
 	void SpawnBullet();
