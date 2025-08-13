@@ -31,8 +31,8 @@ public:
 	float ReloadTime;
 
 	// 총 반동
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CameraShake")
-	TSubclassOf<class UCameraShakeBase> CameraShake;
+	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CameraShake")
+	//TSubclassOf<class UCameraShakeBase> CameraShake;
 
 	// 발사 속도 (초당 발사 간격)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Firing")
