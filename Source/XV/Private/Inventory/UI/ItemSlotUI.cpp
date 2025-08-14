@@ -26,10 +26,8 @@ FReply UItemSlotUI::NativeOnPreviewMouseButtonDown(const FGeometry& InGeometry, 
 		FEventReply ReplyResult = UWidgetBlueprintLibrary::DetectDragIfPressed(InMouseEvent, this, EKeys::LeftMouseButton);
 		return ReplyResult.NativeReply;
 	}
-	else
-	{
-		return FReply::Unhandled();
-	}
+
+	return FReply::Unhandled();
 }
 
 bool UItemSlotUI::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation)
