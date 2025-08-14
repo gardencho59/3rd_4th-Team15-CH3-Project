@@ -1,4 +1,5 @@
 #include "Inventory/Component/InventoryComponent.h"
+#include "Character/XVCharacter.h"
 #include "Inventory/Data/Item/ItemSlot.h"
 #include "Inventory/Data/Item/ItemData.h"
 #include "Inventory/Data/Item/ItemSFX.h"
@@ -310,7 +311,10 @@ void UInventoryComponent::PrintInventory()
 
 void UInventoryComponent::EquipArmor(const FArmorData& NewArmor, EArmorType ArmorType)
 {
-
+	AActor* Owner = GetOwner();
+	AXVCharacter* XVCharacter = Cast<AXVCharacter>(Owner);
+	XVCharacter->SetHelmet(NewArmor, ArmorType);
+	
 	switch (ArmorType)
 	{
 	case EArmorType::Helmet:
@@ -333,7 +337,8 @@ void UInventoryComponent::EquipArmor(const FArmorData& NewArmor, EArmorType Armo
 		}
 	}
 	// Character 아이템 장착 함수 수행
-	// OnArmorChanged.Broadcast();
+	//OnArmorChanged.Broadcast();
+
 }
 
 // chracterclass BeginPlay()

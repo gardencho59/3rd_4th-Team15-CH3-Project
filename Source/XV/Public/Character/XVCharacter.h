@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Weapon/WeaponTypes.h"
+#include "Inventory/Data/Armor/ArmorType.h"
+#include "Inventory/Data/Armor/ArmorData.h"
 #include "XVCharacter.generated.h"
 
 
@@ -38,12 +40,7 @@ public:
 	UPROPERTY(BlueprintAssignable, Category="Health")
 	FOnHealthChanged OnHealthChanged;
 	UFUNCTION(BlueprintPure) float GetHealthPercent() const { return (GetMaxHealth() > 0.f) ? GetHealth() / GetMaxHealth() : 0.f; }
-	UPROPERTY(EditAnywhere, Category="Debug")
-	bool bDebugGivePotionOnStart = true;
-	UPROPERTY(EditAnywhere, Category="Debug", meta=(EditCondition="bDebugGivePotionOnStart"))
-	int32 DebugGivePotionCount = 10;
-	UFUNCTION(BlueprintCallable, Category="Debug")
-	void DebugGivePotion(int32 Count = 1);
+	
 
 
 	UPROPERTY(BlueprintAssignable) FOnCurrentItemChanged OnCurrentItemChanged;
@@ -55,6 +52,7 @@ public:
 
 	void StartUseCurrentItem();
 	void StopUseCurrentItem();
+	void SetInventoryItem();
 	void ConsumeHealthPotion() { HealthPotionCount = FMath::Max(0, HealthPotionCount-1); OnHealthPotionCountChanged.Broadcast(HealthPotionCount); }
 
 
@@ -71,6 +69,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Health")
 	void SetHealth(float Value);
 	UFUNCTION(BlueprintCallable, Category="Health")
+	void SetMaxHealth(float Value);
+	UFUNCTION(BlueprintCallable, Category="Health")
 	void AddHealth(float Value);
 	UFUNCTION(BlueprintPure, Category="Health")
 	float GetHealth() const;
@@ -84,6 +84,10 @@ public:
 	// 속도 관련
 	void SetSpeed(float Value);
 	
+	// 장비 장착
+	void SetHelmet(const FArmorData& NewArmor, EArmorType Armor);
+	void SetVest(UStaticMesh* NewVest);
+
 	void SetWeapon(EWeaponType Weapon);
 	void SetCameraShake(TSubclassOf<class UCameraShakeBase> Shake);
 	UFUNCTION(BlueprintCallable)
@@ -153,6 +157,12 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	bool bIsRun;	
 
+	// 장비
+	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category="Armor")
+	UStaticMeshComponent* HelmetMesh;
+	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category="Armor")
+	UStaticMeshComponent* VestMesh;	
+	
 	// 주 무기 타입
 	UPROPERTY(BlueprintReadOnly, Category="Weapon")
 	EWeaponType MainWeaponType;
@@ -182,6 +192,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Overlap")
 	AInteractableItem* CurrentItem;
+
 	
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
@@ -227,8 +238,6 @@ protected:
 	void Inventory(const FInputActionValue& Value);
 	UFUNCTION()
 	void ItemInteract(const FInputActionValue& Value);
-	void UseItem(const FInputActionValue& Value);
-	void StopUseItem(const FInputActionValue& Value);
 
 	UFUNCTION()
 	void OnBeginOverlap(

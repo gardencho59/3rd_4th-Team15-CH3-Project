@@ -17,6 +17,7 @@
 #include "Item/HealthPotionItem.h"
 #include "Item/InteractableItem.h"
 
+
 void AXVCharacter::BroadcastHealth()
 {
 	OnHealthChanged.Broadcast(CurrentHealth, MaxHealth);
@@ -32,15 +33,8 @@ void AXVCharacter::BeginPlay()
 	{
 		UE_LOG(LogTemp, Error, TEXT("UIFollowerComponent not found on %s"), *GetName());
 	}
-	if (bDebugGivePotionOnStart)
-	{
-		FTimerHandle Tmp;
-		GetWorldTimerManager().SetTimer(
-			Tmp,
-			FTimerDelegate::CreateUObject(this, &AXVCharacter::DebugGivePotion, DebugGivePotionCount),
-			0.1f, false
-		);
-	}
+
+	SetInventoryItem();
 	BroadcastHealth();
 }
 
@@ -61,7 +55,7 @@ AXVCharacter::AXVCharacter()
 	
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	CameraComp->SetupAttachment(SpringArmComp, USpringArmComponent::SocketName);
-	CameraComp->bUsePawnControlRotation = false;
+	CameraComp->bUsePawnControlRotation = false;	
 
 	// 인벤토리 관련
 	InteractionWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("InteractionWidget"));
@@ -83,7 +77,12 @@ AXVCharacter::AXVCharacter()
 	bIsDie = false;
 
 	GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
-	
+
+	// 방어구 관련
+	HelmetMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("HelmetMesh"));
+	HelmetMesh->SetupAttachment(RootComponent);
+	VestMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("VestMesh"));
+	VestMesh->SetupAttachment(RootComponent);
 	// 메인 무기 == Rifle or Shotgun
 	PrimaryWeaponOffset = CreateDefaultSubobject<USceneComponent>(TEXT("PrimaryWeaponOffset"));
 	PrimaryWeaponOffset->SetupAttachment(GetMesh(), TEXT("Rifle_Unequipped"));
@@ -123,6 +122,13 @@ void AXVCharacter::SetHealth(float Value)
 {
 	CurrentHealth = FMath::Clamp( Value, 0.0f, MaxHealth);
 	BroadcastHealth();
+}
+
+void AXVCharacter::SetMaxHealth(float Value)
+{
+	UE_LOG(LogTemp, Log, TEXT("SetMaxHealth : %f"), Value);
+	MaxHealth = Value;
+	BroadcastHealth();	
 }
 
 float AXVCharacter::GetHealth() const
@@ -195,6 +201,37 @@ void AXVCharacter::SetSpeed(float Value)
 	NormalSpeed += Value;  // 기본 이동 속도
 	SprintSpeed += Value;  // 달리기 속도
 	SitSpeed += Value;     // 앉았을 때 속도
+}
+
+// 헬멧 변경
+
+void AXVCharacter::SetHelmet(const FArmorData& NewArmor, EArmorType Armor)
+{
+	UE_LOG(LogTemp, Log, TEXT("SetHelmet"));
+	if (Armor == EArmorType::Helmet)
+	{
+		UE_LOG(LogTemp, Log, TEXT("EArmorType : Helmet"));
+		HelmetMesh->SetStaticMesh(NewArmor.ArmorMesh);
+		SetMaxHealth(CurrentHealth + 50); // 테스트로 일단 하드코딩
+		AddHealth(50);
+	}
+	if (Armor == EArmorType::Vest)
+	{
+		UE_LOG(LogTemp, Log, TEXT("EArmorType : Vest"));
+		VestMesh->SetStaticMesh(NewArmor.ArmorMesh);
+		SetMaxHealth(CurrentHealth + 80); // 테스트로 일단 하드코딩
+		AddHealth(80);
+	}
+}
+// 갑옷 변경
+void AXVCharacter::SetVest(UStaticMesh* NewVest)
+{
+	if (VestMesh)
+	{
+		VestMesh->SetStaticMesh(NewVest);
+		SetMaxHealth(CurrentHealth + 70); // 테스트로 일단 하드코딩
+		AddHealth(70);
+	}
 }
 
 void AXVCharacter::SetWeapon(EWeaponType Weapon)
@@ -928,6 +965,7 @@ void AXVCharacter::ItemInteract(const FInputActionValue& Value)
 	if (!InteractionComp) return;
 
 	InteractionComp->HandleItemInteract();
+	SetInventoryItem();
 }
 
 
@@ -938,6 +976,7 @@ void AXVCharacter::SetCurrentItem(AInteractableItem* Item)
 	CurrentItem = Item;
 	OnCurrentItemChanged.Broadcast(CurrentItem);   // HUD/3D 위젯에 알림
 }
+
 void AXVCharacter::StartUseCurrentItem()
 {
 	if (bIsDie) return;
@@ -959,7 +998,8 @@ void AXVCharacter::StartUseCurrentItem()
 	}
 	else if (CurrentItem)
 	{
-		CurrentItem->UseItem();
+		//CurrentItem = InventoryComp->GetItemData("HealthPotion")->ItemClass;
+		CurrentItem->UseItem();		
 	}
 }
 
@@ -974,34 +1014,11 @@ void AXVCharacter::StopUseCurrentItem()
 	}
 }
 
-
-void AXVCharacter::DebugGivePotion(int32 Count /*=1*/)
-{
-	if (Count <= 0) return;
-	UWorld* World = GetWorld();
-	if (!World) return;
-
-	// 1) 포션 액터 스폰
-	FActorSpawnParameters Params;
-	Params.Owner = this;
-	const FVector SpawnLoc = GetActorLocation() + FVector(50.f, 0.f, 0.f);
-	const FRotator SpawnRot = GetActorRotation();
-
-	AHealthPotionItem* NewPotion =
-		World->SpawnActor<AHealthPotionItem>(AHealthPotionItem::StaticClass(), SpawnLoc, SpawnRot, Params);
-
-	// 2) 현재 아이템으로 설정(→ HUD/3D 위젯 RebindToPotion 트리거)
-	if (NewPotion)
-	{
-		SetCurrentItem(NewPotion);
-		UE_LOG(LogTemp, Warning, TEXT("DebugGivePotion: spawned %s"), *NewPotion->GetName());
-	}
-
-	// 3) 인벤 개수 + 방송(→ 개수 텍스트 즉시 갱신)
-	HealthPotionCount += Count;
+void AXVCharacter::SetInventoryItem()
+{		
+	// 초기 아이템 세팅
+	HealthPotionCount = InventoryComp->GetItemQuantity("HealthPotion");
 	OnHealthPotionCountChanged.Broadcast(HealthPotionCount);
-
-	UE_LOG(LogTemp, Warning, TEXT("DebugGivePotion: +%d, Now Count=%d"), Count, HealthPotionCount);
 }
 
 AHealthPotionItem* AXVCharacter::SpawnPotionForUse()
