@@ -20,16 +20,17 @@ void UInteractionComponent::InteractionTrace()
 		return;
 	}
 	
-	FHitResult HitResult;
+	TArray<FHitResult> HitResults;
 	FVector Start = Owner->GetActorLocation();
+	Start.Z -= 30.0f;
 	FVector ForwardVector = Owner->GetActorForwardVector();
-	FVector End = Start + ForwardVector * 100.0f;
-	float SphereRadius = 50.0f;
+	FVector End = Start + ForwardVector * 80.0f;
+	float SphereRadius = 70.0f;
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(Owner);
 	
-	bool bHit = GetWorld()->SweepSingleByChannel(
-		HitResult,
+	bool bHit = GetWorld()->SweepMultiByChannel(
+		HitResults,
 		Start,
 		End,
 		FQuat::Identity,
@@ -39,20 +40,23 @@ void UInteractionComponent::InteractionTrace()
 
 	if (bHit)
 	{
-		TargetActor = HitResult.GetActor();
-		if (TargetActor && TargetActor->GetClass()->ImplementsInterface(UItemInterface::StaticClass()))
+		for (const FHitResult& HitResult : HitResults)
 		{
-			UItemDataComponent* ItemDataComp = TargetActor->FindComponentByClass<UItemDataComponent>();
-			if (ItemDataComp)
+			TargetActor = HitResult.GetActor();
+			if (TargetActor && TargetActor->GetClass()->ImplementsInterface(UItemInterface::StaticClass()))
 			{
-				FName RowName = ItemDataComp->GetRowName();
-				if (UInteractionUI* UIInstance = GetUIInstance())
+				UItemDataComponent* ItemDataComp = TargetActor->FindComponentByClass<UItemDataComponent>();
+				if (ItemDataComp)
 				{
-					FString FormattedMessage = FString::Printf(TEXT("Press E : %s"), *RowName.ToString());
-					UIInstance->SetMessage(FText::FromString(FormattedMessage));
+					FName RowName = ItemDataComp->GetRowName();
+					if (UInteractionUI* UIInstance = GetUIInstance())
+					{
+						FString FormattedMessage = FString::Printf(TEXT("Press E : %s"), *RowName.ToString());
+						UIInstance->SetMessage(FText::FromString(FormattedMessage));
+					}
 				}
-			}
 
+			}	
 		}
 	}
 	else

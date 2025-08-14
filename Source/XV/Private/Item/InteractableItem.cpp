@@ -24,6 +24,14 @@ void AInteractableItem::UseItem()
 {
 }
 
+void AInteractableItem::BeginPlay()
+{
+	Super::BeginPlay();
+
+	StaticMesh->SetSimulatePhysics(true);
+	StaticMesh->SetMassOverrideInKg(NAME_None, 50.0f, true);
+}
+
 void AInteractableItem::Interact()
 {
 }

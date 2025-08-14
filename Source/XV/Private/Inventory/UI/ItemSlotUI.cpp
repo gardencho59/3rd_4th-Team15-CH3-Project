@@ -89,7 +89,7 @@ void UItemSlotUI::SetItemData()
 		return;
 	}
 
-	FItemData* ItemRow = ItemData->FindRow<FItemData>(ItemID, TEXT("Get Item Row"));
+	FItemData* ItemRow = ItemData->FindRow<FItemData>(ItemID, TEXT("Get Item Row in SlotUI"));
 	if (ItemRow)
 	{
 		

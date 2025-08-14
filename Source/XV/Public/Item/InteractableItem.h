@@ -19,6 +19,8 @@ public:
 
 protected:
 
+	virtual void BeginPlay() override;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item|Component")
 	USceneComponent* Scene;
 
