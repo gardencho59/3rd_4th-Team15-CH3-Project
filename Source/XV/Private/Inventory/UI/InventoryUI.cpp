@@ -75,6 +75,10 @@ void UInventoryUI::CreateItemSlots()
 	for (int32 Index = 0; Index < ItemSlots.Num(); ++Index)
 	{
 		const FItemSlot& Item = ItemSlots[Index];
+		if (Item.ItemID == NAME_None)
+		{
+			return;
+		}
 		UItemSlotUI* NewSlot = CreateWidget<UItemSlotUI>(GetWorld(), ItemSlotWidgetClass);
 		if (!NewSlot)
 		{

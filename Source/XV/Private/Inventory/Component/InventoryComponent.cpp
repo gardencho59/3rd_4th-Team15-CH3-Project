@@ -91,6 +91,11 @@ bool UInventoryComponent::FindMatchingSlot(const FName& ItemID, int32& OutIndex)
 	{
 		const FItemSlot& Slot = ItemSlots[Index];
 
+		if (Slot.ItemID == NAME_None)
+		{
+			return false;
+		}
+
 		FItemData* ItemRow= GetItemData(Slot.ItemID);
 		if (!ItemRow)
 		{
@@ -275,7 +280,7 @@ FItemData* UInventoryComponent::GetItemData(const FName& ItemID)
 		return nullptr;
 	}
 
-	return ItemData->FindRow<FItemData>(ItemID, TEXT("Get Item Row"));
+	return ItemData->FindRow<FItemData>(ItemID, TEXT("Get Item Row in Inventory Component"));
 }
 
 

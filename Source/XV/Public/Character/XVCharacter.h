@@ -9,6 +9,7 @@
 
 
 class AInteractableItem;
+class UInventoryComponent;
 class AXVDoor;
 class USpringArmComponent;
 class UCameraComponent;
@@ -62,7 +63,11 @@ public:
 	virtual void BeginPlay() override;
 	
 	AXVCharacter();
-	
+
+	//인벤토리 반환
+	UInventoryComponent* GetInventoryComp() const;
+
+	//체력 관련 함수들
 	UFUNCTION(BlueprintCallable, Category="Health")
 	void SetHealth(float Value);
 	UFUNCTION(BlueprintCallable, Category="Health")
