@@ -1,7 +1,7 @@
 #include "Inventory/Component/InventoryComponent.h"
-#include "Inventory/Data/ItemSlot.h"
-#include "Inventory/Data/ItemData.h"
-#include "Inventory/Data/ItemSFX.h"
+#include "Inventory/Data/Item/ItemSlot.h"
+#include "Inventory/Data/Item/ItemData.h"
+#include "Inventory/Data/Item/ItemSFX.h"
 #include "Inventory/UI/InventoryUI.h"
 #include "Components/WidgetComponent.h"
 #include "Item/InteractableItem.h"
@@ -18,7 +18,14 @@ void UInventoryComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
+	int32 Added = ItemSlots.Num();
 	ItemSlots.SetNum(InventorySize);
+	for (int32 Index = Added; Index < InventorySize; ++Index)
+	{
+		FItemSlot& ItemSlot = ItemSlots[Index];
+		ItemSlot.ItemID = NAME_None;
+		ItemSlot.ItemQuantity = 0.f;
+	}
 	UpdateInventory();
 }
 
@@ -30,6 +37,7 @@ void UInventoryComponent::UpdateInventory()
 
 bool UInventoryComponent::PickUp(const FName& ItemID, float ItemQuantity)
 {
+	PrintInventory();
 	bool bIsFull = false;
 	bool bIsSuccess = false;
 	while (ItemQuantity > 0 && !bIsFull)
@@ -203,13 +211,14 @@ FVector UInventoryComponent::GetDropLocation()
 
 void UInventoryComponent::DropFromInventory(const FName ItemID, const int32 ItemQuantity, const int32 SlotIndex)
 {
+	PrintInventory();
 	for (int Index = 0; Index < ItemQuantity; ++Index)
 	{
 		FItemData* ItemRow = GetItemData(ItemID);
 
 		if (!ItemRow || !ItemRow->ItemClass)
 		{
-			UE_LOG(LogTemp, Log, TEXT("!ItemRow || !ItemRow->ItemClass"));
+			UE_LOG(LogTemp, Log, TEXT("!ItemRow || !ItemRow->ItemClass, %s"), *ItemRow->ItemName.ToString());
 			return;
 		}
 
@@ -298,3 +307,32 @@ void UInventoryComponent::PrintInventory()
 		UE_LOG(LogTemp, Log, TEXT("ItemID: %s, Quantity: %f"), *Slot.ItemID.ToString(), Slot.ItemQuantity);
 	}
 }
+
+void UInventoryComponent::EquipArmor(const FArmorData& NewArmor, EArmorType ArmorType)
+{
+	for (FItemSlot& ItemSlot : ItemSlots)
+	{
+		if (ItemSlot.ItemID == NewArmor.ArmorName)
+		{
+			ItemSlot.ItemID = NAME_None;
+			ItemSlot.ItemQuantity = 0;
+		}
+	}
+	switch (ArmorType)
+	{
+	case EArmorType::Helmet:
+		UE_LOG(LogTemp, Log, TEXT("Equip Helmet!!"));
+		EquippedArmor.Helmet = NewArmor;
+		break;
+	case EArmorType::Vest:
+		UE_LOG(LogTemp, Log, TEXT("Equip Vest!!"));
+		EquippedArmor.Vest = NewArmor;
+		break;
+	}
+	// Character 아이템 장착 함수 수행
+	
+	// OnArmorChanged.Broadcast();
+}
+
+// chracterclass BeginPlay()
+// InventoryComp->OnArmorChanged.AddDynamic(this, &AMyCharacter::함수 이름);

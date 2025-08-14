@@ -1,6 +1,6 @@
 #include "Inventory/UI/ItemSlotUI.h"
 #include "Components/Image.h"
-#include "Inventory/Data/ItemData.h"
+#include "Inventory/Data/Item/ItemData.h"
 #include "Components/TextBlock.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
 #include "Inventory/Component/InventoryComponent.h"

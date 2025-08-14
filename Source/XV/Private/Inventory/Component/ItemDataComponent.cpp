@@ -1,5 +1,5 @@
 #include "Inventory/Component/ItemDataComponent.h"
-#include "Inventory/Data/ItemData.h"
+#include "Inventory/Data/Item/ItemData.h"
 #include "Inventory/Component/InventoryComponent.h"
 
 UItemDataComponent::UItemDataComponent()

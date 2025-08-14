@@ -3,6 +3,8 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "Components/WrapBox.h"
+#include "Components/Border.h"
+#include "Components/Image.h"
 #include "Inventory/UI/ItemSlotUI.h"
 #include "InventoryUI.generated.h"
 
@@ -36,6 +38,23 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	UWrapBox* ItemWrapBox;
 
+	UPROPERTY(meta = (BindWidget))
+	UBorder* BorderHelmet;
+
+	UPROPERTY(meta = (BindWidget))
+	UBorder* BorderVest;
+
+	UPROPERTY(meta = (BindWidget))
+	UImage* HelmetIcon;
+	
+	UPROPERTY(meta = (BindWidget))
+	UImage* VestIcon;
+	
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	UDataTable* ItemDataTable;
+	
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	UDataTable* ArmorDataTable;
 	
 public:
 	
