@@ -310,14 +310,7 @@ void UInventoryComponent::PrintInventory()
 
 void UInventoryComponent::EquipArmor(const FArmorData& NewArmor, EArmorType ArmorType)
 {
-	for (FItemSlot& ItemSlot : ItemSlots)
-	{
-		if (ItemSlot.ItemID == NewArmor.ArmorName)
-		{
-			ItemSlot.ItemID = NAME_None;
-			ItemSlot.ItemQuantity = 0;
-		}
-	}
+
 	switch (ArmorType)
 	{
 	case EArmorType::Helmet:
@@ -329,8 +322,17 @@ void UInventoryComponent::EquipArmor(const FArmorData& NewArmor, EArmorType Armo
 		EquippedArmor.Vest = NewArmor;
 		break;
 	}
+	for (FItemSlot& ItemSlot : ItemSlots)
+	{
+		if (ItemSlot.ItemID == NewArmor.ArmorName)
+		{
+			ItemSlot.ItemID = NAME_None;
+			ItemSlot.ItemQuantity = 0;
+			UpdateInventory();
+			return;
+		}
+	}
 	// Character 아이템 장착 함수 수행
-	
 	// OnArmorChanged.Broadcast();
 }
 
