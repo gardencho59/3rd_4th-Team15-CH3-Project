@@ -1,8 +1,11 @@
 #include "System/XVBaseGameMode.h"
+
+#include "VisualizeTexture.h"
 #include "System/XVGameState.h"
 #include "Kismet/GameplayStatics.h"
 #include "World/SpawnVolume.h"
 #include "AI/Character/Base/XVEnemyBase.h"
+#include "Blueprint/UserWidget.h"
 #include "GameFramework/PlayerController.h"
 #include "System/XVGameInstance.h"
 
@@ -20,8 +23,21 @@ void AXVBaseGameMode::StartGame()
 	{
 		GS->SpawnedEnemyCount = 0;
 		GS->KilledEnemyCount = 0;
+		if (GS->GameUIClass)
+		{
+			if (APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0))
+			{
+				if (UUserWidget* HUD = CreateWidget<UUserWidget>(PC, GS->GameUIClass))
+				{
+					HUD->AddToViewport();
+				}
+			}
+		}
+		GetWorldTimerManager().SetTimerForNextTick([GS]()
+		{
+			if (GS->MissionTexts1.IsValidIndex(0)) GS->OnMissionChanged.Broadcast(GS->MissionTexts1[GS->CurrentMissionIdx]);
+		});
 	}
-	
 	FindSpawnVolume();
 	SpawnEnemies();
 }
@@ -135,6 +151,13 @@ void AXVBaseGameMode::SpawnEnemies()
 				UE_LOG(LogXVGameMode, Warning, TEXT("Failed to spawn enemy at volume %s"), *SpawnVolume->GetName());
 			}
 		}
+		if (GS->SpawnedEnemyCount > 0)
+		{
+			GetWorldTimerManager().SetTimerForNextTick([GS]()
+			{
+				GS->OnEnemyCountChanged.Broadcast(GS->SpawnedEnemyCount - GS->KilledEnemyCount);
+			});
+		}
 	}
 }
 
@@ -143,12 +166,14 @@ void AXVBaseGameMode::OnEnemyKilled()
 	if (AXVGameState* GS = GetGameState<AXVGameState>())
 	{
 		GS->KilledEnemyCount++;
+		GS->EnemyKilled();
 		if (UGameInstance* GI = GetGameInstance())
 		{
 			if (UXVGameInstance* XVGI = Cast<UXVGameInstance>(GI))
 			{
 				if (GS->KilledEnemyCount > 0 && GS->KilledEnemyCount >= GS->SpawnAllEnemyCount[XVGI->CurrentLevelIdx])
 				{
+					GS->BroadcastMission();
 					EndGame(true);
 				}	
 			}
