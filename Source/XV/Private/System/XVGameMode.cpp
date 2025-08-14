@@ -13,7 +13,6 @@ AXVGameMode::AXVGameMode()
 void AXVGameMode::BeginPlay()
 {
 	Super::BeginPlay();
-	StartGame();
 }
 
 void AXVGameMode::StartGame()
@@ -73,7 +72,6 @@ void AXVGameMode::EndGame(bool bIsClear)
 					{
 						if (!GS->IsWaveTriggered) return;
 						GS->IsWaveTriggered = false;
-						StartGame();
 					}
 				}
 				else

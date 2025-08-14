@@ -10,6 +10,7 @@
 #include "XVCharacter.generated.h"
 
 
+class UBoxComponent;
 class AInteractableItem;
 class UInventoryComponent;
 class AXVDoor;
@@ -238,7 +239,8 @@ protected:
 	void Inventory(const FInputActionValue& Value);
 	UFUNCTION()
 	void ItemInteract(const FInputActionValue& Value);
-
+	
+	UBoxComponent* OverlappedBox;
 	UFUNCTION()
 	void OnBeginOverlap(
 		UPrimitiveComponent* OverlappedComp,
