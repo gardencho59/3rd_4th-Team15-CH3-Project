@@ -1,5 +1,5 @@
 #include "Inventory/UI/ItemSlotPreview.h"
-#include "Inventory/Data/ItemData.h"
+#include "Inventory/Data/Item/ItemData.h"
 
 UItemSlotPreview::UItemSlotPreview(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)

@@ -2,13 +2,17 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "Inventory/Data/ItemData.h"
-#include "Inventory/Data/ItemSlot.h"
-#include "Inventory/Data/ItemSFX.h"
+#include "Inventory/Data/Item/ItemData.h"
+#include "Inventory/Data/Item/ItemSlot.h"
+#include "Inventory/Data/Item/ItemSFX.h"
+#include "Inventory/Data/Armor/ArmorData.h"
+#include "Inventory/Data/Armor/ArmorType.h"
+#include "Inventory/Data/Armor/EquippedArmor.h"
 #include "Inventory/UI/InventoryUI.h"
 #include "InventoryComponent.generated.h"
 
 DECLARE_MULTICAST_DELEGATE(FOnInventoryUpdated);
+// DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnArmorChanged);
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class XV_API UInventoryComponent : public UActorComponent
@@ -72,4 +76,16 @@ public:
 	void PrintInventory(); // 디버깅용
 
 	const TArray<FItemSlot>& GetItemSlots() const {return ItemSlots;}
+
+	// 방어구 관련
+	void EquipArmor(const FArmorData& NewArmor, EArmorType ArmorType);
+	
+	// UPROPERTY()
+	// FOnArmorChanged OnArmorChanged;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Armor")
+	FArmorData ArmorData;
+
+	UPROPERTY()
+	FEquippedArmor EquippedArmor; // 현재 장착중인 장비
 };

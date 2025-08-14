@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "Engine/Texture2D.h"
 #include "ItemSFX.h"
+#include "ItemType.h"
 #include "ItemData.generated.h"
 
 class AInteractableItem;
@@ -15,6 +16,10 @@ struct FItemData : public FTableRowBase
 	// 아이템 이름
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FName ItemName;
+
+	// 아이템 타입
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	EItemType ItemType;
 
 	// 아이템 아이콘
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
