@@ -114,6 +114,11 @@ AXVCharacter::AXVCharacter()
 	GetCapsuleComponent()->OnComponentEndOverlap.AddDynamic(this, &AXVCharacter::OnEndOverlap);
 }
 
+UInventoryComponent* AXVCharacter::GetInventoryComp() const
+{
+	return InventoryComp;	
+}
+
 void AXVCharacter::SetHealth(float Value)
 {
 	CurrentHealth = FMath::Clamp( Value, 0.0f, MaxHealth);
