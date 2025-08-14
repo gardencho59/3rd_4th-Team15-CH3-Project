@@ -19,7 +19,7 @@ struct FArmorData : public FTableRowBase
 
 	// 방어구 메시
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	UStaticMeshComponent* ArmorMesh;
+	UStaticMesh* ArmorMesh;
 
 	// 방어구 레벨
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
