@@ -4,6 +4,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "Engine/World.h"
 #include "TimerManager.h"
+#include "Inventory/Component/InventoryComponent.h"
+#include "Inventory/Component/ItemDataComponent.h"
 
 AHealthPotionItem::AHealthPotionItem()
 {
@@ -57,11 +59,18 @@ void AHealthPotionItem::FinishUse()
 	OnChargeFinish.Broadcast();
 
 	// 회복/소모 처리
-	if (AXVCharacter* C = Cast<AXVCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0)))
+	if (AXVCharacter* XVCharacter = Cast<AXVCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0)))
 	{
-		C->AddHealth(HealAmount);
-		C->ConsumeHealthPotion();          // 인벤 개수 1 감소 + 델리게이트 방송
-		C->SetCurrentItem(nullptr);        // 손에서 내려놓기(선택)
+		if (UInventoryComponent* InventoryComp = XVCharacter->GetInventoryComp())
+		{
+			InventoryComp->UseItem("HealthPotion", 1); // 인벤토리 수량 감소
+			UE_LOG(LogTemp, Warning, TEXT("RowName : %s"), *ItemDataComp->GetRowName().ToString());
+		}
+
+		XVCharacter->AddHealth(HealAmount);
+		
+		XVCharacter->ConsumeHealthPotion();          // 인벤 개수 1 감소 + 델리게이트 방송
+		XVCharacter->SetCurrentItem(nullptr);        // 손에서 내려놓기(선택)
 	}
 
 	bIsUsing = false;
