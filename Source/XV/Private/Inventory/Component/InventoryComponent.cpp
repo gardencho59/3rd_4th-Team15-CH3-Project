@@ -201,7 +201,7 @@ FVector UInventoryComponent::GetDropLocation()
 	return Location + RandomDirection * DropDistance;
 }
 
-void UInventoryComponent::DropFromInventory(FName ItemID, int32 ItemQuantity, int32 SlotIndex)
+void UInventoryComponent::DropFromInventory(const FName ItemID, const int32 ItemQuantity, const int32 SlotIndex)
 {
 	for (int Index = 0; Index < ItemQuantity; ++Index)
 	{
@@ -230,6 +230,31 @@ void UInventoryComponent::DropFromInventory(FName ItemID, int32 ItemQuantity, in
 		return;
 	}
 	PlaySFX(ItemSFX.Drop);
+}
+
+void UInventoryComponent::UseItem(const FName ItemID, const int32 ItemQuantity)
+{
+	for (FItemSlot& ItemSlot : ItemSlots)
+	{
+		if (ItemSlot.ItemID == ItemID)
+		{
+			if (ItemSlot.ItemQuantity < ItemQuantity)
+			{
+				UE_LOG(LogTemp, Log, TEXT("Not Enough Item In ItemSlot!"));
+				return;
+			}
+
+			UE_LOG(LogTemp, Log, TEXT("Use Item: %s Item Quantity: %d "), *ItemID.ToString(), ItemQuantity);
+			ItemSlot.ItemQuantity -= ItemQuantity;
+			if (ItemSlot.ItemQuantity == 0)
+			{
+				ItemSlot.ItemID = NAME_None;
+				ItemSlot.ItemQuantity = 0;
+			}
+			UpdateInventory();
+			return;
+		}
+	}
 }
 
 FItemSFX UInventoryComponent::GetItemSFX(const FName& ItemID)

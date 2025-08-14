@@ -58,7 +58,9 @@ public:
 	
 	FVector GetDropLocation();
 
-	void DropFromInventory(FName ItemID, int32 ItemQuantity, int32 SlotIndex);
+	void DropFromInventory(const FName ItemID, const int32 ItemQuantity, const int32 SlotIndex);
+
+	void UseItem(const FName ItemID, const int32 ItemQuantity);
 
 	FItemSFX GetItemSFX(const FName& ItemID);
 
