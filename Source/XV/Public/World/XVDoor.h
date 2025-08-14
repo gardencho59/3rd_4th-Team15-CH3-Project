@@ -18,14 +18,16 @@ public:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "SceneRoot")
 	USceneComponent* SceneRoot;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	UBoxComponent* BoxComponent;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "StaticMesh|Door")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Door")
+	UBoxComponent* DoorBox;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Door")
+	UBoxComponent* ExtraBox;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "StaticMesh|Door", Instanced, meta=(AllowPrivateAccess="true"))
 	UStaticMeshComponent* Door;
 
 	FVector ClosedPos;
 	FVector OpenOffset;
-	FVector TargetPos;
+	FVector TargetPos;	
 	bool IsOpening;
 	float OpenTime;
 	
