@@ -19,12 +19,7 @@ void UInventoryComponent::BeginPlay()
 	Super::BeginPlay();
 
 	ItemSlots.SetNum(InventorySize);
-	for (FItemSlot& ItemSlot : ItemSlots)
-	{
-		ItemSlot.ItemID = NAME_None;
-		ItemSlot.ItemQuantity = 0.f;
-	}
-	
+	UpdateInventory();
 }
 
 void UInventoryComponent::UpdateInventory()
@@ -260,6 +255,18 @@ void UInventoryComponent::UseItem(const FName ItemID, const int32 ItemQuantity)
 			return;
 		}
 	}
+}
+
+float UInventoryComponent::GetItemQuantity(const FName ItemID)
+{
+	for (FItemSlot& ItemSlot : ItemSlots)
+	{
+		if (ItemSlot.ItemID == ItemID)
+		{
+			return ItemSlot.ItemQuantity;
+		}
+	}
+	return 0.0f;
 }
 
 FItemSFX UInventoryComponent::GetItemSFX(const FName& ItemID)

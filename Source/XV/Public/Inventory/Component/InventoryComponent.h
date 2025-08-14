@@ -62,6 +62,8 @@ public:
 
 	void UseItem(const FName ItemID, const int32 ItemQuantity);
 
+	float GetItemQuantity(const FName ItemID);
+
 	FItemSFX GetItemSFX(const FName& ItemID);
 
 	FItemData* GetItemData(const FName& ItemID);
