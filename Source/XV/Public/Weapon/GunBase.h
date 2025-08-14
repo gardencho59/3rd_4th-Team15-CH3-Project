@@ -39,11 +39,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Weapon|Parts")
 	void DetachExtendedMag();
 	
-	// 소음기 장착
 	UFUNCTION(BlueprintCallable, Category = "Weapon|Attachment")
 	void AttachSilencer();
-
-	// 소음기 해제
+	
 	UFUNCTION(BlueprintCallable, Category = "Weapon|Attachment")
 	void DetachSilencer();
 	
