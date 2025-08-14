@@ -32,6 +32,20 @@ public:
 		const int32 Max = GetMagSize();
 		return (Max > 0) ? float(CurrentAmmo) / Max : 0.f;
 	}
+
+	UFUNCTION(BlueprintCallable, Category="Weapon|Parts")
+	void AttachExtendedMag();
+
+	UFUNCTION(BlueprintCallable, Category="Weapon|Parts")
+	void DetachExtendedMag();
+	
+	// 소음기 장착
+	UFUNCTION(BlueprintCallable, Category = "Weapon|Attachment")
+	void AttachSilencer();
+
+	// 소음기 해제
+	UFUNCTION(BlueprintCallable, Category = "Weapon|Attachment")
+	void DetachSilencer();
 	
 	AGunBase();
 
@@ -42,6 +56,9 @@ public:
 	
 	virtual bool IsReloading() const override;
 	virtual bool IsCanFire() const override;
+	
+	bool IsSilence() const;
+	bool IsMag() const;
 	
 	virtual FVector GetAimDirection() const override;
 	virtual FVector GetMuzzleLocation() const override;
@@ -58,7 +75,7 @@ public:
 	virtual UAnimMontage* GetFireMontage() const override;
 	virtual UAnimMontage* GetReloadMontage() const override;
 	
-	virtual TSubclassOf<class UCameraShakeBase> GetCameraShake() const override;
+	virtual TSubclassOf<UCameraShakeBase> GetCameraShake() const override;
 
 protected:
 	void SpawnBullet();
@@ -69,13 +86,22 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Mesh")
 	USkeletalMeshComponent* GunMesh;
 
+	UPROPERTY()
+	UStaticMeshComponent* CurrentSilencer;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Data")
 	UWeaponDataAsset* WeaponDataAsset;
 
+	int32 DefaultMaxAmmo;
 	int32 CurrentAmmo;
+	int32 CurrentMaxAmmo;
 	int32 RemainingAmmo;
 	bool bIsReloading;
 	bool bCanFire;
+
+	// 파츠 장착 상태
+	bool bSilencerAttached;
+	bool bIsExtendedMagAttached;
 
 	FTimerHandle FireCooldownHandle;
 	FTimerHandle ReloadTimerHandle;

@@ -13,8 +13,10 @@ AGunBase::AGunBase()
 
     bIsReloading = false;
     bCanFire = true;
+    bSilencerAttached = true;
+    bIsExtendedMagAttached = false;
     CurrentAmmo = 0;
-    RemainingAmmo = 150;
+    RemainingAmmo = 70;
 }
 
 FVector AGunBase::GetAimDirection() const
@@ -74,6 +76,8 @@ void AGunBase::BeginPlay()
     if (WeaponDataAsset)
     {
         CurrentAmmo = WeaponDataAsset->MaxAmmo;
+        DefaultMaxAmmo = CurrentAmmo;
+        CurrentMaxAmmo = CurrentAmmo;
 
         if (WeaponDataAsset->WeaponMesh)
         {
@@ -141,7 +145,7 @@ void AGunBase::Reload()
 
 void AGunBase::FinishReload()
 {
-    const int32 MaxAmmo = WeaponDataAsset->MaxAmmo;
+    const int32 MaxAmmo = CurrentMaxAmmo;
     const int32 Needed  = MaxAmmo - CurrentAmmo;
     const int32 ReloadAmount = FMath::Min(Needed, RemainingAmmo);
 
@@ -182,20 +186,122 @@ void AGunBase::SpawnBullet()
 
 void AGunBase::PlayEffects()
 {
-    if (WeaponDataAsset->MuzzleFlash)
+    if (!bSilencerAttached)
     {
-        UNiagaraFunctionLibrary::SpawnSystemAttached(
-            WeaponDataAsset->MuzzleFlash,
-            GunMesh,
-            WeaponDataAsset->MuzzleSocketName,
-            FVector::ZeroVector,
-            FRotator::ZeroRotator,
-            EAttachLocation::SnapToTarget,
-            true
-        );
+        if (WeaponDataAsset->MuzzleFlash)
+        {
+            UNiagaraFunctionLibrary::SpawnSystemAttached(
+                WeaponDataAsset->MuzzleFlash,
+                GunMesh,
+                WeaponDataAsset->MuzzleSocketName,
+                FVector::ZeroVector,
+                FRotator::ZeroRotator,
+                EAttachLocation::SnapToTarget,
+                true
+            );
+        }
+
+        PlaySoundAtMuzzle(WeaponDataAsset->FireSound);
+    }
+    else
+    {
+        PlaySoundAtMuzzle(WeaponDataAsset->SilenceSound);
+    }
+}
+
+void AGunBase::AttachSilencer()
+{
+    if (!WeaponDataAsset)
+    {
+        UE_LOG(LogTemp, Error, TEXT("WeaponDataAsset is NULL on %s"), *GetName());
+        return;
     }
 
-    PlaySoundAtMuzzle(WeaponDataAsset->FireSound);
+    if (!WeaponDataAsset->SilenceParts)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("No SilenceParts mesh set in WeaponDataAsset for %s"), *GetName());
+        return;
+    }
+
+    if (CurrentSilencer)
+    {
+        CurrentSilencer->DestroyComponent();
+        CurrentSilencer = nullptr;
+    }
+
+    CurrentSilencer = NewObject<UStaticMeshComponent>(this, UStaticMeshComponent::StaticClass());
+    if (CurrentSilencer)
+    {
+        CurrentSilencer->RegisterComponent();
+        CurrentSilencer->SetStaticMesh(WeaponDataAsset->SilenceParts);
+
+        // 충돌 비활성화
+        CurrentSilencer->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+        CurrentSilencer->SetGenerateOverlapEvents(false);
+
+        // 소켓 부착
+        CurrentSilencer->AttachToComponent(GunMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("Silence"));
+
+        UE_LOG(LogTemp, Log, TEXT("Silencer attached on %s"), *GetName());
+    }
+
+    bSilencerAttached = true;
+}
+
+
+void AGunBase::DetachSilencer()
+{
+    if (CurrentSilencer)
+    {
+        CurrentSilencer->DestroyComponent();
+        CurrentSilencer = nullptr;
+        UE_LOG(LogTemp, Log, TEXT("Silencer detached from %s"), *GetName());
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("No silencer to detach on %s"), *GetName());
+    }
+
+    bSilencerAttached = false;
+}
+
+void AGunBase::AttachExtendedMag()
+{
+    if (!bIsExtendedMagAttached)
+    {
+        CurrentMaxAmmo = DefaultMaxAmmo + (DefaultMaxAmmo / 3);
+
+        if (CurrentAmmo > CurrentMaxAmmo)
+        {
+            CurrentAmmo = CurrentMaxAmmo;
+        }
+
+        bIsExtendedMagAttached = true;
+
+        UE_LOG(LogTemp, Log, TEXT("Extended Magazine Attached: MaxAmmo %d -> %d"), DefaultMaxAmmo, CurrentMaxAmmo);
+    }
+
+    bIsExtendedMagAttached = true;
+}
+
+void AGunBase::DetachExtendedMag()
+{
+    if (bIsExtendedMagAttached && WeaponDataAsset)
+    {
+        // 원래 장탄 수로 복구
+        WeaponDataAsset->MaxAmmo = DefaultMaxAmmo;
+
+        if (CurrentAmmo > DefaultMaxAmmo)
+        {
+            CurrentAmmo = DefaultMaxAmmo;
+        }
+
+        bIsExtendedMagAttached = false;
+
+        UE_LOG(LogTemp, Log, TEXT("Extended Magazine Detached: MaxAmmo restored to %d"), DefaultMaxAmmo);
+    }
+
+    bIsExtendedMagAttached = false;
 }
 
 void AGunBase::PlaySoundAtMuzzle(USoundBase* Sound) const
@@ -208,12 +314,15 @@ void AGunBase::PlaySoundAtMuzzle(USoundBase* Sound) const
 
 bool AGunBase::IsReloading() const { return bIsReloading; }
 bool AGunBase::IsCanFire() const { return bCanFire; }
+
+bool AGunBase::IsSilence() const { return bSilencerAttached; }
+bool AGunBase::IsMag() const { return bIsExtendedMagAttached; }
+
 int32 AGunBase::GetRemainingAmmo() const { return RemainingAmmo; }
 int32 AGunBase::GetCurrentAmmo() const { return CurrentAmmo; }
 
 UAnimMontage* AGunBase::GetEquipMontage() const { return WeaponDataAsset->PlayerEquipAnimMontage; }
 UAnimMontage* AGunBase::GetFireMontage() const { return WeaponDataAsset->PlayerFireAnimMontage; }
 UAnimMontage* AGunBase::GetReloadMontage() const { return WeaponDataAsset->PlayerReloadAnimMontage; }
-
 
 TSubclassOf<class UCameraShakeBase> AGunBase::GetCameraShake() const { return WeaponDataAsset->CameraShake; }
