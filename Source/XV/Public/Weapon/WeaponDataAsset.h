@@ -16,11 +16,15 @@ public:
 
 	// 무기 메쉬
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Visuals")
-	class USkeletalMesh* WeaponMesh;
+	USkeletalMesh* WeaponMesh;
 
 	// 머즐 플래시
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Visuals")
 	class UNiagaraSystem* MuzzleFlash;
+
+	// 무기 메쉬
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon Parts")
+	UStaticMesh* SilenceParts;
 
 	// 탄창 최대 수
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ammo")
@@ -48,34 +52,37 @@ public:
 
 	// 발사 사운드
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sound")
-	class USoundBase* FireSound;
+	USoundBase* FireSound;
+
+	// 소음기 발사 사운드
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sound")
+	USoundBase* SilenceSound;
 
 	// 재장전 사운드
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sound")
-	class USoundBase* ReloadSound;
+	USoundBase* ReloadSound;
 
 	// 총알 없을 때 사운드
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sound")
-	class USoundBase* EmptySound;
+	USoundBase* EmptySound;
 
 	// 플레이어 장착 몽타주
 	UPROPERTY(EditDefaultsOnly, Category = "PlayerAnim")
-	class UAnimMontage* PlayerEquipAnimMontage;
+	UAnimMontage* PlayerEquipAnimMontage;
 
 	// 플레이어 발사 몽타주
 	UPROPERTY(EditDefaultsOnly, Category = "PlayerAnim")
-	class UAnimMontage* PlayerFireAnimMontage;
+	UAnimMontage* PlayerFireAnimMontage;
 
 	// 플레이어 재장전 몽타주
 	UPROPERTY(EditDefaultsOnly, Category = "PlayerAnim")
-	class UAnimMontage* PlayerReloadAnimMontage;
+	UAnimMontage* PlayerReloadAnimMontage;
 
 	// 무기 발사 몽타주
 	UPROPERTY(EditDefaultsOnly, Category = "WeaponAnim")
-	class UAnimMontage* FireAnimMontage;
+	UAnimMontage* FireAnimMontage;
 
 	// 무기 재장전 몽타주
 	UPROPERTY(EditDefaultsOnly, Category = "WeaponAnim")
-	class UAnimMontage* ReloadAnimMontage;
-	
+	UAnimMontage* ReloadAnimMontage;
 };
