@@ -27,12 +27,15 @@ public:
 
 	FVector ClosedPos;
 	FVector OpenOffset;
-	FVector TargetPos;	
+	FVector TargetPos;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Door")
+	bool IsLocked;
 	bool IsOpening;
 	float OpenTime;
 	
 	FTimerHandle DoorOpenTimerInWave;
 	
-	void OpenDoor();
+	void OpenDoor(UBoxComponent* TriggerBox);
 	void SetDoorOpening();
 };
