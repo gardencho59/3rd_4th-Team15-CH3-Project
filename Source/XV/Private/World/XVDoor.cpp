@@ -98,7 +98,6 @@ void AXVDoor::OpenDoor()
 								GS->BroadcastMission();
 								return;
 							}
-							SetDoorOpening();
 						}
 					}
 				}
