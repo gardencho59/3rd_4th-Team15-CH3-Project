@@ -13,7 +13,7 @@ AGunBase::AGunBase()
 
     bIsReloading = false;
     bCanFire = true;
-    bSilencerAttached = true;
+    bSilencerAttached = false;
     bIsExtendedMagAttached = false;
     CurrentAmmo = 0;
     RemainingAmmo = 70;
