@@ -5,11 +5,21 @@
 #include "GameFramework/GameState.h"
 #include "XVGameState.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnEnemyCountChanged, int32, RemainingEnemies);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMissionChanged, const FString&, MissionText);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnEnemyCountChanged, int32, TotalKilledEnemyCount);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnMissionChanged, const FString&, MissionTitle, const FString&, MissionDescription);
 
 class UUserWidget;
 
+USTRUCT(BlueprintType)
+struct FMissionData
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mission")
+	FString MissionTitle;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mission")
+	FString MissionDescription;
+};
 UCLASS()
 class XV_API AXVGameState : public AGameState
 {
@@ -46,38 +56,52 @@ public:
 	UPROPERTY(BlueprintAssignable, Category="Events")
 	FOnMissionChanged OnMissionChanged;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Mission")
-	TArray<FString> MissionTexts1 =
+	TArray<FMissionData> Missions =
 		{
-			TEXT("Mission 1: Interact Button to Open Door"),
-			TEXT("Mission 2: Kill All Enemies"),
-			TEXT("Mission 3: Hack a Computer to Activate Interactive Button"),
-			TEXT("Mission 4: Interact Button to Open Door"),
-			TEXT("Mission 5: Kill All Enemies"),
-			TEXT("Mission 6: Access System to Open Door"),
-			TEXT("Mission 7: Kill All Enemies & Hold on Until the Door Opens"),
-			TEXT("Mission 8: BOSS"),
+			{ TEXT("Mission 1"), TEXT("Interact Button to Open Door") },
+			{ TEXT("Mission 2"), TEXT("Kill All Enemies") },
+			{ TEXT("Mission 3"), TEXT("Hack a Computer to Activate Interactive Button") },
+			{ TEXT("Mission 4"), TEXT("Interact Button to Open Door") },
+			{ TEXT("Mission 5"), TEXT("Kill All Enemies") },
+			{ TEXT("Mission 6"), TEXT("Access System to Open Door") },
+			{ TEXT("Mission 7"), TEXT("Kill All Enemies & Hold on Until the Door Opens") },
+			{ TEXT("Mission 8"), TEXT("BOSS") },
 		};
 
 	void BroadcastMission()
 	{
 		CurrentMissionIdx++;
-		if (CurrentMissionIdx < MissionTexts1.Num())
+		if (CurrentMissionIdx < Missions.Num())
 		{
-			if (MissionTexts1[CurrentMissionIdx].IsValidIndex(CurrentMissionIdx))
+			if (Missions.IsValidIndex(CurrentMissionIdx))
 			{
-				OnMissionChanged.Broadcast(MissionTexts1[CurrentMissionIdx]);
+				OnMissionChanged.Broadcast(Missions[CurrentMissionIdx].MissionTitle, Missions[CurrentMissionIdx].MissionDescription);
 			}
 		}
 	}
 	
 	void EnemyKilled() const
 	{
-		OnEnemyCountChanged.Broadcast(SpawnedEnemyCount - KilledEnemyCount);
+		if (UGameInstance* GI = GetGameInstance())
+		{
+			if (UXVGameInstance* XVGI = Cast<UXVGameInstance>(GI))
+			{
+				XVGI->TotalKilledEnemyCount++;
+				OnEnemyCountChanged.Broadcast(GetTotalEnemyKilledCount());
+			}
+		}
 	}
 	
 	UFUNCTION(BlueprintCallable, Category="Game Rules")
-	int32 GetRemainingEnemies() const
+	int32 GetTotalEnemyKilledCount() const
 	{
-		return SpawnedEnemyCount - KilledEnemyCount;
+		if (UGameInstance* GI = GetGameInstance())
+		{
+			if (UXVGameInstance* XVGI = Cast<UXVGameInstance>(GI))
+			{
+				return XVGI->TotalKilledEnemyCount;
+			}
+		}
+		return 0;
 	}
 };
