@@ -16,7 +16,7 @@ class XV_API URangedCheckHit : public UAnimNotifyState
 public:
 	// 애니메이션 노티파이 시 실행
 	virtual void NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference) override;
-	void PlayHitEffects(UWorld* World, const FVector& SpawnLocation);
+	void PlayHitEffects(UWorld* World, USkeletalMeshComponent* Mesh);
 
 	// 트레이스 박스 반 사이즈(직육면체 절반 크기)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RangeTrace")
@@ -40,5 +40,11 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="SFX")
 	USoundBase* HitSound;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="VFX")
+	FName MuzzleSocketName = TEXT("Muzzle");
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="VFX")
+	FName ShellEjectSocketName = TEXT("ShellEject");
 
 };
