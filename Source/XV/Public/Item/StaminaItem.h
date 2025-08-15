@@ -21,6 +21,7 @@ public:
 	virtual void UseItem() override;
 	void FinishItem();
 
+
 protected:
 	UPROPERTY(EditAnywhere, Category = "Item")
 	float Speed;

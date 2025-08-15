@@ -24,4 +24,8 @@ struct FArmorData : public FTableRowBase
 	// 방어구 레벨
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 ArmorLevel;
+
+	// 체력 증가량
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 ArmorHealth;
 };

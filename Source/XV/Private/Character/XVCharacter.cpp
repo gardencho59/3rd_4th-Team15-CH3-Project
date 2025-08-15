@@ -15,8 +15,9 @@
 #include "Components/WidgetComponent.h"
 #include "UIFollowerComponent.h"
 #include "Components/BoxComponent.h"
-#include "Item/HealthPotionItem.h"
 #include "Item/InteractableItem.h"
+#include "Item/HealthPotionItem.h"
+#include "Item/ShieldItem.h"
 
 
 AXVCharacter::AXVCharacter()
@@ -126,6 +127,10 @@ void AXVCharacter::SetMaxHealth(float Value)
 {
 	UE_LOG(LogTemp, Log, TEXT("SetMaxHealth : %f"), Value);
 	MaxHealth = Value;
+	if (CurrentHealth > MaxHealth)
+	{
+		CurrentHealth = MaxHealth;
+	}
 	BroadcastHealth();	
 }
 
@@ -202,23 +207,20 @@ void AXVCharacter::SetSpeed(float Value)
 }
 
 // 헬멧 변경
-
 void AXVCharacter::SetArmor(const FArmorData& NewArmor, EArmorType Armor)
 {
 	if (Armor == EArmorType::Helmet)
 	{
 		UE_LOG(LogTemp, Log, TEXT("EArmorType : Helmet"));
 		HelmetMesh->SetStaticMesh(NewArmor.ArmorMesh);
-		SetMaxHealth(CurrentHealth + 50); // 테스트로 일단 하드코딩
-		AddHealth(50);
 	}
 	if (Armor == EArmorType::Vest)
 	{
 		UE_LOG(LogTemp, Log, TEXT("EArmorType : Vest"));
 		VestMesh->SetStaticMesh(NewArmor.ArmorMesh);
-		SetMaxHealth(CurrentHealth + 80); // 테스트로 일단 하드코딩
-		AddHealth(80);
 	}
+	SetMaxHealth(CurrentHealth + NewArmor.ArmorHealth);
+	AddHealth(NewArmor.ArmorHealth);
 }
 
 void AXVCharacter::SetWeapon(EWeaponType Weapon)
@@ -373,10 +375,6 @@ void AXVCharacter::OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor
 			}
 			
 			Door = nullptr;
-			if (!Door)
-			{
-				UE_LOG(LogTemp, Log, TEXT("Elevator: null"));
-			}
 		}
 	}
 }
@@ -613,7 +611,16 @@ void AXVCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 					this,
 					&AXVCharacter::StopUseCurrentItem    // ★ 변경
 				);
-	    	}	
+	    	}
+	    	if (PlayerController->ShieldAction)
+	    	{
+	    		EnhancedInput->BindAction(
+					PlayerController->ShieldAction,
+					ETriggerEvent::Started,
+					this,
+					&AXVCharacter::StartUseShieldItem
+				);
+	    	}
 	    }
 	}
 }
@@ -997,22 +1004,14 @@ void AXVCharacter::StartUseCurrentItem()
 {
 	if (bIsDie) return;
 	
-	if (!CurrentItem)
+	if (InventoryComp->GetItemQuantity("HealthPotion") <= 0)
 	{
-		if (HealthPotionCount <= 0)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("No health potions."));
-			return;
-		}
-		SpawnPotionForUse(); // SetCurrentItem 내부에서 브로드캐스트 됨
+		UE_LOG(LogTemp, Warning, TEXT("No health potions."));
+		return;
 	}
-
-	if (AHealthPotionItem* Potion = Cast<AHealthPotionItem>(CurrentItem))
-	{
-		UE_LOG(LogTemp, Log, TEXT("StartUseCurrentItem: HealthPotion StartUse"));
-		Potion->StartUse();
-	}
-	else if (CurrentItem)
+	SpawnPotionForUse("HealthPotion"); // SetCurrentItem 내부에서 브로드캐스트 됨
+	
+	if (CurrentItem)
 	{
 		//CurrentItem = InventoryComp->GetItemData("HealthPotion")->ItemClass;
 		CurrentItem->UseItem();		
@@ -1030,6 +1029,25 @@ void AXVCharacter::StopUseCurrentItem()
 	}
 }
 
+void AXVCharacter::StartUseShieldItem()
+{
+	if (bIsDie) return;	
+
+	if (InventoryComp->GetItemQuantity("ShieldPotion") <= 0)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No Shield potions."));
+		return;
+	}
+	else
+	{
+		SpawnPotionForUse("ShieldPotion"); // SetCurrentItem 내부에서 브로드캐스트 됨
+		if (CurrentItem)
+		{
+			CurrentItem->UseItem();		
+		}
+	}	
+}
+
 void AXVCharacter::SetInventoryItem()
 {		
 	// 초기 아이템 세팅
@@ -1037,8 +1055,8 @@ void AXVCharacter::SetInventoryItem()
 	OnHealthPotionCountChanged.Broadcast(HealthPotionCount);
 }
 
-AHealthPotionItem* AXVCharacter::SpawnPotionForUse()
-{
+AInteractableItem* AXVCharacter::SpawnPotionForUse(FName ItemName)
+{ // 아이템 클래스를 인스턴스로 반환
 	if (!GetWorld()) return nullptr;
 
 	FActorSpawnParameters Params;
@@ -1049,8 +1067,17 @@ AHealthPotionItem* AXVCharacter::SpawnPotionForUse()
 	const FVector Loc = GetActorLocation() + GetActorForwardVector() * 40.f + FVector(0,0,10);
 	const FRotator Rot = GetActorRotation();
 
-	AHealthPotionItem* NewPotion =
+	AInteractableItem* NewPotion = nullptr;
+	if (FName(TEXT("HealthPotion")) == ItemName)
+	{
+		NewPotion =
 		GetWorld()->SpawnActor<AHealthPotionItem>(AHealthPotionItem::StaticClass(), Loc, Rot, Params);
+	}
+	else if (FName(TEXT("ShieldPotion")) == ItemName)
+	{
+		NewPotion =
+		GetWorld()->SpawnActor<AShieldItem>(AShieldItem::StaticClass(), Loc, Rot, Params);
+	}
 
 	if (NewPotion)
 	{

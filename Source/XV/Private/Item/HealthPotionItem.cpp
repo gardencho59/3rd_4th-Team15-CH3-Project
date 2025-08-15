@@ -9,12 +9,12 @@
 
 AHealthPotionItem::AHealthPotionItem()
 {
-	ChargeTime = 3.0f;
+	ChargeTime = 2.0f;
 	HealAmount = 30.f;
 	bIsUsing = false;
 }
 
-void AHealthPotionItem::StartUse()
+	void AHealthPotionItem::StartUse()
 {
 	if (bIsUsing || !GetWorld()) return;
 

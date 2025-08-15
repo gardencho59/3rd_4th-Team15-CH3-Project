@@ -53,6 +53,7 @@ public:
 
 	void StartUseCurrentItem();
 	void StopUseCurrentItem();
+	void StartUseShieldItem();
 	void SetInventoryItem();
 	void ConsumeHealthPotion() { HealthPotionCount = FMath::Max(0, HealthPotionCount-1); OnHealthPotionCountChanged.Broadcast(HealthPotionCount); }
 
@@ -265,7 +266,7 @@ protected:
 	bool bIsDie;
 
 private:
-	AHealthPotionItem* SpawnPotionForUse();
+	AInteractableItem* SpawnPotionForUse(FName ItemName);
 	void BroadcastHealth();
 	
 	// 캐릭터 스테이터스
