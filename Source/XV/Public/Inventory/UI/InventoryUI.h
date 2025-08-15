@@ -38,6 +38,8 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	UWrapBox* ItemWrapBox;
 
+	// 방어구 관련
+	
 	UPROPERTY(meta = (BindWidget))
 	UBorder* BorderHelmet;
 
@@ -55,6 +57,38 @@ protected:
 	
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	UDataTable* ArmorDataTable;
+
+	// 라이플 부착물 관련 
+	
+	UPROPERTY(meta = (BindWidget))
+	UBorder* RifleSilencer;
+
+	UPROPERTY(meta = (BindWidget))
+	UBorder* RifleExtendedMag;
+
+	UPROPERTY(meta = (BindWidget))
+	UImage* RifleSilencerIcon;
+	
+	UPROPERTY(meta = (BindWidget))
+	UImage* RifleExtendedMagIcon;
+
+
+	// 피스톨 부착물 관련 
+	
+	UPROPERTY(meta = (BindWidget))
+	UBorder* PistolSilencer;
+	
+	UPROPERTY(meta = (BindWidget))
+	UBorder* PistolExtendedMag;
+
+	UPROPERTY(meta = (BindWidget))
+	UImage* PistolSilencerIcon;
+	
+	UPROPERTY(meta = (BindWidget))
+	UImage* PistolExtendedMagIcon;
+	
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	UDataTable* AttachmentDataTable;
 	
 public:
 	

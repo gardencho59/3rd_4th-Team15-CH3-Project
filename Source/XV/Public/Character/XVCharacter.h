@@ -10,6 +10,7 @@
 #include "XVCharacter.generated.h"
 
 
+class UBoxComponent;
 class AInteractableItem;
 class UInventoryComponent;
 class AXVDoor;
@@ -85,8 +86,7 @@ public:
 	void SetSpeed(float Value);
 	
 	// 장비 장착
-	void SetHelmet(const FArmorData& NewArmor, EArmorType Armor);
-	void SetVest(UStaticMesh* NewVest);
+	void SetArmor(const FArmorData& NewArmor, EArmorType Armor);
 
 	void SetWeapon(EWeaponType Weapon);
 	void SetCameraShake(TSubclassOf<class UCameraShakeBase> Shake);
@@ -238,7 +238,8 @@ protected:
 	void Inventory(const FInputActionValue& Value);
 	UFUNCTION()
 	void ItemInteract(const FInputActionValue& Value);
-
+	
+	UBoxComponent* OverlappedBox;
 	UFUNCTION()
 	void OnBeginOverlap(
 		UPrimitiveComponent* OverlappedComp,

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ItemType.h"
 #include "ItemSlot.generated.h"
 
 USTRUCT(BlueprintType)
@@ -8,9 +9,12 @@ struct FItemSlot
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY()
 	FName ItemID;
+	
+	UPROPERTY()
+	EItemType ItemType;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY()
 	float ItemQuantity;
 };

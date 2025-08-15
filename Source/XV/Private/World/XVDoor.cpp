@@ -47,10 +47,36 @@ void AXVDoor::Tick(float DeltaTime)
 	}
 }
 
-void AXVDoor::OpenDoor()
+void AXVDoor::OpenDoor(UBoxComponent* TriggerBox)
 {
+	UE_LOG(LogTemp, Warning, TEXT("OpenDoor() Called"));
+	UE_LOG(LogTemp, Warning, TEXT("IsOpening: %s"), IsOpening ? TEXT("true") : TEXT("false"));
 	if (!IsOpening)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("a"));
+		if (ExtraBox)
+		{
+			if (TriggerBox == ExtraBox)
+			{
+				if (AXVGameState* GS = GetWorld()->GetGameState<AXVGameState>())
+				{
+					if (GS->CurrentMissionIdx != 2)
+					{
+						UE_LOG(LogTemp, Warning, TEXT("Cannot Unlock Door"));
+						return;
+					}
+				}
+				UE_LOG(LogTemp, Warning, TEXT("Door UnLocked"));
+				IsLocked = false;
+				ExtraBox->DestroyComponent();
+                ExtraBox = nullptr;
+			}
+		}
+		if (TriggerBox == DoorBox && IsLocked)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Door is Locked"));
+			return;
+		}
 		if (UGameInstance* GI = GetGameInstance())
 		{
 			if (UXVGameInstance* XVGI = Cast<UXVGameInstance>(GI))
@@ -79,24 +105,30 @@ void AXVDoor::OpenDoor()
 					{
 						if (AXVGameState* GS = GetWorld()->GetGameState<AXVGameState>())
 						{
-							if (GS->CurrentMissionIdx == 0)
+							if (AXVBaseGameMode* GM = GetWorld()->GetAuthGameMode<AXVBaseGameMode>())
 							{
-								SetDoorOpening();
-								GS->BroadcastMission();
-								return;
-							}
-							if (GS->CurrentMissionIdx == 2 && ExtraBox)
-							{
-								if (ExtraBox) ExtraBox->DestroyComponent();
-								GS->BroadcastMission();
-								return;
-							}
-						
-							if (GS->CurrentMissionIdx == 3 && !ExtraBox)
-							{
-								SetDoorOpening();
-								GS->BroadcastMission();
-								return;
+								switch (GS->CurrentMissionIdx)
+								{
+								case 0:
+									GM->StartGame();
+									SetDoorOpening();
+									GS->BroadcastMission();
+									break;
+
+								case 2:
+									GS->BroadcastMission();
+									break;
+								
+								case 3:
+									if (!IsValid(ExtraBox))
+									{
+										UE_LOG(LogTemp, Warning, TEXT("Case 3"));
+										GM->StartGame();
+										SetDoorOpening();
+										GS->BroadcastMission();
+										break;
+									}
+								}
 							}
 						}
 					}
@@ -109,4 +141,5 @@ void AXVDoor::OpenDoor()
 void AXVDoor::SetDoorOpening()
 {
 	IsOpening = true;
+	TargetPos = ClosedPos + OpenOffset;
 }

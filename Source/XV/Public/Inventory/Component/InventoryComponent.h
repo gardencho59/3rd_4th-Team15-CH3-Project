@@ -8,11 +8,13 @@
 #include "Inventory/Data/Armor/ArmorData.h"
 #include "Inventory/Data/Armor/ArmorType.h"
 #include "Inventory/Data/Armor/EquippedArmor.h"
+#include "Inventory/Data/Attachment/AttachmentData.h"
+#include "Inventory/Data/Attachment/EquippedAttachment.h"
 #include "Inventory/UI/InventoryUI.h"
+#include "Weapon/WeaponTypes.h"
 #include "InventoryComponent.generated.h"
 
 DECLARE_MULTICAST_DELEGATE(FOnInventoryUpdated);
-// DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnArmorChanged);
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class XV_API UInventoryComponent : public UActorComponent
@@ -46,11 +48,11 @@ public:
 	
 	void UpdateInventory();
 
-	bool PickUp(const FName& ItemID, float ItemQuantity);
+	bool PickUp(const FName& ItemID, const EItemType, float ItemQuantity);
 
 	bool FindMatchingSlot(const FName& ItemID, int32& OutIndex);
 
-	void AddToNewSlot(const FName& ItemID, const float ItemQuantity, const int32 Index);
+	void AddToNewSlot(const FName& ItemID, const EItemType ItemType, const float ItemQuantity, const int32 Index);
 
 	void AddToSlot(const int32 Index, const float ItemQuantity);
 
@@ -62,9 +64,11 @@ public:
 	
 	FVector GetDropLocation();
 
-	void DropFromInventory(const FName ItemID, const int32 ItemQuantity, const int32 SlotIndex);
+	void DropFromInventory(const FName ItemID, const EItemType, const int32 ItemQuantity, const int32 SlotIndex);
 
 	void UseItem(const FName ItemID, const int32 ItemQuantity);
+
+	void SortInventory();
 
 	float GetItemQuantity(const FName ItemID);
 
@@ -83,9 +87,18 @@ public:
 	// UPROPERTY()
 	// FOnArmorChanged OnArmorChanged;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Armor")
-	FArmorData ArmorData;
+	// UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Armor")
+	// FArmorData ArmorData;
 
 	UPROPERTY()
 	FEquippedArmor EquippedArmor; // 현재 장착중인 장비
+
+	// 부착물 관련
+	void EquipAttachment(const FAttachmentData& NewAttachment, EAttachmentType AttachmentType, EWeaponType WeaponType);
+
+	UPROPERTY()
+	FEquippedAttachment RifleAttachment; // 현재 장착중인 라이플 부착물
+	
+	UPROPERTY()
+	FEquippedAttachment PistolAttachment; // 현재 장착중인 피스톨 부착물
 };

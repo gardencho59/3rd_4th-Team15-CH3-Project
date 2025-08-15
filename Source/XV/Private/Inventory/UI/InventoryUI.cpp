@@ -62,19 +62,21 @@ bool UInventoryUI::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEven
 	
 	FName ItemID = DraggedSlot->ItemID;
 	FArmorData* ArmorData = ArmorDataTable->FindRow<FArmorData>(ItemID, TEXT("Get Armor Row in InventoryUI"));
-	
-	if (!ArmorData)
+	FAttachmentData* AttachmentData = AttachmentDataTable->FindRow<FAttachmentData>(ItemID, TEXT("Get Attachment Row in InventoryUI"));
+	if (!AttachmentData && !ArmorData)
 	{
 		return false;
 	}
-	
+
+	// 아이콘 가져오기
 	FItemData* ItemData = ItemDataTable->FindRow<FItemData>(ItemID, TEXT("Get Item Data in InventoryUI"));
 	if (!ItemData)
 	{
 		return false;
 	}
-	
+
 	FVector2D DropPosition = InDragDropEvent.GetScreenSpacePosition();
+	// 장비 부착
 	if (BorderHelmet->GetCachedGeometry().IsUnderLocation(DropPosition) && ArmorData->ArmorType == EArmorType::Helmet && ItemData->ItemType == EItemType::Armor)
 	{
 		UE_LOG(LogTemp, Log, TEXT("In Helmet Border"));
@@ -88,6 +90,37 @@ bool UInventoryUI::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEven
 		
 		VestIcon->SetBrushFromTexture(ItemData->ItemIcon);
 		InventoryComp->EquipArmor(*ArmorData, EArmorType::Vest);
+	}
+	// 라이플 부착물 부착
+	if (RifleSilencer->GetCachedGeometry().IsUnderLocation(DropPosition) && AttachmentData->AttachmentType == EAttachmentType::Silencer && ItemData->ItemType == EItemType::Attachment)
+	{
+		UE_LOG(LogTemp, Log, TEXT("In Rifle Silencer Border"));
+
+		RifleSilencerIcon->SetBrushFromTexture(ItemData->ItemIcon); // 아이콘 설정
+		InventoryComp->EquipAttachment(*AttachmentData, EAttachmentType::Silencer, EWeaponType::Rifle); // 인벤토리 부착물 장비 장착 호출
+	}
+	else if (RifleExtendedMag->GetCachedGeometry().IsUnderLocation(DropPosition) && AttachmentData->AttachmentType == EAttachmentType::ExtendedMag && ItemData->ItemType == EItemType::Attachment)
+	{
+		UE_LOG(LogTemp, Log, TEXT("In Rifle ExtendedMag Border"));
+		
+		RifleExtendedMagIcon->SetBrushFromTexture(ItemData->ItemIcon); // 아이콘 설정
+		InventoryComp->EquipAttachment(*AttachmentData, EAttachmentType::ExtendedMag, EWeaponType::Rifle); // 인벤토리 부착물 장비 장착 호출
+	}
+	
+	// 피스톨 부착물 부착
+	if (PistolSilencer->GetCachedGeometry().IsUnderLocation(DropPosition) && AttachmentData->AttachmentType == EAttachmentType::Silencer && ItemData->ItemType == EItemType::Attachment)
+	{
+		UE_LOG(LogTemp, Log, TEXT("In Pistol Silencer Border"));
+
+		PistolSilencerIcon->SetBrushFromTexture(ItemData->ItemIcon); // 아이콘 설정
+		InventoryComp->EquipAttachment(*AttachmentData, EAttachmentType::Silencer, EWeaponType::Pistol); // 인벤토리 부착물 장비 장착 호출
+	}
+	else if (PistolExtendedMag->GetCachedGeometry().IsUnderLocation(DropPosition) && AttachmentData->AttachmentType == EAttachmentType::ExtendedMag && ItemData->ItemType == EItemType::Attachment)
+	{
+		UE_LOG(LogTemp, Log, TEXT("In Pistol ExtendedMag Border"));
+		
+		PistolExtendedMagIcon->SetBrushFromTexture(ItemData->ItemIcon); // 아이콘 설정
+		InventoryComp->EquipAttachment(*AttachmentData, EAttachmentType::ExtendedMag, EWeaponType::Pistol); // 인벤토리 부착물 장비 장착 호출
 	}
 	
 	return true;
@@ -129,6 +162,7 @@ void UInventoryUI::CreateItemSlots()
 		}
 		NewSlot->InventoryComp = InventoryComp;
 		NewSlot->ItemID = Item.ItemID;
+		NewSlot->ItemType = Item.ItemType;
 		NewSlot->ItemQuantity = Item.ItemQuantity;
 		NewSlot->Index = Index;
 		
