@@ -6,6 +6,7 @@
 #include "Inventory/Data/Item/ItemSFX.h"
 #include "Inventory/UI/InventoryUI.h"
 #include "Components/WidgetComponent.h"
+#include "Inventory/Data/Attachment/AttachmentType.h"
 #include "Item/InteractableItem.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -392,10 +393,52 @@ void UInventoryComponent::EquipArmor(const FArmorData& NewArmor, EArmorType Armo
 			return;
 		}
 	}
-	// Character 아이템 장착 함수 수행
-	//OnArmorChanged.Broadcast();
-
 }
 
-// chracterclass BeginPlay()
-// InventoryComp->OnArmorChanged.AddDynamic(this, &AMyCharacter::함수 이름);
+void UInventoryComponent::EquipAttachment(const FAttachmentData& NewAttachment, EAttachmentType AttachmentType, EWeaponType WeaponType)
+{
+	// 무기 부착 관련 함수
+		
+	UE_LOG(LogTemp, Log, TEXT("WeaponType: %s"), *StaticEnum<EWeaponType>()->GetNameStringByValue(static_cast<int64>(WeaponType)));
+	switch (AttachmentType)
+	{
+	case EAttachmentType::Silencer:
+		switch (WeaponType)
+		{
+		case EWeaponType::Rifle:
+			UE_LOG(LogTemp, Log, TEXT("Equip Silencer To Rifle"));
+			RifleAttachment.Silencer = NewAttachment;
+			break;
+		case EWeaponType::Pistol:
+			UE_LOG(LogTemp, Log, TEXT("Equip Silencer To Pistol"));
+			PistolAttachment.Silencer = NewAttachment;
+			break;
+		}
+		break;
+	case EAttachmentType::ExtendedMag:
+		switch (WeaponType)
+		{
+		case EWeaponType::Rifle:
+			UE_LOG(LogTemp, Log, TEXT("Equip ExtendedMag To Rifle"));
+			RifleAttachment.ExtendedMag = NewAttachment;
+			break;
+		case EWeaponType::Pistol:
+			UE_LOG(LogTemp, Log, TEXT("Equip ExtendedMag To Pistol"));
+			PistolAttachment.ExtendedMag = NewAttachment;
+			break;
+		}
+		break;
+	}
+	for (FItemSlot& ItemSlot : ItemSlots)
+	{
+		if (ItemSlot.ItemID == NewAttachment.AttachmentName)
+		{
+			UE_LOG(LogTemp, Log, TEXT("NewAttachment: %s"), *NewAttachment.AttachmentName.ToString());
+			ItemSlot.ItemID = NAME_None;
+			ItemSlot.ItemType = EItemType::None;
+			ItemSlot.ItemQuantity = 0;
+			UpdateInventory();
+			return;
+		}
+	}
+}
