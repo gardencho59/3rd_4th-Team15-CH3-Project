@@ -56,6 +56,7 @@ AXVCharacter::AXVCharacter()
 	bIsLookLeft = false;
 	bZoomLookLeft = false;
 	bIsDie = false;
+	bIsShieldActive = false;
 
 	GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
 
@@ -142,6 +143,17 @@ float AXVCharacter::GetMaxHealth() const
 {
 	return MaxHealth;
 }
+
+bool AXVCharacter::GetIsShieldActive() const
+{
+	return bIsShieldActive;
+}
+
+void AXVCharacter::SetIsShieldActive(bool bIsShield)
+{
+	bIsShieldActive = bIsShield;
+}
+
 void AXVCharacter::AddHealth(float Value)
 {
 	CurrentHealth = FMath::Clamp(CurrentHealth + Value, 0.0f, MaxHealth);
@@ -1024,7 +1036,6 @@ void AXVCharacter::StopUseCurrentItem()
 
 	if (AHealthPotionItem* Potion = Cast<AHealthPotionItem>(CurrentItem))
 	{
-		UE_LOG(LogTemp, Log, TEXT("StopUseCurrentItem: HealthPotion StopUse"));
 		Potion->StopUse();
 	}
 }
@@ -1043,16 +1054,19 @@ void AXVCharacter::StartUseShieldItem()
 		SpawnPotionForUse("ShieldPotion"); // SetCurrentItem 내부에서 브로드캐스트 됨
 		if (CurrentItem)
 		{
-			CurrentItem->UseItem();		
+			CurrentItem->UseItem();
+			SetInventoryItem();
 		}
 	}	
 }
 
 void AXVCharacter::SetInventoryItem()
 {		
-	// 초기 아이템 세팅
+	// 인벤토리 UI 연동 세팅
 	HealthPotionCount = InventoryComp->GetItemQuantity("HealthPotion");
 	OnHealthPotionCountChanged.Broadcast(HealthPotionCount);
+	ShieldPotionCount = InventoryComp->GetItemQuantity("ShieldPotion");
+	OnShieldPotionCountChanged.Broadcast(ShieldPotionCount);
 }
 
 AInteractableItem* AXVCharacter::SpawnPotionForUse(FName ItemName)
@@ -1085,4 +1099,30 @@ AInteractableItem* AXVCharacter::SpawnPotionForUse(FName ItemName)
 		SetCurrentItem(NewPotion);
 	}
 	return NewPotion;
+}
+
+void AXVCharacter::ShieldItem(float Shield, float Duration)
+{
+	ShieldAmount = Shield;
+	if (!bIsShieldActive)
+	{
+		SetMaxHealth(MaxHealth + ShieldAmount);
+		AddHealth(ShieldAmount);
+		bIsShieldActive = true;
+	}
+	
+	GetWorld()->GetTimerManager().SetTimer(
+		ShieldTimerHandle,
+		this,
+		&AXVCharacter::FinishShield,
+		Duration,
+		false
+		);
+}
+
+void AXVCharacter::FinishShield()
+{ // 지속 시간 이후 원래 체력으로 복구
+	UE_LOG(LogTemp, Warning, TEXT("Finish Shield"));
+	SetMaxHealth(MaxHealth - ShieldAmount);
+	bIsShieldActive = false;
 }
