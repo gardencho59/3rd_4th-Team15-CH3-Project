@@ -129,6 +129,7 @@ void UInventoryUI::CreateItemSlots()
 		}
 		NewSlot->InventoryComp = InventoryComp;
 		NewSlot->ItemID = Item.ItemID;
+		NewSlot->ItemType = Item.ItemType;
 		NewSlot->ItemQuantity = Item.ItemQuantity;
 		NewSlot->Index = Index;
 		

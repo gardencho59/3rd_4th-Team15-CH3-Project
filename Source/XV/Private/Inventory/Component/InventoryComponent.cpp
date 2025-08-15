@@ -2,6 +2,7 @@
 #include "Character/XVCharacter.h"
 #include "Inventory/Data/Item/ItemSlot.h"
 #include "Inventory/Data/Item/ItemData.h"
+#include "Inventory/Data/Item/ItemType.h"
 #include "Inventory/Data/Item/ItemSFX.h"
 #include "Inventory/UI/InventoryUI.h"
 #include "Components/WidgetComponent.h"
@@ -25,6 +26,7 @@ void UInventoryComponent::BeginPlay()
 	{
 		FItemSlot& ItemSlot = ItemSlots[Index];
 		ItemSlot.ItemID = NAME_None;
+		ItemSlot.ItemType = EItemType::None;
 		ItemSlot.ItemQuantity = 0.f;
 	}
 	UpdateInventory();
@@ -33,10 +35,11 @@ void UInventoryComponent::BeginPlay()
 void UInventoryComponent::UpdateInventory()
 {
 	UE_LOG(LogTemp, Log, TEXT("Update Inventory!!!"));
+	SortInventory();
 	OnInventoryUpdated.Broadcast();
 }
 
-bool UInventoryComponent::PickUp(const FName& ItemID, float ItemQuantity)
+bool UInventoryComponent::PickUp(const FName& ItemID, const EItemType ItemType, float ItemQuantity)
 {
 	PrintInventory();
 	bool bIsFull = false;
@@ -61,7 +64,7 @@ bool UInventoryComponent::PickUp(const FName& ItemID, float ItemQuantity)
 			if (AnyAvailableSlots(AvailableIndex))
 			{
 				// 새로운 슬롯에 아이템 넣기
-				AddToNewSlot(ItemID, 1, AvailableIndex);
+				AddToNewSlot(ItemID, ItemType, 1, AvailableIndex);
 				ItemQuantity --;
 				UE_LOG(LogTemp, Log, TEXT("Add To New Slot!"))
 				bIsSuccess = true;
@@ -116,7 +119,7 @@ bool UInventoryComponent::FindMatchingSlot(const FName& ItemID, int32& OutIndex)
 	return false;
 }
 
-void UInventoryComponent::AddToNewSlot(const FName& ItemID, const float ItemQuantity, const int32 Index)
+void UInventoryComponent::AddToNewSlot(const FName& ItemID, const EItemType ItemType, const float ItemQuantity, int32 Index)
 {
 	if (!ItemSlots.IsValidIndex(Index))
 	{
@@ -124,6 +127,7 @@ void UInventoryComponent::AddToNewSlot(const FName& ItemID, const float ItemQuan
 	}
 	
 	ItemSlots[Index].ItemID = ItemID;
+	ItemSlots[Index].ItemType = ItemType;
 	ItemSlots[Index].ItemQuantity = ItemQuantity;
 }
 
@@ -210,26 +214,63 @@ FVector UInventoryComponent::GetDropLocation()
 	return Location + RandomDirection * DropDistance;
 }
 
-void UInventoryComponent::DropFromInventory(const FName ItemID, const int32 ItemQuantity, const int32 SlotIndex)
+void UInventoryComponent::DropFromInventory(const FName ItemID, const EItemType ItemType, const int32 ItemQuantity, const int32 SlotIndex)
 {
-	PrintInventory();
-	for (int Index = 0; Index < ItemQuantity; ++Index)
+	if (ItemType == EItemType::AMMORifle)
 	{
-		FItemData* ItemRow = GetItemData(ItemID);
-
-		if (!ItemRow || !ItemRow->ItemClass)
+		for (int Index = 0; Index < ItemQuantity / 30; ++Index)
 		{
-			UE_LOG(LogTemp, Log, TEXT("!ItemRow || !ItemRow->ItemClass, %s"), *ItemRow->ItemName.ToString());
-			return;
+
+			FItemData* ItemRow = GetItemData(ItemID);
+			if (!ItemRow || !ItemRow->ItemClass)
+			{
+				UE_LOG(LogTemp, Log, TEXT("!ItemRow || !ItemRow->ItemClass, %s"), *ItemRow->ItemName.ToString());
+				return;
+			}
+
+			AActor* DroppedItem = GetWorld()->SpawnActor<AInteractableItem>(
+				ItemRow->ItemClass,
+				GetDropLocation(),
+				FRotator::ZeroRotator);
 		}
-
-		AActor* DroppedItem = GetWorld()->SpawnActor<AInteractableItem>(
-			ItemRow->ItemClass,
-			GetDropLocation(),
-			FRotator::ZeroRotator);
 	}
+	else if (ItemType == EItemType::AMMOPistol)
+	{
+		for (int Index = 0; Index < ItemQuantity / 10; ++Index)
+		{
+			FItemData* ItemRow = GetItemData(ItemID);
+			if (!ItemRow || !ItemRow->ItemClass)
+			{
+				UE_LOG(LogTemp, Log, TEXT("!ItemRow || !ItemRow->ItemClass, %s"), *ItemRow->ItemName.ToString());
+				return;
+			}
 
+			AActor* DroppedItem = GetWorld()->SpawnActor<AInteractableItem>(
+				ItemRow->ItemClass,
+				GetDropLocation(),
+				FRotator::ZeroRotator);
+		}
+	}
+	else
+	{
+		for (int Index = 0; Index < ItemQuantity; ++Index)
+		{
+			FItemData* ItemRow = GetItemData(ItemID);
+
+			if (!ItemRow || !ItemRow->ItemClass)
+			{
+				UE_LOG(LogTemp, Log, TEXT("!ItemRow || !ItemRow->ItemClass, %s"), *ItemRow->ItemName.ToString());
+				return;
+			}
+
+			AActor* DroppedItem = GetWorld()->SpawnActor<AInteractableItem>(
+				ItemRow->ItemClass,
+				GetDropLocation(),
+				FRotator::ZeroRotator);
+		}	
+	}
 	ItemSlots[SlotIndex].ItemID = NAME_None;
+	ItemSlots[SlotIndex].ItemType = EItemType::None;
 	ItemSlots[SlotIndex].ItemQuantity = 0;
 	
 	UpdateInventory();
@@ -259,12 +300,25 @@ void UInventoryComponent::UseItem(const FName ItemID, const int32 ItemQuantity)
 			if (ItemSlot.ItemQuantity == 0)
 			{
 				ItemSlot.ItemID = NAME_None;
+				ItemSlot.ItemType = EItemType::None;
 				ItemSlot.ItemQuantity = 0;
 			}
 			UpdateInventory();
 			return;
 		}
 	}
+}
+
+void UInventoryComponent::SortInventory()
+{
+	ItemSlots.Sort([](const FItemSlot& A, const FItemSlot& B)
+	{
+		if (A.ItemType == B.ItemType)
+		{
+			return A.ItemQuantity > B.ItemQuantity;
+		}
+		return static_cast<uint8>(A.ItemType) < static_cast<uint8>(B.ItemType);
+	});
 }
 
 float UInventoryComponent::GetItemQuantity(const FName ItemID)
@@ -305,7 +359,7 @@ void UInventoryComponent::PrintInventory()
 {
 	for (const FItemSlot& Slot : ItemSlots)
 	{
-		UE_LOG(LogTemp, Log, TEXT("ItemID: %s, Quantity: %f"), *Slot.ItemID.ToString(), Slot.ItemQuantity);
+		UE_LOG(LogTemp, Log, TEXT("ItemID: %s, ITemType: %s, Quantity: %f"), *Slot.ItemID.ToString(), *StaticEnum<EItemType>()->GetNameStringByValue((int64)Slot.ItemType), Slot.ItemQuantity);
 	}
 }
 
@@ -330,7 +384,9 @@ void UInventoryComponent::EquipArmor(const FArmorData& NewArmor, EArmorType Armo
 	{
 		if (ItemSlot.ItemID == NewArmor.ArmorName)
 		{
+			UE_LOG(LogTemp, Log, TEXT("NewArmor: %s"), *NewArmor.ArmorName.ToString());
 			ItemSlot.ItemID = NAME_None;
+			ItemSlot.ItemType = EItemType::None;
 			ItemSlot.ItemQuantity = 0;
 			UpdateInventory();
 			return;

@@ -46,11 +46,11 @@ public:
 	
 	void UpdateInventory();
 
-	bool PickUp(const FName& ItemID, float ItemQuantity);
+	bool PickUp(const FName& ItemID, const EItemType, float ItemQuantity);
 
 	bool FindMatchingSlot(const FName& ItemID, int32& OutIndex);
 
-	void AddToNewSlot(const FName& ItemID, const float ItemQuantity, const int32 Index);
+	void AddToNewSlot(const FName& ItemID, const EItemType ItemType, const float ItemQuantity, const int32 Index);
 
 	void AddToSlot(const int32 Index, const float ItemQuantity);
 
@@ -62,9 +62,11 @@ public:
 	
 	FVector GetDropLocation();
 
-	void DropFromInventory(const FName ItemID, const int32 ItemQuantity, const int32 SlotIndex);
+	void DropFromInventory(const FName ItemID, const EItemType, const int32 ItemQuantity, const int32 SlotIndex);
 
 	void UseItem(const FName ItemID, const int32 ItemQuantity);
+
+	void SortInventory();
 
 	float GetItemQuantity(const FName ItemID);
 

@@ -54,7 +54,7 @@ void UItemDataComponent::PickUp(AActor* Interactor)
 	}
 
 	// 인벤토리에 추가
-	if (InvnetoryComp->PickUp(ItemRow->ItemName, ItemQuantity))
+	if (InvnetoryComp->PickUp(ItemRow->ItemName, ItemRow->ItemType, ItemQuantity))
 	{
 		Owner->Destroy();
 	}

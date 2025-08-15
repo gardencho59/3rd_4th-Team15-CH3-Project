@@ -4,6 +4,7 @@
 #include "Blueprint/UserWidget.h"
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
+#include "Inventory/Data/Item/ItemType.h"
 #include "Engine/DataTable.h"
 #include "ItemSlotPreview.h"
 #include "ItemSlotUI.generated.h"
@@ -51,6 +52,9 @@ public:
 	UPROPERTY()
 	FName ItemID;
 
+	UPROPERTY()
+	EItemType ItemType;
+	
 	UPROPERTY()
 	float ItemQuantity;
 
