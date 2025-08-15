@@ -123,6 +123,7 @@ public:
 	// 회피용 
 protected:
 	void RunBTWithDelay();
+	void TryRandomPortal();
 
 	UPROPERTY()
 	AXVControllerBase* CachedAIController;

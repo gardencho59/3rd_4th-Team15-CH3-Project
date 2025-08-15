@@ -1,6 +1,7 @@
 ﻿#include "AI/Character/Base/XVEnemyBase.h"
 
 #include "BrainComponent.h"
+#include "NavigationSystem.h"
 #include "AI/Weapons/Base/AIWeaponBase.h"
 #include "AI/AIComponents/AIStatusComponent.h"
 #include "AI/System/AIController/Base/XVControllerBase.h"
@@ -11,6 +12,7 @@
 #include "System/XVBaseGameMode.h"
 #include "Components/CapsuleComponent.h"
 #include "Perception/AIPerceptionComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 AXVEnemyBase::AXVEnemyBase()
 	: RotateSpeed(480.f)
@@ -158,6 +160,7 @@ void AXVEnemyBase::GetDamage(float Damage)
 	// ▼ 체력이 0 이하로 떨어졌을 때만 사망 처리!
 	if (AIStatusComponent->CurrentHealth() <= 0.f)
 	{
+		UE_LOG(Log_XV_AI, Warning, TEXT("GetDamage : GetDamage Start2"));
 		AIController->AIPerception->SetActive(false);
 
 		//
@@ -299,8 +302,8 @@ void AXVEnemyBase::GetDamage(float Damage)
 	}
 	else if (true == AIController->AIBlackBoard->GetValueAsBool(TEXT("bIsBoss")))
 	{
-		// 기본 : 30% 확률로 애니메이션 실행
-		if (AIStatusComponent->CurrentHealth() > 10.f && false == bIsAvoid && FMath::FRand() < 0.3f)
+		// 기본 : 50% 확률로 애니메이션 실행
+		if (AIStatusComponent->CurrentHealth() > 10.f && false == bIsAvoid && FMath::FRand() < 0.5f)
 		{
 			AIController->AIBlackBoard->SetValueAsBool(TEXT("bIsAvoiding"), true);
 		
@@ -311,8 +314,9 @@ void AXVEnemyBase::GetDamage(float Damage)
 				AIController->BrainComponent->StopLogic(TEXT("Dead"));
 				TryRandomAvoid(PlayerCharacter->GetActorLocation());
 			}
+			
 		}
-		else if (AIStatusComponent->CurrentHealth() > 5.f && false == bIsAvoid && FMath::FRand() > 0.3f)
+		else if (AIStatusComponent->CurrentHealth() > 5.f && false == bIsAvoid && FMath::FRand() > 0.5f)
 		{
 			UE_LOG(Log_XV_AI, Warning, TEXT("AvoidChance Fail"));
 			
@@ -410,6 +414,11 @@ void AXVEnemyBase::OnDamageEnded()
 	{
 		AIController->RunBehaviorTree(AIController->BehaviorTreeAsset);
 	}
+
+	if (true == AIController->AIBlackBoard->GetValueAsBool(TEXT("bIsBoss")) /*&& FMath::FRand() < 0.5f */)
+	{
+		TryRandomPortal();
+	}
 }
 
 void AXVEnemyBase::TryRandomAvoid(const FVector& PlayerLocation)
@@ -462,7 +471,6 @@ void AXVEnemyBase::TryRandomAvoid(const FVector& PlayerLocation)
 void AXVEnemyBase::EndAvoid()
 {
 	UE_LOG(LogTemp, Warning, TEXT("EndAvoid : EndAvoid Start"));
-
 	
 	bIsAvoid = false; // 중단/정상 무관하게 명확히 false 처리
 
@@ -480,6 +488,11 @@ void AXVEnemyBase::EndAvoid()
 		);
 	}
 
+	if (true == AIController->AIBlackBoard->GetValueAsBool(TEXT("bIsBoss")))
+	{
+		TryRandomPortal();
+	}
+	
 	UE_LOG(LogTemp, Warning, TEXT("Now bIsAvoid boll is %d"), bIsAvoid);
 }
 
@@ -492,4 +505,64 @@ void AXVEnemyBase::RunBTWithDelay()
 		CachedAIController->RunBehaviorTree(CachedAIController->BehaviorTreeAsset);
 		CachedAIController->AIBlackBoard->SetValueAsBool(TEXT("bIsAvoiding"), false);
 	}
+}
+
+void AXVEnemyBase::TryRandomPortal()
+{
+	UWorld* World = GetWorld();
+	if (!World) return;
+
+	ACharacter* PlayerChar = UGameplayStatics::GetPlayerCharacter(World, 0);
+	if (!PlayerChar) return;
+
+	UNavigationSystemV1* NavSys = FNavigationSystem::GetCurrent<UNavigationSystemV1>(World);
+	if (!NavSys) return;
+
+	const FVector PlayerLoc = PlayerChar->GetActorLocation();
+	const FVector PlayerFwd = PlayerChar->GetActorForwardVector().GetSafeNormal2D();
+
+	// 플레이어 시선 뒤쪽 기준점 설정 및 랜덤 탐색 파라미터
+	constexpr float BehindDistance = 1200.f;   // 플레이어 뒤로 떨어질 거리
+	constexpr float RandomRadius   = 600.f;    // 기준점 주변 랜덤 반경
+	constexpr float MinRadius      = 200.f;    // 기준점과 너무 가까운 점 회피
+	constexpr int32 MaxTries       = 20;
+
+	const FVector BasePoint = PlayerLoc - PlayerFwd * BehindDistance;
+
+	FNavLocation OutNavLoc;
+	bool bFound = false;
+
+	// 1차: 기준점 주변에서 도달 가능한 무작위 지점
+	if (NavSys->GetRandomReachablePointInRadius(BasePoint, RandomRadius, OutNavLoc))
+	{
+		if (FVector::DistSquared(OutNavLoc.Location, BasePoint) >= FMath::Square(MinRadius))
+		{
+			bFound = true;
+		}
+	}
+
+	// 2차: 직접 무작위 후보를 생성하여 네비메시에 투영
+	for (int32 i = 0; !bFound && i < MaxTries; ++i)
+	{
+		const FVector RandDir = FMath::VRand().GetSafeNormal2D();
+		const float RandDist = FMath::FRandRange(MinRadius, RandomRadius);
+		const FVector Candidate = BasePoint + RandDir * RandDist;
+
+		if (NavSys->ProjectPointToNavigation(Candidate, OutNavLoc))
+		{
+			bFound = true;
+			break;
+		}
+	}
+
+	// 3차: 기준점 자체를 네비메시에 투영
+	if (!bFound && NavSys->ProjectPointToNavigation(BasePoint, OutNavLoc))
+	{
+		bFound = true;
+	}
+
+	if (!bFound) return;
+
+	const FRotator KeepRot = GetActorRotation();
+	TeleportTo(OutNavLoc.Location, KeepRot, false, false);
 }

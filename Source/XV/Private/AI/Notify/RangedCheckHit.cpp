@@ -34,15 +34,15 @@ void URangedCheckHit::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenc
     AXVCharacter* PlayerChar = Cast<AXVCharacter>(UGameplayStatics::GetPlayerCharacter(Enemy->GetWorld(), 0));
     if (!PlayerChar) return;
 
-    FVector Start = Enemy->GetActorLocation() + Enemy->GetActorForwardVector() * 80.0f;
-    FVector End = PlayerChar->GetActorLocation();
+    FVector Start = Enemy->GetActorLocation() + Enemy->GetActorForwardVector() * 80.0f + FVector(0.0f, 0.0f, 100.0f);
+    FVector End = PlayerChar->GetActorLocation() + FVector(0.0f, 0.0f, 40.0f);
 
     FRotator Orientation = (End - Start).Rotation();
 
     // 트레이스 박스 시각화용
-    //DrawDebugBox(Enemy->GetWorld(), Start, BoxHalfSize, Orientation.Quaternion(), FColor::Blue, false, 2.0f, 0, 2.0f);
-    //DrawDebugBox(Enemy->GetWorld(), End, BoxHalfSize, Orientation.Quaternion(), FColor::Green, false, 2.0f, 0, 2.0f);
-    //DrawDebugLine(Enemy->GetWorld(), Start, End, FColor::Red, false, 2.0f, 0, 3.0f);
+    // DrawDebugBox(Enemy->GetWorld(), Start, BoxHalfSize, Orientation.Quaternion(), FColor::Blue, false, 2.0f, 0, 2.0f);
+    // DrawDebugBox(Enemy->GetWorld(), End, BoxHalfSize, Orientation.Quaternion(), FColor::Green, false, 2.0f, 0, 2.0f);
+    // DrawDebugLine(Enemy->GetWorld(), Start, End, FColor::Red, false, 2.0f, 0, 3.0f);
 
     TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
     ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_Pawn));
@@ -71,7 +71,7 @@ void URangedCheckHit::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenc
         {
             // Enemy(공격자)에서 Character(맞는 캐릭터)까지 "라인트레이스"로 벽 체크
             FVector TraceStart = Start;
-            FVector TraceEnd = Character->GetActorLocation();
+            FVector TraceEnd = End;
 
             // 라인트레이스로 캐릭터까지 중간에 막힌 게 있는지 체크
             FHitResult BlockCheckHit;
@@ -83,11 +83,11 @@ void URangedCheckHit::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenc
                 FCollisionQueryParams(FName(TEXT("RangedHitBlock")), false, Enemy)
             );
 
-            //DrawDebugLine(Enemy->GetWorld(),
-            //    TraceStart,
-            //    TraceEnd,
-            //    bBlocked ? FColor::Red : FColor::Green,
-            //   false, 2.0f, 0, 2.5f);
+            // DrawDebugLine(Enemy->GetWorld(),
+            //     TraceStart,
+            //     TraceEnd,
+            //     bBlocked ? FColor::Red : FColor::Green,
+            //    false, 2.0f, 0, 2.5f);
 
             if (bBlocked && (BlockCheckHit.GetActor() != Character))
             {
@@ -97,7 +97,7 @@ void URangedCheckHit::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenc
             float RandomValue = FMath::FRand();
             if (RandomValue < HitProbability)
             {
-                PlayHitEffects(Enemy->GetWorld(), Start);
+                PlayHitEffects(Enemy->GetWorld(), MeshComp);
                 float Damage = 10.f;
                 if (UAIStatusComponent* Status = Enemy->FindComponentByClass<UAIStatusComponent>())
                     Damage = Status->AttackDamage;
@@ -105,7 +105,7 @@ void URangedCheckHit::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenc
             }
             else
             {
-                PlayHitEffects(Enemy->GetWorld(), Start);
+                PlayHitEffects(Enemy->GetWorld(), MeshComp);
             }
             return; // 한 명만 판정 후 종료
         }
@@ -114,18 +114,21 @@ void URangedCheckHit::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenc
 }
 
 
-void URangedCheckHit::PlayHitEffects(UWorld* World, const FVector& SpawnLocation)
+void URangedCheckHit::PlayHitEffects(UWorld* World, USkeletalMeshComponent* Mesh)
 {
     if (!World) return;
-
-    FVector AcitveLocation = SpawnLocation + FVector(-18.0f, 20.0f, 68.0f);
+    
+    const FVector MuzzleLoc = Mesh->GetSocketLocation(MuzzleSocketName);
+    UE_LOG(LogTemp, Warning, TEXT("MuzzleLoc: %s"), *MuzzleLoc.ToString());
+    const FVector ShellLoc = Mesh->GetSocketLocation(ShellEjectSocketName);
+    UE_LOG(LogTemp, Warning, TEXT("ShellLoc: %s"), *ShellLoc.ToString());
     
     if (NiagaraEffect_MuzzleFlash)
     {
         UNiagaraFunctionLibrary::SpawnSystemAtLocation(
             World,
             NiagaraEffect_MuzzleFlash,
-            AcitveLocation
+            MuzzleLoc
         );
     }
     if (NiagaraEffect_ShellEject)
@@ -133,7 +136,7 @@ void URangedCheckHit::PlayHitEffects(UWorld* World, const FVector& SpawnLocation
         UNiagaraFunctionLibrary::SpawnSystemAtLocation(
             World,
             NiagaraEffect_ShellEject,
-            AcitveLocation+FVector(-10.0f, -50.0f, 0.0f)
+            ShellLoc
         );
     }
 
@@ -142,7 +145,7 @@ void URangedCheckHit::PlayHitEffects(UWorld* World, const FVector& SpawnLocation
         UGameplayStatics::PlaySoundAtLocation(
             World,
             HitSound,
-            AcitveLocation
+            MuzzleLoc
         );
     }
 }

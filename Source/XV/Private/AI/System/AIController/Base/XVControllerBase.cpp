@@ -107,6 +107,7 @@ void AXVControllerBase::Tick(float DeltaSeconds)
 	if (PC && PC->GetPawn())
 	{
 		FVector PlayerLocation = PC->GetPawn()->GetActorLocation();
+		AIBlackBoard->SetValueAsObject(TEXT("TargetActor"), PC->GetPawn());
 		AIBlackBoard->SetValueAsVector(TEXT("TargetLocation"), PlayerLocation);
 	}
 
@@ -177,7 +178,7 @@ void AXVControllerBase::OnTargetInfoUpdated(AActor* Actor, FAIStimulus Stimulus)
 	
     // 디버그 정보 출력
     const FString StatusText = bWasSuccessfullySensed ? FString::Printf(TEXT("Saw: %s"), *Actor->GetName()) : FString::Printf(TEXT("Lost: %s"), *Actor->GetName());
-    DrawDebugString(GetWorld(), Actor->GetActorLocation() + FVector(0, 0, 100), StatusText, nullptr, bWasSuccessfullySensed ? FColor::Green : FColor::Red, 2.0f,true);
+    // DrawDebugString(GetWorld(), Actor->GetActorLocation() + FVector(0, 0, 100), StatusText, nullptr, bWasSuccessfullySensed ? FColor::Green : FColor::Red, 2.0f,true);
 	
 	// 게임모드 업데이트
 	if (UGameInstance* GI = GetGameInstance())
