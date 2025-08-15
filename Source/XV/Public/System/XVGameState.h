@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "XVGameInstance.h"
 #include "GameFramework/GameState.h"
 #include "XVGameState.generated.h"
 
@@ -53,17 +54,20 @@ public:
 			TEXT("Mission 4: Interact Button to Open Door"),
 			TEXT("Mission 5: Kill All Enemies"),
 			TEXT("Mission 6: Access System to Open Door"),
+			TEXT("Mission 7: Kill All Enemies & Hold on Until the Door Opens"),
+			TEXT("Mission 8: BOSS"),
 		};
 
 	void BroadcastMission()
 	{
 		CurrentMissionIdx++;
-		UE_LOG(LogTemp, Warning, TEXT("CurrentMissionIdx: %d"), CurrentMissionIdx);
-		if (MissionTexts1[CurrentMissionIdx].IsValidIndex(CurrentMissionIdx))
+		if (CurrentMissionIdx < MissionTexts1.Num())
 		{
-			OnMissionChanged.Broadcast(MissionTexts1[CurrentMissionIdx]);
+			if (MissionTexts1[CurrentMissionIdx].IsValidIndex(CurrentMissionIdx))
+			{
+				OnMissionChanged.Broadcast(MissionTexts1[CurrentMissionIdx]);
+			}
 		}
-		
 	}
 	
 	void EnemyKilled() const

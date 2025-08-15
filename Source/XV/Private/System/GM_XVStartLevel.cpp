@@ -107,10 +107,8 @@ void AGM_XVStartLevel::OnEnemyKilled()
 		if (AXVGameState* GS = GetGameState<AXVGameState>())
 		{
 			GS->KilledEnemyCount++;
-			UE_LOG(LogTemp, Warning, TEXT("Killed Enemy Count: %d"), GS->KilledEnemyCount);
 			if (GS->KilledEnemyCount > 0 && GS->KilledEnemyCount >= GS->SpawnedEnemyCount)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("Start"));
 				IsOutdoor = false;	
 				StartGame();
 			}	
@@ -122,10 +120,8 @@ void AGM_XVStartLevel::OnEnemyKilled()
 		if (AXVGameState* GS = GetGameState<AXVGameState>())
 		{
 			GS->KilledEnemyCount++;
-			UE_LOG(LogTemp, Warning, TEXT("Killed Enemy Count: %d"), GS->KilledEnemyCount);
 			if (GS->KilledEnemyCount > 0 && GS->KilledEnemyCount >= GS->SpawnedEnemyCount)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("Arrival Point Activated"))
 				GS->CanActiveArrivalPoint = true;
 			}	
 		}
@@ -157,7 +153,6 @@ void AGM_XVStartLevel::DelayedWaveTrigger()
 		GS->IsWaveTriggered = true;
 		GS->CanActiveArrivalPoint = false;
 
-		UE_LOG(LogTemp, Warning, TEXT("Delayed Wave Triggered!"));
 		
 		Super::SpawnEnemies();
 	}
@@ -176,9 +171,8 @@ void AGM_XVStartLevel::EndGame(bool bIsClear)
 		{
 			if (UXVGameInstance* XVGI = Cast<UXVGameInstance>(GI))
 			{
-				UE_LOG(LogTemp, Warning, TEXT("Level Clear!"));
 				XVGI->IsWaiting = true;
-				UGameplayStatics::OpenLevel(GetWorld(), "BaseLevel");
+				UGameplayStatics::OpenLevel(GetWorld(), "Level_Laboratory_Demo");
 			}
 		}
 	}

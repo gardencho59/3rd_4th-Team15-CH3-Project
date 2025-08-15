@@ -6,4 +6,5 @@ UXVGameInstance::UXVGameInstance()
 	IsWaiting = true;
 	WasCinePlay = false;
 	IsOutdoor = false;
+	TotalEnemyKilled = 0;
 }

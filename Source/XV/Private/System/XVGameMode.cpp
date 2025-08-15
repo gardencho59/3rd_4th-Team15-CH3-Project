@@ -7,7 +7,7 @@
 
 AXVGameMode::AXVGameMode()
 {
-	MaxLevel = 5;
+	MaxLevel = 4;
 }
 
 void AXVGameMode::BeginPlay()
@@ -22,7 +22,6 @@ void AXVGameMode::StartGame()
 
 void AXVGameMode::FindSpawnVolume()
 {
-	UE_LOG(LogTemp, Warning, TEXT("FindSpawnVolume!"));
 	Super::FindSpawnVolume();
 }
 
@@ -42,7 +41,6 @@ void AXVGameMode::OnWaveTriggered()
 	{
 		if (GS->IsWaveTriggered) return;
 
-		UE_LOG(LogTemp, Warning, TEXT("WaveTriggered!"));
 		GS->IsWaveTriggered = true;
 		FindSpawnVolume();
 		SpawnEnemies();
