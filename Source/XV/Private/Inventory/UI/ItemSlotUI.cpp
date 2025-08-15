@@ -76,7 +76,7 @@ void UItemSlotUI::NativeOnDragCancelled(const FDragDropEvent& InDragDropEvent, U
 		return;
 	}
 
-	InventoryComp->DropFromInventory(ItemID, ItemQuantity, Index);
+	InventoryComp->DropFromInventory(ItemID, ItemType, ItemQuantity, Index);
 	
 }
 
