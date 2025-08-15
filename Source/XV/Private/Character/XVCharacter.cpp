@@ -15,8 +15,9 @@
 #include "Components/WidgetComponent.h"
 #include "UIFollowerComponent.h"
 #include "Components/BoxComponent.h"
-#include "Item/HealthPotionItem.h"
 #include "Item/InteractableItem.h"
+#include "Item/HealthPotionItem.h"
+#include "Item/ShieldItem.h"
 
 
 AXVCharacter::AXVCharacter()
@@ -55,6 +56,7 @@ AXVCharacter::AXVCharacter()
 	bIsLookLeft = false;
 	bZoomLookLeft = false;
 	bIsDie = false;
+	bIsShieldActive = false;
 
 	GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
 
@@ -126,6 +128,10 @@ void AXVCharacter::SetMaxHealth(float Value)
 {
 	UE_LOG(LogTemp, Log, TEXT("SetMaxHealth : %f"), Value);
 	MaxHealth = Value;
+	if (CurrentHealth > MaxHealth)
+	{
+		CurrentHealth = MaxHealth;
+	}
 	BroadcastHealth();	
 }
 
@@ -137,6 +143,17 @@ float AXVCharacter::GetMaxHealth() const
 {
 	return MaxHealth;
 }
+
+bool AXVCharacter::GetIsShieldActive() const
+{
+	return bIsShieldActive;
+}
+
+void AXVCharacter::SetIsShieldActive(bool bIsShield)
+{
+	bIsShieldActive = bIsShield;
+}
+
 void AXVCharacter::AddHealth(float Value)
 {
 	CurrentHealth = FMath::Clamp(CurrentHealth + Value, 0.0f, MaxHealth);
@@ -202,23 +219,20 @@ void AXVCharacter::SetSpeed(float Value)
 }
 
 // 헬멧 변경
-
 void AXVCharacter::SetArmor(const FArmorData& NewArmor, EArmorType Armor)
 {
 	if (Armor == EArmorType::Helmet)
 	{
 		UE_LOG(LogTemp, Log, TEXT("EArmorType : Helmet"));
 		HelmetMesh->SetStaticMesh(NewArmor.ArmorMesh);
-		SetMaxHealth(CurrentHealth + 50); // 테스트로 일단 하드코딩
-		AddHealth(50);
 	}
 	if (Armor == EArmorType::Vest)
 	{
 		UE_LOG(LogTemp, Log, TEXT("EArmorType : Vest"));
 		VestMesh->SetStaticMesh(NewArmor.ArmorMesh);
-		SetMaxHealth(CurrentHealth + 80); // 테스트로 일단 하드코딩
-		AddHealth(80);
 	}
+	SetMaxHealth(CurrentHealth + NewArmor.ArmorHealth);
+	AddHealth(NewArmor.ArmorHealth);
 }
 
 void AXVCharacter::SetWeapon(EWeaponType Weapon)
@@ -373,10 +387,6 @@ void AXVCharacter::OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor
 			}
 			
 			Door = nullptr;
-			if (!Door)
-			{
-				UE_LOG(LogTemp, Log, TEXT("Elevator: null"));
-			}
 		}
 	}
 }
@@ -613,7 +623,16 @@ void AXVCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 					this,
 					&AXVCharacter::StopUseCurrentItem    // ★ 변경
 				);
-	    	}	
+	    	}
+	    	if (PlayerController->ShieldAction)
+	    	{
+	    		EnhancedInput->BindAction(
+					PlayerController->ShieldAction,
+					ETriggerEvent::Started,
+					this,
+					&AXVCharacter::StartUseShieldItem
+				);
+	    	}
 	    }
 	}
 }
@@ -997,22 +1016,14 @@ void AXVCharacter::StartUseCurrentItem()
 {
 	if (bIsDie) return;
 	
-	if (!CurrentItem)
+	if (InventoryComp->GetItemQuantity("HealthPotion") <= 0)
 	{
-		if (HealthPotionCount <= 0)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("No health potions."));
-			return;
-		}
-		SpawnPotionForUse(); // SetCurrentItem 내부에서 브로드캐스트 됨
+		UE_LOG(LogTemp, Warning, TEXT("No health potions."));
+		return;
 	}
-
-	if (AHealthPotionItem* Potion = Cast<AHealthPotionItem>(CurrentItem))
-	{
-		UE_LOG(LogTemp, Log, TEXT("StartUseCurrentItem: HealthPotion StartUse"));
-		Potion->StartUse();
-	}
-	else if (CurrentItem)
+	SpawnPotionForUse("HealthPotion"); // SetCurrentItem 내부에서 브로드캐스트 됨
+	
+	if (CurrentItem)
 	{
 		//CurrentItem = InventoryComp->GetItemData("HealthPotion")->ItemClass;
 		CurrentItem->UseItem();		
@@ -1025,20 +1036,41 @@ void AXVCharacter::StopUseCurrentItem()
 
 	if (AHealthPotionItem* Potion = Cast<AHealthPotionItem>(CurrentItem))
 	{
-		UE_LOG(LogTemp, Log, TEXT("StopUseCurrentItem: HealthPotion StopUse"));
 		Potion->StopUse();
 	}
 }
 
-void AXVCharacter::SetInventoryItem()
-{		
-	// 초기 아이템 세팅
-	HealthPotionCount = InventoryComp->GetItemQuantity("HealthPotion");
-	OnHealthPotionCountChanged.Broadcast(HealthPotionCount);
+void AXVCharacter::StartUseShieldItem()
+{
+	if (bIsDie) return;	
+
+	if (InventoryComp->GetItemQuantity("ShieldPotion") <= 0)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No Shield potions."));
+		return;
+	}
+	else
+	{
+		SpawnPotionForUse("ShieldPotion"); // SetCurrentItem 내부에서 브로드캐스트 됨
+		if (CurrentItem)
+		{
+			CurrentItem->UseItem();
+			SetInventoryItem();
+		}
+	}	
 }
 
-AHealthPotionItem* AXVCharacter::SpawnPotionForUse()
-{
+void AXVCharacter::SetInventoryItem()
+{		
+	// 인벤토리 UI 연동 세팅
+	HealthPotionCount = InventoryComp->GetItemQuantity("HealthPotion");
+	OnHealthPotionCountChanged.Broadcast(HealthPotionCount);
+	ShieldPotionCount = InventoryComp->GetItemQuantity("ShieldPotion");
+	OnShieldPotionCountChanged.Broadcast(ShieldPotionCount);
+}
+
+AInteractableItem* AXVCharacter::SpawnPotionForUse(FName ItemName)
+{ // 아이템 클래스를 인스턴스로 반환
 	if (!GetWorld()) return nullptr;
 
 	FActorSpawnParameters Params;
@@ -1049,8 +1081,17 @@ AHealthPotionItem* AXVCharacter::SpawnPotionForUse()
 	const FVector Loc = GetActorLocation() + GetActorForwardVector() * 40.f + FVector(0,0,10);
 	const FRotator Rot = GetActorRotation();
 
-	AHealthPotionItem* NewPotion =
+	AInteractableItem* NewPotion = nullptr;
+	if (FName(TEXT("HealthPotion")) == ItemName)
+	{
+		NewPotion =
 		GetWorld()->SpawnActor<AHealthPotionItem>(AHealthPotionItem::StaticClass(), Loc, Rot, Params);
+	}
+	else if (FName(TEXT("ShieldPotion")) == ItemName)
+	{
+		NewPotion =
+		GetWorld()->SpawnActor<AShieldItem>(AShieldItem::StaticClass(), Loc, Rot, Params);
+	}
 
 	if (NewPotion)
 	{
@@ -1058,4 +1099,30 @@ AHealthPotionItem* AXVCharacter::SpawnPotionForUse()
 		SetCurrentItem(NewPotion);
 	}
 	return NewPotion;
+}
+
+void AXVCharacter::ShieldItem(float Shield, float Duration)
+{
+	ShieldAmount = Shield;
+	if (!bIsShieldActive)
+	{
+		SetMaxHealth(MaxHealth + ShieldAmount);
+		AddHealth(ShieldAmount);
+		bIsShieldActive = true;
+	}
+	
+	GetWorld()->GetTimerManager().SetTimer(
+		ShieldTimerHandle,
+		this,
+		&AXVCharacter::FinishShield,
+		Duration,
+		false
+		);
+}
+
+void AXVCharacter::FinishShield()
+{ // 지속 시간 이후 원래 체력으로 복구
+	UE_LOG(LogTemp, Warning, TEXT("Finish Shield"));
+	SetMaxHealth(MaxHealth - ShieldAmount);
+	bIsShieldActive = false;
 }

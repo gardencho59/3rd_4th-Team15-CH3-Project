@@ -16,6 +16,8 @@ public:
 	AInteractableItem();
 
 	virtual void UseItem();
+	virtual float GetItemTime();
+	virtual float GetItemRemainTime();
 
 protected:
 
@@ -32,6 +34,11 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	class UItemDataComponent* ItemDataComp;
+
+	UPROPERTY(EditAnywhere, Category = "Item")
+	float ItemUseTime; // 아이템 지속 시간
+	UPROPERTY(EditAnywhere, Category = "Item")
+	float ItemRemainTime; // 아이템 지속 시간 남은 시간
 
 	virtual void Interact() override;
 };

@@ -4,6 +4,9 @@
 
 AInteractableItem::AInteractableItem()
 {
+	ItemUseTime = 0;
+	ItemRemainTime = 0;
+	
 	PrimaryActorTick.bCanEverTick = false;
 
 	Scene = CreateDefaultSubobject<USceneComponent>(TEXT("SceneRoot"));
@@ -22,6 +25,16 @@ AInteractableItem::AInteractableItem()
 
 void AInteractableItem::UseItem()
 {
+}
+
+float AInteractableItem::GetItemTime()
+{
+	return ItemUseTime;
+}
+
+float AInteractableItem::GetItemRemainTime()
+{
+	return ItemRemainTime;
 }
 
 void AInteractableItem::BeginPlay()

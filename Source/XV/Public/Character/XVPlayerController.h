@@ -53,6 +53,8 @@ public:
 	UInputAction* ChangeZoomRightAction;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
 	UInputAction* HealAction;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
+	UInputAction* ShieldAction;
 	
 	virtual void BeginPlay() override;
 };
