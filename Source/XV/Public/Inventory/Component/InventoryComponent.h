@@ -8,11 +8,13 @@
 #include "Inventory/Data/Armor/ArmorData.h"
 #include "Inventory/Data/Armor/ArmorType.h"
 #include "Inventory/Data/Armor/EquippedArmor.h"
+#include "Inventory/Data/Attachment/AttachmentData.h"
+#include "Inventory/Data/Attachment/EquippedAttachment.h"
 #include "Inventory/UI/InventoryUI.h"
+#include "Weapon/WeaponTypes.h"
 #include "InventoryComponent.generated.h"
 
 DECLARE_MULTICAST_DELEGATE(FOnInventoryUpdated);
-// DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnArmorChanged);
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class XV_API UInventoryComponent : public UActorComponent
@@ -85,9 +87,18 @@ public:
 	// UPROPERTY()
 	// FOnArmorChanged OnArmorChanged;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Armor")
-	FArmorData ArmorData;
+	// UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Armor")
+	// FArmorData ArmorData;
 
 	UPROPERTY()
 	FEquippedArmor EquippedArmor; // 현재 장착중인 장비
+
+	// 부착물 관련
+	void EquipAttachment(const FAttachmentData& NewAttachment, EAttachmentType AttachmentType, EWeaponType WeaponType);
+
+	UPROPERTY()
+	FEquippedAttachment RifleAttachment; // 현재 장착중인 라이플 부착물
+	
+	UPROPERTY()
+	FEquippedAttachment PistolAttachment; // 현재 장착중인 피스톨 부착물
 };
