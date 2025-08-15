@@ -30,7 +30,6 @@ public:
 	FVector TargetPos;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Door")
-	bool IsLocked;
 	bool IsOpening;
 	float OpenTime;
 	

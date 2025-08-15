@@ -2,6 +2,7 @@
 
 ADoorButton::ADoorButton()
 {
+	IsLocked = false;
 	PrimaryActorTick.bCanEverTick = false;
 }
 

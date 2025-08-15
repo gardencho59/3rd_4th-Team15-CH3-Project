@@ -17,7 +17,8 @@ public:
 	
 	UPROPERTY(EditAnywhere, Category = "Material")
 	AActor* TargetActor;
-	
+
+	bool IsLocked;
 	UFUNCTION(BlueprintCallable, Category = "Lock")
 	void Unlock();
 

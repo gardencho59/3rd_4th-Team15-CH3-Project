@@ -52,77 +52,80 @@ void AXVDoor::OpenDoor(UBoxComponent* TriggerBox)
 {
 	if (!IsOpening)
 	{
-		if (ExtraBox)
+		if (ADoorButton* DoorButtonRef = Cast<ADoorButton>(UGameplayStatics::GetActorOfClass(GetWorld(), ADoorButton::StaticClass())))
 		{
-			if (TriggerBox == ExtraBox)
+			if (ExtraBox)
 			{
-				if (AXVGameState* GS = GetWorld()->GetGameState<AXVGameState>())
+				if (TriggerBox == ExtraBox)
 				{
-					if (GS->CurrentMissionIdx != 2)
+					if (AXVGameState* GS = GetWorld()->GetGameState<AXVGameState>())
 					{
-						return;
-					}
-				}
-				IsLocked = false;
-				ExtraBox->DestroyComponent();
-                ExtraBox = nullptr;
-			}
-		}
-		if (TriggerBox == DoorBox && IsLocked) return;
-		if (UGameInstance* GI = GetGameInstance())
-		{
-			if (UXVGameInstance* XVGI = Cast<UXVGameInstance>(GI))
-			{
-				if (AXVBaseGameMode* BaseGM = GetWorld()->GetAuthGameMode<AXVBaseGameMode>())
-				{
-					if (XVGI->CurrentLevelIdx == 3)
-					{
-						if (AXVGameState* GS = GetWorld()->GetGameState<AXVGameState>())
+						if (GS->CurrentMissionIdx != 2) return;
+						if (DoorButtonRef->IsLocked)
 						{
-							if (GS->IsWaveTriggered) return;
-							
-							GS->BroadcastMission();
-							GS->IsWaveTriggered = true;
-							BaseGM->StartGame();
-							
-							GetWorldTimerManager().SetTimer(
-								DoorOpenTimerInWave,
-								this,
-								&AXVDoor::SetDoorOpening,
-								OpenTime,
-								false
-								);
+							DoorButtonRef->Unlock();
+							DoorButtonRef->IsLocked = false;
+							ExtraBox->DestroyComponent();
+							ExtraBox = nullptr;
 						}
 					}
-					else
+				}
+			}
+			if (TriggerBox == DoorBox && DoorButtonRef->IsLocked) return;
+		
+			if (UGameInstance* GI = GetGameInstance())
+			{
+				if (UXVGameInstance* XVGI = Cast<UXVGameInstance>(GI))
+				{
+					if (AXVBaseGameMode* BaseGM = GetWorld()->GetAuthGameMode<AXVBaseGameMode>())
 					{
-						if (AXVGameState* GS = GetWorld()->GetGameState<AXVGameState>())
+						if (XVGI->CurrentLevelIdx == 3)
 						{
-							if (AXVBaseGameMode* GM = GetWorld()->GetAuthGameMode<AXVBaseGameMode>())
+							if (AXVGameState* GS = GetWorld()->GetGameState<AXVGameState>())
 							{
-								switch (GS->CurrentMissionIdx)
+								if (GS->IsWaveTriggered) return;
+							
+								GS->BroadcastMission();
+								GS->IsWaveTriggered = true;
+								BaseGM->StartGame();
+							
+								GetWorldTimerManager().SetTimer(
+									DoorOpenTimerInWave,
+									this,
+									&AXVDoor::SetDoorOpening,
+									OpenTime,
+									false
+									);
+							}
+						}
+						else
+						{
+							if (AXVGameState* GS = GetWorld()->GetGameState<AXVGameState>())
+							{
+								if (AXVBaseGameMode* GM = GetWorld()->GetAuthGameMode<AXVBaseGameMode>())
 								{
-								case 0:
-									GM->StartGame();
-									SetDoorOpening();
-									GS->BroadcastMission();
-									break;
-
-								case 2:
-									GS->BroadcastMission();
-									if (ADoorButton* DoorButtonRef = Cast<ADoorButton>(UGameplayStatics::GetActorOfClass(GetWorld(), ADoorButton::StaticClass())))
+									switch (GS->CurrentMissionIdx)
 									{
-										DoorButtonRef->Unlock();
-									}
-									break;
-								
-								case 3:
-									if (!IsValid(ExtraBox))
-									{
+									case 0:
 										GM->StartGame();
 										SetDoorOpening();
 										GS->BroadcastMission();
+										DoorBox->DestroyComponent();
+										DoorButtonRef->IsLocked = true;
 										break;
+
+									case 2:
+										GS->BroadcastMission();
+										break;
+								
+									case 3:
+										if (!IsValid(ExtraBox))
+										{
+											GM->StartGame();
+											SetDoorOpening();
+											GS->BroadcastMission();
+											break;
+										}
 									}
 								}
 							}
