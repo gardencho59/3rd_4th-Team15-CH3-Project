@@ -9,7 +9,6 @@
 #include "GameFramework/PlayerController.h"
 #include "System/XVGameInstance.h"
 
-DEFINE_LOG_CATEGORY(LogXVGameMode);
 
 void AXVBaseGameMode::BeginPlay()
 {
@@ -18,7 +17,6 @@ void AXVBaseGameMode::BeginPlay()
 
 void AXVBaseGameMode::StartGame()
 {
-	UE_LOG(LogXVGameMode, Warning, TEXT("StartGame called"));
 	if (AXVGameState* GS = GetGameState<AXVGameState>())
 	{
 		GS->SpawnedEnemyCount = 0;
@@ -78,15 +76,11 @@ void AXVBaseGameMode::SpawnEnemies()
 {
 	if (ActiveSpawnVolumes.IsEmpty())
 	{
-		UE_LOG(LogXVGameMode, Warning, TEXT("No ActiveSpawnVolumes found!"));
 		return;
 	}
 	
 	if (AXVGameState* GS = GetGameState<AXVGameState>())
 	{
-		UE_LOG(LogXVGameMode, Warning, TEXT("SpawnEnemies called. IsWaveTriggered=%d"), GS->IsWaveTriggered);
-		UE_LOG(LogXVGameMode, Warning, TEXT("ActiveSpawnVolumes count: %d"), ActiveSpawnVolumes.Num());
-		
 		TArray<ASpawnVolume*> ValidVolumes;
 		
 		for (ASpawnVolume* Volume : ActiveSpawnVolumes)
@@ -98,7 +92,6 @@ void AXVBaseGameMode::SpawnEnemies()
 			{
 				TagString += Tag.ToString() + TEXT(" ");
 			}
-			UE_LOG(LogXVGameMode, Warning, TEXT("Volume %s Tags: %s"), *Volume->GetName(), *TagString);
 			
 			if (!GS->IsWaveTriggered && Volume->ActorHasTag("Patrol"))
 			{
@@ -107,7 +100,6 @@ void AXVBaseGameMode::SpawnEnemies()
 			}
 			else if (GS->IsWaveTriggered && Volume->ActorHasTag("Wave"))
 			{
-				UE_LOG(LogXVGameMode, Warning, TEXT("Adding Wave SpawnVolume: %s"), *Volume->GetName());
 				ValidVolumes.Add(Volume);
 			}
 		}
@@ -121,34 +113,25 @@ void AXVBaseGameMode::SpawnEnemies()
 				if (UXVGameInstance* XVGI = Cast<UXVGameInstance>(GI))
 				{
 					EnemyToSpawn = GS->SpawnAllEnemyCount[XVGI->CurrentLevelIdx] - GS->SpawnPatrolEnemyCount;
-					UE_LOG(LogXVGameMode, Warning, TEXT("WaveSpawnCount: %d"), EnemyToSpawn);
 				}
 			}
 		}
-		UE_LOG(LogXVGameMode, Warning, TEXT("EnemyToSpawn: %d"), EnemyToSpawn);
 		
 		const int32 SpawnVolumeCount = ValidVolumes.Num();
 		if (SpawnVolumeCount == 0)
 		{
-			UE_LOG(LogXVGameMode, Warning, TEXT("No valid spawn volumes"));
 			return;
 		}
 		for (int32 i = 0; i < EnemyToSpawn; i++)
 		{
 			ASpawnVolume* SpawnVolume = ValidVolumes[i % SpawnVolumeCount];
 			if (!SpawnVolume) continue;
-			
-			UE_LOG(LogXVGameMode, Warning, TEXT("Spawning enemy %d at volume %s"), i + 1, *SpawnVolume->GetName());
+		
 			
 			AActor* SpawnActor = SpawnVolume->SpawnRandomEnemy();
 			if (SpawnActor && SpawnActor->IsA(AXVEnemyBase::StaticClass()))
 			{
 				GS->SpawnedEnemyCount++;
-				UE_LOG(LogXVGameMode, Warning, TEXT("Spawned enemy count: %d"), GS->SpawnedEnemyCount);
-			}
-			else
-			{
-				UE_LOG(LogXVGameMode, Warning, TEXT("Failed to spawn enemy at volume %s"), *SpawnVolume->GetName());
 			}
 		}
 		if (GS->SpawnedEnemyCount > 0)
@@ -171,6 +154,7 @@ void AXVBaseGameMode::OnEnemyKilled()
 		{
 			if (UXVGameInstance* XVGI = Cast<UXVGameInstance>(GI))
 			{
+				XVGI->TotalEnemyKilled++;
 				if (GS->KilledEnemyCount > 0 && GS->KilledEnemyCount >= GS->SpawnAllEnemyCount[XVGI->CurrentLevelIdx])
 				{
 					GS->BroadcastMission();

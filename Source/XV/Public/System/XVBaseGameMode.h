@@ -1,9 +1,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-
-DECLARE_LOG_CATEGORY_EXTERN(LogXVGameMode, Log, All);
-
 #include "GameFramework/GameMode.h"
 #include "XVBaseGameMode.generated.h"
 
