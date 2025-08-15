@@ -66,10 +66,16 @@ public:
 
 	void DropFromInventory(const FName ItemID, const EItemType, const int32 ItemQuantity, const int32 SlotIndex);
 
+	void DropFromAttachment(const FName ItemID);
+
 	void UseItem(const FName ItemID, const int32 ItemQuantity);
 
 	void SortInventory();
 
+	void AddToInventory(const FName ItemID);
+
+	// Getter 함수
+	
 	float GetItemQuantity(const FName ItemID);
 
 	FItemSFX GetItemSFX(const FName& ItemID);
@@ -81,6 +87,8 @@ public:
 
 	const TArray<FItemSlot>& GetItemSlots() const {return ItemSlots;}
 
+	bool bIsFull = false;
+	
 	// 방어구 관련
 	void EquipArmor(const FArmorData& NewArmor, EArmorType ArmorType);
 	

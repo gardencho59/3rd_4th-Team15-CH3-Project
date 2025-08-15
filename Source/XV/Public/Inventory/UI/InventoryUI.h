@@ -4,11 +4,18 @@
 #include "Blueprint/UserWidget.h"
 #include "Components/WrapBox.h"
 #include "Components/Border.h"
-#include "Components/Image.h"
+#include "AttachmentSlot.h"
+#include "Weapon/WeaponTypes.h"
+#include "Inventory/Data/Armor/ArmorType.h"
+#include "Inventory/Data/Attachment/AttachmentType.h"
 #include "Inventory/UI/ItemSlotUI.h"
 #include "InventoryUI.generated.h"
 
 class UInventoryComponent;
+
+struct FItemData;
+struct FArmorData;
+struct FAttachmentData;
 
 UCLASS()
 class XV_API UInventoryUI : public UUserWidget
@@ -19,15 +26,20 @@ public:
 
 	UInventoryUI(const FObjectInitializer& ObjectInitializer);
 	
+	bool IsOverInventory(FVector2D ScreenPos);
 protected:
 	
 	virtual void NativeConstruct() override;
 
 	virtual void NativeDestruct() override;
 
-	bool NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation) override;
+	virtual bool NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation) override;
 	
 	void CreateItemSlots();
+
+	void EquipArmor(UAttachmentSlot* Widget, FItemData& ItemData, FArmorData& ArmorData, EArmorType ArmorType);
+
+	void EquipAttachment(UAttachmentSlot* Widget, FItemData& ItemData, FAttachmentData& AttachmentData, EAttachmentType AttachmentType, EWeaponType WeaponType);
 
 	UPROPERTY()
 	UInventoryComponent* InventoryComp;
@@ -37,7 +49,10 @@ protected:
 	
 	UPROPERTY(meta = (BindWidget))
 	UWrapBox* ItemWrapBox;
-
+	
+	UPROPERTY(meta = (BindWidget))
+	UBorder* ItemScrollBorder;
+	
 	// 방어구 관련
 	
 	UPROPERTY(meta = (BindWidget))
@@ -45,19 +60,19 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	UBorder* BorderVest;
-
-	UPROPERTY(meta = (BindWidget))
-	UImage* HelmetIcon;
 	
 	UPROPERTY(meta = (BindWidget))
-	UImage* VestIcon;
+	UAttachmentSlot* WBP_Helmet;
+
+	UPROPERTY(meta = (BindWidget))
+	UAttachmentSlot* WBP_Vest;
 	
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	UDataTable* ItemDataTable;
 	
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	UDataTable* ArmorDataTable;
-
+	
 	// 라이플 부착물 관련 
 	
 	UPROPERTY(meta = (BindWidget))
@@ -65,13 +80,12 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	UBorder* RifleExtendedMag;
-
-	UPROPERTY(meta = (BindWidget))
-	UImage* RifleSilencerIcon;
 	
 	UPROPERTY(meta = (BindWidget))
-	UImage* RifleExtendedMagIcon;
+	UAttachmentSlot* WBP_RifleSilencer;
 
+	UPROPERTY(meta = (BindWidget))
+	UAttachmentSlot* WBP_RifleExtendedMag;
 
 	// 피스톨 부착물 관련 
 	
@@ -80,15 +94,18 @@ protected:
 	
 	UPROPERTY(meta = (BindWidget))
 	UBorder* PistolExtendedMag;
-
-	UPROPERTY(meta = (BindWidget))
-	UImage* PistolSilencerIcon;
 	
 	UPROPERTY(meta = (BindWidget))
-	UImage* PistolExtendedMagIcon;
+	UAttachmentSlot* WBP_PistolSilencer;
+
+	UPROPERTY(meta = (BindWidget))
+	UAttachmentSlot* WBP_PistolExtendedMag;
 	
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	UDataTable* AttachmentDataTable;
+	
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	TSubclassOf<UItemSlotPreview> ItemSlotPreviewClass;
 	
 public:
 	
