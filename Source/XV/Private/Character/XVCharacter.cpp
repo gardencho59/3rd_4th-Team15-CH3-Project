@@ -19,27 +19,6 @@
 #include "Item/InteractableItem.h"
 
 
-void AXVCharacter::BroadcastHealth()
-{
-	OnHealthChanged.Broadcast(CurrentHealth, MaxHealth);
-}
-
-void AXVCharacter::BeginPlay()
-{
-	Super::BeginPlay();
-
-	// BP에 붙어있는 C++ 컴포넌트(이름: UIFollower)를 잡아옴
-	UIFollowerComp = FindComponentByClass<UUIFollowerComponent>();
-	if (!UIFollowerComp)
-	{
-		UE_LOG(LogTemp, Error, TEXT("UIFollowerComponent not found on %s"), *GetName());
-	}
-
-	SetInventoryItem();
-	BroadcastHealth();
-}
-
-
 AXVCharacter::AXVCharacter()
 {
 	PrimaryActorTick.bCanEverTick = false;		
@@ -81,9 +60,9 @@ AXVCharacter::AXVCharacter()
 
 	// 방어구 관련
 	HelmetMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("HelmetMesh"));
-	HelmetMesh->SetupAttachment(RootComponent);
+	HelmetMesh->SetupAttachment(GetMesh(), TEXT("Helmet"));
 	VestMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("VestMesh"));
-	VestMesh->SetupAttachment(RootComponent);
+	VestMesh->SetupAttachment(GetMesh(), TEXT("Armor"));
 	// 메인 무기 == Rifle or Shotgun
 	PrimaryWeaponOffset = CreateDefaultSubobject<USceneComponent>(TEXT("PrimaryWeaponOffset"));
 	PrimaryWeaponOffset->SetupAttachment(GetMesh(), TEXT("Rifle_Unequipped"));
@@ -113,7 +92,25 @@ AXVCharacter::AXVCharacter()
 	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &AXVCharacter::OnBeginOverlap);
 	GetCapsuleComponent()->OnComponentEndOverlap.AddDynamic(this, &AXVCharacter::OnEndOverlap);
 }
+void AXVCharacter::BroadcastHealth()
+{
+	OnHealthChanged.Broadcast(CurrentHealth, MaxHealth);
+}
 
+void AXVCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+
+	// BP에 붙어있는 C++ 컴포넌트(이름: UIFollower)를 잡아옴
+	UIFollowerComp = FindComponentByClass<UUIFollowerComponent>();
+	if (!UIFollowerComp)
+	{
+		UE_LOG(LogTemp, Error, TEXT("UIFollowerComponent not found on %s"), *GetName());
+	}
+
+	SetInventoryItem();
+	BroadcastHealth();
+}
 UInventoryComponent* AXVCharacter::GetInventoryComp() const
 {
 	return InventoryComp;	
@@ -206,9 +203,8 @@ void AXVCharacter::SetSpeed(float Value)
 
 // 헬멧 변경
 
-void AXVCharacter::SetHelmet(const FArmorData& NewArmor, EArmorType Armor)
+void AXVCharacter::SetArmor(const FArmorData& NewArmor, EArmorType Armor)
 {
-	UE_LOG(LogTemp, Log, TEXT("SetHelmet"));
 	if (Armor == EArmorType::Helmet)
 	{
 		UE_LOG(LogTemp, Log, TEXT("EArmorType : Helmet"));
@@ -222,16 +218,6 @@ void AXVCharacter::SetHelmet(const FArmorData& NewArmor, EArmorType Armor)
 		VestMesh->SetStaticMesh(NewArmor.ArmorMesh);
 		SetMaxHealth(CurrentHealth + 80); // 테스트로 일단 하드코딩
 		AddHealth(80);
-	}
-}
-// 갑옷 변경
-void AXVCharacter::SetVest(UStaticMesh* NewVest)
-{
-	if (VestMesh)
-	{
-		VestMesh->SetStaticMesh(NewVest);
-		SetMaxHealth(CurrentHealth + 70); // 테스트로 일단 하드코딩
-		AddHealth(70);
 	}
 }
 

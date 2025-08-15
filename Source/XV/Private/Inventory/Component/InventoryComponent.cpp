@@ -368,7 +368,7 @@ void UInventoryComponent::EquipArmor(const FArmorData& NewArmor, EArmorType Armo
 {
 	AActor* Owner = GetOwner();
 	AXVCharacter* XVCharacter = Cast<AXVCharacter>(Owner);
-	XVCharacter->SetHelmet(NewArmor, ArmorType);
+	XVCharacter->SetArmor(NewArmor, ArmorType);
 	
 	switch (ArmorType)
 	{

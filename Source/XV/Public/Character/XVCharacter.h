@@ -86,8 +86,7 @@ public:
 	void SetSpeed(float Value);
 	
 	// 장비 장착
-	void SetHelmet(const FArmorData& NewArmor, EArmorType Armor);
-	void SetVest(UStaticMesh* NewVest);
+	void SetArmor(const FArmorData& NewArmor, EArmorType Armor);
 
 	void SetWeapon(EWeaponType Weapon);
 	void SetCameraShake(TSubclassOf<class UCameraShakeBase> Shake);
