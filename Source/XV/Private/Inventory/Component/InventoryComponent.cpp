@@ -43,7 +43,6 @@ void UInventoryComponent::UpdateInventory()
 bool UInventoryComponent::PickUp(const FName& ItemID, const EItemType ItemType, float ItemQuantity)
 {
 	PrintInventory();
-	bool bIsFull = false;
 	bool bIsSuccess = false;
 	while (ItemQuantity > 0 && !bIsFull)
 	{
@@ -284,6 +283,33 @@ void UInventoryComponent::DropFromInventory(const FName ItemID, const EItemType 
 	PlaySFX(ItemSFX.Drop);
 }
 
+void UInventoryComponent::DropFromAttachment(const FName ItemID)
+{
+
+	FItemData* ItemRow = GetItemData(ItemID);
+
+	if (!ItemRow || !ItemRow->ItemClass)
+	{
+		UE_LOG(LogTemp, Log, TEXT("!ItemRow || !ItemRow->ItemClass, %s"), *ItemRow->ItemName.ToString());
+		return;
+	}
+
+	AActor* DroppedItem = GetWorld()->SpawnActor<AInteractableItem>(
+		ItemRow->ItemClass,
+		GetDropLocation(),
+		FRotator::ZeroRotator);
+
+	UpdateInventory();
+	
+	FItemSFX ItemSFX = GetItemSFX(ItemID);
+	if (!ItemSFX.Drop)
+	{
+		return;
+	}
+	PlaySFX(ItemSFX.Drop);
+	
+}
+
 void UInventoryComponent::UseItem(const FName ItemID, const int32 ItemQuantity)
 {
 	for (FItemSlot& ItemSlot : ItemSlots)
@@ -320,6 +346,35 @@ void UInventoryComponent::SortInventory()
 		}
 		return static_cast<uint8>(A.ItemType) < static_cast<uint8>(B.ItemType);
 	});
+}
+
+void UInventoryComponent::AddToInventory(const FName ItemID)
+{
+	if (!bIsFull)
+	{
+		FItemData* ItemRow = GetItemData(ItemID);
+		if (!ItemRow)
+		{
+			return;
+		}
+		int32 AvailableIndex = -1;
+		if (AnyAvailableSlots(AvailableIndex))
+		{
+			AddToNewSlot(ItemID, ItemRow->ItemType, 1, AvailableIndex);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Log, TEXT("Inventory Is Full!!"));
+		}
+	}
+	UpdateInventory();
+	
+	FItemSFX ItemSFX = GetItemSFX(ItemID);
+	if (!ItemSFX.Move)
+	{
+		return;
+	}
+	PlaySFX(ItemSFX.Move);
 }
 
 float UInventoryComponent::GetItemQuantity(const FName ItemID)
@@ -398,7 +453,7 @@ void UInventoryComponent::EquipArmor(const FArmorData& NewArmor, EArmorType Armo
 void UInventoryComponent::EquipAttachment(const FAttachmentData& NewAttachment, EAttachmentType AttachmentType, EWeaponType WeaponType)
 {
 	// 무기 부착 관련 함수
-		
+
 	UE_LOG(LogTemp, Log, TEXT("WeaponType: %s"), *StaticEnum<EWeaponType>()->GetNameStringByValue(static_cast<int64>(WeaponType)));
 	switch (AttachmentType)
 	{
