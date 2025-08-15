@@ -23,6 +23,7 @@ class AHealthPotionItem;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnHealthChanged, float, Current, float, Max);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCurrentItemChanged, AInteractableItem*, NewItem);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHealthPotionCountChanged, int32, NewCount);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnShieldPotionCountChanged, int32, NewCount);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCurrentWeaponChanged, AGunBase*, NewWeapon);
 
 
@@ -46,6 +47,7 @@ public:
 
 	UPROPERTY(BlueprintAssignable) FOnCurrentItemChanged OnCurrentItemChanged;
 	UPROPERTY(BlueprintAssignable) FOnHealthPotionCountChanged OnHealthPotionCountChanged;
+	UPROPERTY(BlueprintAssignable) FOnShieldPotionCountChanged OnShieldPotionCountChanged;
 
 	UFUNCTION(BlueprintCallable) void SetCurrentItem(AInteractableItem* NewItem);
 	UFUNCTION(BlueprintPure)   AInteractableItem* GetCurrentItem() const { return CurrentItem; }
@@ -53,6 +55,7 @@ public:
 
 	void StartUseCurrentItem();
 	void StopUseCurrentItem();
+	void StartUseShieldItem();
 	void SetInventoryItem();
 	void ConsumeHealthPotion() { HealthPotionCount = FMath::Max(0, HealthPotionCount-1); OnHealthPotionCountChanged.Broadcast(HealthPotionCount); }
 
@@ -77,6 +80,13 @@ public:
 	float GetHealth() const;
 	UFUNCTION(BlueprintPure, Category="Health")
 	float GetMaxHealth() const;
+
+	// 실드 아이템
+	UFUNCTION(BlueprintPure, Category="Shield")
+	bool GetIsShieldActive() const;
+	UFUNCTION(BlueprintCallable, Category="Shield")
+	void SetIsShieldActive(bool bIsShield);
+	void ShieldItem(float Shield, float Duration);
 	
 	void AddDamage(float Value);
 	void Die();
@@ -107,6 +117,8 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Inventory")
 	int32 HealthPotionCount = 0;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Inventory")
+	int32 ShieldPotionCount = 0;
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
@@ -265,15 +277,19 @@ protected:
 	bool bIsDie;
 
 private:
-	AHealthPotionItem* SpawnPotionForUse();
+	AInteractableItem* SpawnPotionForUse(FName ItemName);
+	void FinishShield();
 	void BroadcastHealth();
 	
 	// 캐릭터 스테이터스
 	float CurrentHealth;
 	float MaxHealth;
 	float TurnRate;
+	float ShieldAmount;
 	
 	bool bIsLookLeft;
-	bool bZoomLookLeft;		
+	bool bZoomLookLeft;
+	bool bIsShieldActive;
 	FTimerHandle DieTimerHandle;
+	FTimerHandle ShieldTimerHandle;
 };

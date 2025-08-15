@@ -9,12 +9,12 @@
 
 AHealthPotionItem::AHealthPotionItem()
 {
-	ChargeTime = 3.0f;
+	ChargeTime = 2.0f;
 	HealAmount = 30.f;
 	bIsUsing = false;
 }
 
-void AHealthPotionItem::StartUse()
+	void AHealthPotionItem::StartUse()
 {
 	if (bIsUsing || !GetWorld()) return;
 
@@ -42,6 +42,7 @@ void AHealthPotionItem::StopUse()
 	GetWorld()->GetTimerManager().ClearTimer(ProgressTickHandle);
 	bIsUsing = false;
 	OnChargeCancel.Broadcast();
+	Destroy();
 }
 
 void AHealthPotionItem::TickProgress()
@@ -64,7 +65,6 @@ void AHealthPotionItem::FinishUse()
 		if (UInventoryComponent* InventoryComp = XVCharacter->GetInventoryComp())
 		{
 			InventoryComp->UseItem("HealthPotion", 1); // 인벤토리 수량 감소
-			UE_LOG(LogTemp, Warning, TEXT("RowName : %s"), *ItemDataComp->GetRowName().ToString());
 		}
 
 		XVCharacter->AddHealth(HealAmount);
