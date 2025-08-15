@@ -22,5 +22,5 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Game Data")
 	bool IsOutdoor;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Game Data")
-	int32 TotalEnemyKilled;
+	int32 TotalKilledEnemyCount;
 };

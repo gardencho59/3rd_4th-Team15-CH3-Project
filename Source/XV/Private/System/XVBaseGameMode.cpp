@@ -13,14 +13,9 @@
 void AXVBaseGameMode::BeginPlay()
 {
 	Super::BeginPlay();
-}
-
-void AXVBaseGameMode::StartGame()
-{
+	
 	if (AXVGameState* GS = GetGameState<AXVGameState>())
 	{
-		GS->SpawnedEnemyCount = 0;
-		GS->KilledEnemyCount = 0;
 		if (GS->GameUIClass)
 		{
 			if (APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0))
@@ -31,10 +26,32 @@ void AXVBaseGameMode::StartGame()
 				}
 			}
 		}
-		GetWorldTimerManager().SetTimerForNextTick([GS]()
+		GetWorldTimerManager().SetTimerForNextTick([this, GS]()
 		{
-			if (GS->MissionTexts1.IsValidIndex(0)) GS->OnMissionChanged.Broadcast(GS->MissionTexts1[GS->CurrentMissionIdx]);
+			if (GS->Missions.IsValidIndex(GS->CurrentMissionIdx))
+			{	
+				GS->OnMissionChanged.Broadcast(
+					GS->Missions[GS->CurrentMissionIdx].MissionTitle,
+					GS->Missions[GS->CurrentMissionIdx].MissionDescription
+					);
+			}
+			if (UGameInstance* GI = GetGameInstance())
+			{
+				if (UXVGameInstance* XVGI = Cast<UXVGameInstance>(GI))
+				{
+					GS->OnEnemyCountChanged.Broadcast(XVGI->TotalKilledEnemyCount);
+				}
+			}
 		});
+	}
+}
+
+void AXVBaseGameMode::StartGame()
+{
+	if (AXVGameState* GS = GetGameState<AXVGameState>())
+	{
+		GS->SpawnedEnemyCount = 0;
+		GS->KilledEnemyCount = 0;
 	}
 	FindSpawnVolume();
 	SpawnEnemies();
@@ -134,13 +151,6 @@ void AXVBaseGameMode::SpawnEnemies()
 				GS->SpawnedEnemyCount++;
 			}
 		}
-		if (GS->SpawnedEnemyCount > 0)
-		{
-			GetWorldTimerManager().SetTimerForNextTick([GS]()
-			{
-				GS->OnEnemyCountChanged.Broadcast(GS->SpawnedEnemyCount - GS->KilledEnemyCount);
-			});
-		}
 	}
 }
 
@@ -154,10 +164,10 @@ void AXVBaseGameMode::OnEnemyKilled()
 		{
 			if (UXVGameInstance* XVGI = Cast<UXVGameInstance>(GI))
 			{
-				XVGI->TotalEnemyKilled++;
 				if (GS->KilledEnemyCount > 0 && GS->KilledEnemyCount >= GS->SpawnAllEnemyCount[XVGI->CurrentLevelIdx])
 				{
 					GS->BroadcastMission();
+					GS->OnEnemyCountChanged.Broadcast(XVGI->TotalKilledEnemyCount);
 					EndGame(true);
 				}	
 			}
