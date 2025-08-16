@@ -39,7 +39,7 @@ FVector AGunBase::GetAimDirection() const
         if (GetWorld()->LineTraceSingleByChannel(Hit, WorldLocation, TraceEnd, ECC_Visibility))
         {
             // 최소 거리 기준
-            const float MinAimDistance = 500.0f;
+            const float MinAimDistance = 300.0f;
             float DistanceToHit = FVector::Dist(WorldLocation, Hit.ImpactPoint);
 
             if (DistanceToHit >= MinAimDistance)
@@ -94,7 +94,7 @@ void AGunBase::BeginPlay()
     OnReserveAmmoChanged.Broadcast(RemainingAmmo);
 }
 
-void AGunBase::FireBullet()
+void AGunBase::EmptyFireBullet()
 {
     if (CurrentAmmo <= 0 && bCanFire)
     {
@@ -104,9 +104,12 @@ void AGunBase::FireBullet()
         {
             bCanFire = true;
         }, WeaponDataAsset->FireRate, false);
-        return;
     }
+}
 
+
+void AGunBase::FireBullet()
+{
     if (!WeaponDataAsset || bIsReloading || !bCanFire)
         return;
 
@@ -180,7 +183,7 @@ void AGunBase::SpawnBullet()
 
     if (Bullet)
     {
-        Bullet->InitBullet(1000.0f, 25.0f);
+        Bullet->InitBullet(WeaponDataAsset->BulletSpeed, WeaponDataAsset->BulletDamage);
     }
 }
 
@@ -312,7 +315,10 @@ void AGunBase::PlaySoundAtMuzzle(USoundBase* Sound) const
     UGameplayStatics::PlaySoundAtLocation(this, Sound, MuzzleLoc);
 }
 
-bool AGunBase::IsReloading() const { return bIsReloading; }
+bool AGunBase::IsReloading() const
+{
+    return bIsReloading;
+}
 bool AGunBase::IsCanFire() const { return bCanFire; }
 
 bool AGunBase::IsSilence() const { return bSilencerAttached; }

@@ -49,7 +49,9 @@ public:
 
 	virtual void BeginPlay() override;
 
+	UFUNCTION(Blueprintable)
 	virtual void FireBullet() override;
+	virtual void EmptyFireBullet() override;
 	virtual void Reload() override;
 	
 	virtual bool IsReloading() const override;

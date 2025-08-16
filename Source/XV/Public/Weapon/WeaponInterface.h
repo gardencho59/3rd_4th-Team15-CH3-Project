@@ -15,6 +15,7 @@ class XV_API IWeaponInterface
 	GENERATED_BODY()
 
 public:
+	virtual void EmptyFireBullet() = 0;
 	virtual void FireBullet() = 0;
 	virtual void Reload() = 0;
 	virtual bool IsReloading() const = 0;

@@ -720,6 +720,14 @@ void AXVCharacter::Fire(const FInputActionValue& Value)
 	if (Value.Get<bool>() && CurrentWeaponType != EWeaponType::None && !bIsRun) // 빈 손 일 때, 달릴 때 발사 금지
 	{
 		if (!CurrentWeaponActor->IsCanFire()) return;
+		
+		if (CurrentWeaponActor->GetCurrentAmmo() <= 0)
+		{
+			CurrentWeaponActor->EmptyFireBullet();
+			
+			return;
+		}
+		
 		auto Anim = Cast<UXVPlayerAnimInstance>(GetMesh()->GetAnimInstance());
 		if (Anim)
 		{
@@ -958,7 +966,7 @@ void AXVCharacter::OpenDoor(const FInputActionValue& Value)
 
 void AXVCharacter::Reload(const FInputActionValue& Value)
 {
-	if (bIsDie || bIsRun) return;
+	if (bIsDie || bIsRun || CurrentWeaponActor->GetRemainingAmmo() <= 0) return;
 	if (CurrentWeaponType != EWeaponType::None && !CurrentWeaponActor->IsReloading())
 	{
 		auto Anim = Cast<UXVPlayerAnimInstance>(GetMesh()->GetAnimInstance());
