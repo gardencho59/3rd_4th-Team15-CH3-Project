@@ -52,31 +52,27 @@ void AXVDoor::OpenDoor(UBoxComponent* TriggerBox)
 {
 	if (!IsOpening)
 	{
-		if (ADoorButton* DoorButtonRef = Cast<ADoorButton>(UGameplayStatics::GetActorOfClass(GetWorld(), ADoorButton::StaticClass())))
+		if (UGameInstance* GI = GetGameInstance())
 		{
-			if (ExtraBox)
+			if (UXVGameInstance* XVGI = Cast<UXVGameInstance>(GI))
 			{
-				if (TriggerBox == ExtraBox)
+				if (ADoorButton* DoorButtonRef = Cast<ADoorButton>(UGameplayStatics::GetActorOfClass(GetWorld(), ADoorButton::StaticClass())))
 				{
-					if (AXVGameState* GS = GetWorld()->GetGameState<AXVGameState>())
+					if (ExtraBox)
 					{
-						if (GS->CurrentMissionIdx != 2) return;
-						if (DoorButtonRef->IsLocked)
+						if (TriggerBox == ExtraBox)
 						{
-							DoorButtonRef->Unlock();
-							DoorButtonRef->IsLocked = false;
-							ExtraBox->DestroyComponent();
-							ExtraBox = nullptr;
+							if (XVGI->CurrentMissionIdx != 4) return;
+							if (DoorButtonRef->IsLocked)
+							{
+								DoorButtonRef->Unlock();
+								DoorButtonRef->IsLocked = false;
+								ExtraBox->DestroyComponent();
+								ExtraBox = nullptr;
+							}
 						}
 					}
-				}
-			}
-			if (TriggerBox == DoorBox && DoorButtonRef->IsLocked) return;
-		
-			if (UGameInstance* GI = GetGameInstance())
-			{
-				if (UXVGameInstance* XVGI = Cast<UXVGameInstance>(GI))
-				{
+					if (TriggerBox == DoorBox && DoorButtonRef->IsLocked) return;
 					if (AXVBaseGameMode* BaseGM = GetWorld()->GetAuthGameMode<AXVBaseGameMode>())
 					{
 						if (XVGI->CurrentLevelIdx == 3)
@@ -104,9 +100,9 @@ void AXVDoor::OpenDoor(UBoxComponent* TriggerBox)
 							{
 								if (AXVBaseGameMode* GM = GetWorld()->GetAuthGameMode<AXVBaseGameMode>())
 								{
-									switch (GS->CurrentMissionIdx)
+									switch (XVGI->CurrentMissionIdx)
 									{
-									case 0:
+									case 2:
 										GM->StartGame();
 										SetDoorOpening();
 										GS->BroadcastMission();
@@ -114,11 +110,11 @@ void AXVDoor::OpenDoor(UBoxComponent* TriggerBox)
 										DoorButtonRef->IsLocked = true;
 										break;
 
-									case 2:
+									case 4:
 										GS->BroadcastMission();
 										break;
 								
-									case 3:
+									case 5:
 										if (!IsValid(ExtraBox))
 										{
 											GM->StartGame();
@@ -141,15 +137,17 @@ void AXVDoor::SetDoorOpening()
 {
 	IsOpening = true;
 	TargetPos = ClosedPos + OpenOffset;
-	if (AXVGameState* GS = GetWorld()->GetGameState<AXVGameState>())
+	if (UGameInstance* GI = GetGameInstance())
 	{
-		if (GS->CurrentMissionIdx == 7)
+		if (UXVGameInstance* XVGI = Cast<UXVGameInstance>(GI))
 		{
-			if (AXVBaseGameMode* GM = GetWorld()->GetAuthGameMode<AXVBaseGameMode>())
+			if (XVGI->CurrentLevelIdx == 4)
 			{
-				GM->StartGame();
+				if (AXVBaseGameMode* GM = GetWorld()->GetAuthGameMode<AXVBaseGameMode>())
+				{
+					GM->StartGame();
+				}
 			}
 		}
 	}
-	
 }

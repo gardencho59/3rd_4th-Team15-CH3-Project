@@ -44,6 +44,17 @@ void AArrivalPoint::ActivateArrivalPoint(AActor* Activator)
 {
 	if (Activator && Activator->ActorHasTag("Player"))
 	{
+		if (AXVGameState* GS = GetWorld() ? GetWorld()->GetGameState<AXVGameState>() : nullptr)
+		{
+			GS->BroadcastMission();
+		}
+		if (UGameInstance* GI = GetGameInstance())
+		{
+			if (UXVGameInstance* XVGI = Cast<UXVGameInstance>(GI))
+			{
+				XVGI->CurrentLevelIdx++;
+			}
+		}
 		UGameplayStatics::OpenLevel(GetWorld(), "Level_Laboratory_Demo");
 	}
 }
