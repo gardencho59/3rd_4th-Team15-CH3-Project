@@ -7,7 +7,7 @@
 AShieldItem::AShieldItem()
 {
 	Shield = 100.0f;
-	ItemUseTime = 5.0f;
+	ItemUseTime = 30.0f;
 	ItemRemainTime = ItemUseTime;
 }
 

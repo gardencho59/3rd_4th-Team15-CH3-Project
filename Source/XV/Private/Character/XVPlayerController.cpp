@@ -20,7 +20,8 @@ AXVPlayerController::AXVPlayerController()
 	  ChangeZoomLeftAction(nullptr),
 	  ChangeZoomRightAction(nullptr),
 	  HealAction(nullptr),
-	  ShieldAction(nullptr)
+	  ShieldAction(nullptr),
+	  BandageAction(nullptr)
 {
 }
 
