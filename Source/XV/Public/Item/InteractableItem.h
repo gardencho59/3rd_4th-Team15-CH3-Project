@@ -34,6 +34,12 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	class UItemDataComponent* ItemDataComp;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item|UI")
+	class UWidgetComponent* InteractionWidget;
+
+	UPROPERTY(EditDefaultsOnly, Category="UI")
+	TSubclassOf<UUserWidget> InteractionWidgetClass;
 
 	UPROPERTY(EditAnywhere, Category = "Item")
 	float ItemUseTime; // 아이템 지속 시간

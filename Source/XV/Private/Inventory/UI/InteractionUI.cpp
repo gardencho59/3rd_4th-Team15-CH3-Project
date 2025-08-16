@@ -1,42 +1,58 @@
 #include "Inventory/UI/InteractionUI.h"
+
+#include "Components/Image.h"
 #include "Components/TextBlock.h"
+#include "Inventory/Component/ItemDataComponent.h"
 
 
 UInteractionUI::UInteractionUI(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	MessageTextBlock = nullptr;
-	Message = FText::GetEmpty();
 }
 
 void UInteractionUI::NativePreConstruct()
 {
 	Super::NativePreConstruct();
-
-	SetUI();
+	SetVisibility(ESlateVisibility::Collapsed);
 }
 
-void UInteractionUI::SetMessage(const FText& NewMessage)
+
+void UInteractionUI::SetItemData(FItemData NewItemData, int32 NewItemQuantity, bool IsVisible)
 {
-	Message = NewMessage;
+	if (!IsVisible)
+	{
+		SetVisibility(ESlateVisibility::Collapsed);
+		return;
+	}
+	ItemData = NewItemData;
+	ItemQuantity = NewItemQuantity;
+	bIsVisible = IsVisible;
 	SetUI();
 }
 
 void UInteractionUI::SetUI()
 {
-	if (!MessageTextBlock)
+	if (!TextBlock || !ItemImage)
 	{
 		return;
 	}
-	
-	MessageTextBlock->SetText(Message);
-	
-	if (!Message.IsEmpty())
+
+	FText Message;
+	if (ItemData.ItemType == EItemType::AMMO)
 	{
-		SetVisibility(ESlateVisibility::Visible);
+		Message = FText::Format(
+			FText::FromString("{0} x {1}"),
+			FText::FromName(ItemData.ItemName),
+			FText::AsNumber(ItemQuantity));
 	}
 	else
 	{
-		SetVisibility(ESlateVisibility::Collapsed);
+		Message = FText::FromName(ItemData.ItemName);
 	}
+		
+	TextBlock->SetText(Message);
+	ItemImage->SetBrushFromTexture(ItemData.ItemIcon);
+	
+	SetVisibility(ESlateVisibility::Visible);
+
 }

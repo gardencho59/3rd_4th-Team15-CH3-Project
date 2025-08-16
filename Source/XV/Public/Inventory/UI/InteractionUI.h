@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "Inventory/Data/Item/ItemData.h"
 #include "InteractionUI.generated.h"
 
 UCLASS()
@@ -13,7 +14,7 @@ public:
 
 	UInteractionUI(const FObjectInitializer& ObjectInitializer);
 
-	void SetMessage(const FText& Message);
+	void SetItemData(FItemData NewItemData, int32 NewItemQuantity, bool IsVisible);
 	void SetUI();
 
 protected:
@@ -21,7 +22,19 @@ protected:
 	virtual void NativePreConstruct() override;
 
 	UPROPERTY(meta = (BindWidget))
-	class UTextBlock* MessageTextBlock;
+	class UTextBlock* TextBlock;
 	
-	FText Message;
+	UPROPERTY(meta = (BindWidget))
+	class UImage* ItemImage;
+
+	UPROPERTY()
+	class UTexture2D* ItemIcon;
+
+	UPROPERTY()
+	FItemData ItemData;
+
+	UPROPERTY()
+	int32 ItemQuantity;
+	
+	bool bIsVisible;
 };

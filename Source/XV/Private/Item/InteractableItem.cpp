@@ -1,6 +1,8 @@
 #include "Item/InteractableItem.h"
 #include "Components/SphereComponent.h"
 #include "Inventory/Component/ItemDataComponent.h"
+#include "Inventory/UI/InteractionUI.h"
+#include "Components/WidgetComponent.h"
 
 AInteractableItem::AInteractableItem()
 {
@@ -21,7 +23,22 @@ AInteractableItem::AInteractableItem()
 	
 	ItemDataComp = CreateDefaultSubobject<UItemDataComponent>(TEXT("ItemData"));
 
+	InteractionWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("InteractionWidget"));
+	InteractionWidget->SetupAttachment(RootComponent);
+
+	if (InteractionWidgetClass)
+	{
+		InteractionWidget->SetWidgetClass(InteractionWidgetClass);
+	}
+	InteractionWidget->SetWidgetSpace(EWidgetSpace::Screen);
+	InteractionWidget->SetDrawSize(FVector2D(300.0f, 100.0f));
+	
 	Tags.Add(FName("Interactable"));
+	
+	Collision->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	Collision->SetCollisionObjectType(ECC_GameTraceChannel3);
+	Collision->SetCollisionResponseToAllChannels(ECR_Ignore);
+	Collision->SetCollisionResponseToChannel(ECC_GameTraceChannel3, ECR_Block);
 }
 
 void AInteractableItem::UseItem()

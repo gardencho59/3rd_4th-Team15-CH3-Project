@@ -12,6 +12,18 @@ UInteractionComponent::UInteractionComponent()
 	
 }
 
+void UInteractionComponent::BeginPlay()
+{
+	Super::BeginPlay();
+
+	GetWorld()->GetTimerManager().SetTimer(
+		InteractionTimerHandle,
+		this,
+		&UInteractionComponent::InteractionTrace,
+		0.1f,
+		true);
+}
+
 void UInteractionComponent::InteractionTrace()
 {
 	AActor* Owner = GetOwner();
@@ -24,60 +36,69 @@ void UInteractionComponent::InteractionTrace()
 	FVector Start = Owner->GetActorLocation();
 	Start.Z -= 30.0f;
 	FVector ForwardVector = Owner->GetActorForwardVector();
-	FVector End = Start + ForwardVector * 80.0f;
+	FVector End = Start + ForwardVector * 100.0f;
 	float SphereRadius = 70.0f;
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(Owner);
+
+	// DrawDebugSphere(GetWorld(), Start, SphereRadius, 10, FColor::Green, false, 10, 1, 0.2);
+	// DrawDebugSphere(GetWorld(), End, SphereRadius, 10, FColor::Green, false, 10, 1, 0.2);
 	
 	bool bHit = GetWorld()->SweepMultiByChannel(
 		HitResults,
 		Start,
 		End,
 		FQuat::Identity,
-		ECC_Visibility,
+		ECC_GameTraceChannel3,
 		FCollisionShape::MakeSphere(SphereRadius),
 		Params);
-
-	if (bHit)
+		
+	const FHitResult* ClosestHit = nullptr;
+	float MinDistance = MAX_FLT;
+        
+	for (const FHitResult& HitResult : HitResults)
 	{
-		for (const FHitResult& HitResult : HitResults)
+		float Dist = FVector::Dist(HitResult.ImpactPoint, Owner->GetActorLocation());
+		if (Dist < MinDistance)
 		{
-			TargetActor = HitResult.GetActor();
-			if (TargetActor && TargetActor->GetClass()->ImplementsInterface(UItemInterface::StaticClass()) && TargetActor->Tags.Contains(FName("Interactable")))
+			MinDistance = Dist;
+			ClosestHit = &HitResult;
+		}
+	}
+	
+	if (ClosestHit)
+	{
+		AActor* NewTargetActor = ClosestHit->GetActor();
+		if (NewTargetActor != TargetActor)
+		{
+			SetUI(FItemData(), 0, false);
+		}
+		TargetActor = NewTargetActor;
+		if (TargetActor && TargetActor->GetClass()->ImplementsInterface(UItemInterface::StaticClass()) && TargetActor->Tags.Contains(FName("Interactable")))
+		{
+			UItemDataComponent* ItemDataComp = TargetActor->FindComponentByClass<UItemDataComponent>();
+			if (ItemDataComp)
 			{
-				UItemDataComponent* ItemDataComp = TargetActor->FindComponentByClass<UItemDataComponent>();
-				if (ItemDataComp)
-				{
-					FName RowName = ItemDataComp->GetRowName();
-					if (UInteractionUI* UIInstance = GetUIInstance())
-					{
-						FString FormattedMessage = FString::Printf(TEXT("Press G : %s"), *RowName.ToString());
-						UIInstance->SetMessage(FText::FromString(FormattedMessage));
-					}
-				}
-
-			}	
+				FItemData* ItemData = ItemDataComp->GetItemData();
+				int32 ItemQuantity = ItemDataComp->GetItemQuantity();
+				SetUI(*ItemData, ItemQuantity, true);
+			}
 		}
 	}
 	else
 	{
+		SetUI(FItemData(), 0, false);
 		TargetActor = nullptr;
-		if (UInteractionUI* UIInstance = GetUIInstance())
-		{
-			UIInstance->SetMessage(FText::GetEmpty());
-		}
 	}
 }
 
-UInteractionUI* UInteractionComponent::GetUIInstance()
+UInteractionUI* UInteractionComponent::GetUIInstance(AActor* Item)
 {
-	AActor* Owner = GetOwner();
-	if (!Owner)
+	if (!Item)
 	{
 		return nullptr;
 	}
-
-	UWidgetComponent* WidgetComp = Owner->FindComponentByClass<UWidgetComponent>();
+	UWidgetComponent* WidgetComp = Item->FindComponentByClass<UWidgetComponent>();
 	if (!WidgetComp)
 	{
 		return nullptr;
@@ -92,16 +113,12 @@ UInteractionUI* UInteractionComponent::GetUIInstance()
 	return Cast<UInteractionUI>(UserWidget);
 }
 
-void UInteractionComponent::BeginPlay()
+void UInteractionComponent::SetUI(const FItemData ItemData, int32 ItemQuantity, bool IsVisible)
 {
-	Super::BeginPlay();
-
-	GetWorld()->GetTimerManager().SetTimer(
-		InteractionTimerHandle,
-		this,
-		&UInteractionComponent::InteractionTrace,
-		0.1f,
-		true);
+	if (UInteractionUI* UIInstance = GetUIInstance(TargetActor))
+	{
+		UIInstance->SetItemData(ItemData, ItemQuantity, IsVisible);
+	}
 }
 
 void UInteractionComponent::HandleItemInteract()

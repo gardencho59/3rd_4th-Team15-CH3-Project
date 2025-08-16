@@ -9,7 +9,6 @@ enum class EItemType : uint8
 	Bandage UMETA(DisplayName = "Bandage"),
 	Armor UMETA(DisplayName = "Armor"),
 	Attachment UMETA(DisplayName = "Attachment"),
-	AMMORifle UMETA(DisplayName = "AMMORifle"),
-	AMMOPistol UMETA(DisplayName = "AMMOPistol"),
+	AMMO UMETA(DisplayName = "AMMO"),
 	None UMETA(DisplayName = "None")
 };

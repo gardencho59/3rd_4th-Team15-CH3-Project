@@ -11,7 +11,6 @@
 #include "Inventory/Data/Attachment/AttachmentData.h"
 #include "Inventory/Data/Attachment/EquippedAttachment.h"
 #include "Inventory/UI/InventoryUI.h"
-#include "Weapon/WeaponTypes.h"
 #include "InventoryComponent.generated.h"
 
 DECLARE_MULTICAST_DELEGATE(FOnInventoryUpdated);
@@ -68,6 +67,10 @@ public:
 	void DropFromInventory(const FName ItemID, const EItemType, const int32 ItemQuantity, const int32 SlotIndex);
 
 	void DropFromAttachment(const FName ItemID);
+
+	AActor* SpawnItem(FName ItemID);
+
+	void SetItemQuantity(AActor* DroppedItem, const int32 SlotIndex);
 
 	void UseItem(const FName ItemID, const int32 ItemQuantity);
 

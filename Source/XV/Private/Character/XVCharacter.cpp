@@ -38,12 +38,11 @@ AXVCharacter::AXVCharacter()
 	CameraComp->SetupAttachment(SpringArmComp, USpringArmComponent::SocketName);
 	CameraComp->bUsePawnControlRotation = false;	
 
-	// 인벤토리 관련
-	InteractionWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("InteractionWidget"));
-	InteractionWidget->SetupAttachment(RootComponent);
-	
+	// 인벤토리 관련	
 	InventoryComp = CreateDefaultSubobject<UInventoryComponent>(TEXT("Inventory"));
 	InteractionComp = CreateDefaultSubobject<UInteractionComponent>(TEXT("Interaction"));
+
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_GameTraceChannel3, ECR_Ignore);
 
 	NormalSpeed = 200.0f;  // 기본 이동 속도
 	SprintSpeed = 400.0f;  // 달리기 속도
