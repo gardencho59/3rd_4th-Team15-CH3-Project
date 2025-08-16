@@ -50,6 +50,14 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Bullet")
 	TSubclassOf<class AProjectileBullet> BulletClass;
 
+	// 발사 탄환 속도
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Firing")
+	float BulletSpeed;
+	
+	// 발사 탄환 대미지
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Firing")
+	float BulletDamage;
+	
 	// 발사 사운드
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sound")
 	USoundBase* FireSound;
