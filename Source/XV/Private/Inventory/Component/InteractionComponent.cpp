@@ -41,8 +41,8 @@ void UInteractionComponent::InteractionTrace()
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(Owner);
 
-	DrawDebugSphere(GetWorld(), Start, SphereRadius, 10, FColor::Green, false, 10, 1, 0.2);
-	DrawDebugSphere(GetWorld(), End, SphereRadius, 10, FColor::Green, false, 10, 1, 0.2);
+	// DrawDebugSphere(GetWorld(), Start, SphereRadius, 10, FColor::Green, false, 10, 1, 0.2);
+	// DrawDebugSphere(GetWorld(), End, SphereRadius, 10, FColor::Green, false, 10, 1, 0.2);
 	
 	bool bHit = GetWorld()->SweepMultiByChannel(
 		HitResults,
