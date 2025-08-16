@@ -80,22 +80,24 @@ AXVCharacter::AXVCharacter()
 	SubWeapon->SetupAttachment(SubWeaponOffset);
 	SubWeapon->SetChildActorClass(BPSubWeapon);
 	
-	//SetWeapon(EWeaponType::Pistol); // 시작할 때 들고 있는 무기 = Pistol
+	CurrentWeaponType = EWeaponType::None; // 시작할 때 빈손
+	CurrentWeaponActor = nullptr;
 	MainWeaponType = EWeaponType::Rifle; // 주 무기 초기화
 	SubWeaponType = EWeaponType::Pistol; // 보조 무기 초기화
 	
 	// 체력 세팅
 	MaxHealth = 100.0f;
 	CurrentHealth = MaxHealth;
+	HelmetAmount = 0.0f;
+	VestAmount = 0.0f;
+
+	HelmetLevel = 0;
+	VestLevel = 0;
 
 	//오버랩 이벤트
 	Door = nullptr;
 	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &AXVCharacter::OnBeginOverlap);
 	GetCapsuleComponent()->OnComponentEndOverlap.AddDynamic(this, &AXVCharacter::OnEndOverlap);
-}
-void AXVCharacter::BroadcastHealth()
-{
-	OnHealthChanged.Broadcast(CurrentHealth, MaxHealth);
 }
 
 void AXVCharacter::BeginPlay()
@@ -111,12 +113,27 @@ void AXVCharacter::BeginPlay()
 
 	SetInventoryItem();
 	BroadcastHealth();
+	BroadcastArmor();
 	SetCurrentItem(nullptr);
+	
+	OnCurrentWeaponChanged.Broadcast(CurrentWeaponActor);
 }
 UInventoryComponent* AXVCharacter::GetInventoryComp() const
 {
 	return InventoryComp;	
 }
+
+void AXVCharacter::BroadcastHealth()
+{
+	OnHealthChanged.Broadcast(CurrentHealth, MaxHealth);
+}
+
+void AXVCharacter::BroadcastArmor()
+{
+	OnHelmetLevelChanged.Broadcast(HelmetLevel);
+	OnVestLevelChanged.Broadcast(VestLevel);
+}
+
 
 void AXVCharacter::SetHealth(float Value)
 {
@@ -217,21 +234,48 @@ void AXVCharacter::SetSpeed(float Value)
 	SitSpeed += Value;     // 앉았을 때 속도
 }
 
-// 헬멧 변경
 void AXVCharacter::SetArmor(const FArmorData& NewArmor, EArmorType Armor)
 {
 	if (Armor == EArmorType::Helmet)
 	{
-		UE_LOG(LogTemp, Log, TEXT("EArmorType : Helmet"));
+		SetMaxHealth(CurrentHealth - HelmetAmount); // 체력 중복 증가 방지
+		UE_LOG(LogTemp, Log, TEXT("Equip EArmorType : Helmet"));
 		HelmetMesh->SetStaticMesh(NewArmor.ArmorMesh);
+		HelmetAmount = NewArmor.ArmorHealth;
+		HelmetLevel = NewArmor.ArmorLevel;
 	}
 	if (Armor == EArmorType::Vest)
 	{
-		UE_LOG(LogTemp, Log, TEXT("EArmorType : Vest"));
+		SetMaxHealth(CurrentHealth - VestAmount); // 체력 중복 증가 방지
+		UE_LOG(LogTemp, Log, TEXT("Equip EArmorType : Vest"));
 		VestMesh->SetStaticMesh(NewArmor.ArmorMesh);
+		VestAmount = NewArmor.ArmorHealth;
+		VestLevel = NewArmor.ArmorLevel;
 	}
 	SetMaxHealth(CurrentHealth + NewArmor.ArmorHealth);
 	AddHealth(NewArmor.ArmorHealth);
+	BroadcastArmor();
+}
+
+void AXVCharacter::UnEquipArmor(EArmorType Armor)
+{
+	if (Armor == EArmorType::Helmet)
+	{
+		UE_LOG(LogTemp, Log, TEXT("UnEquip EArmorType : Helmet"));
+		HelmetMesh->SetStaticMesh(nullptr);
+		SetMaxHealth(CurrentHealth - HelmetAmount);
+		HelmetAmount = 0;
+		HelmetLevel = 0;
+	}
+	if (Armor == EArmorType::Vest)
+	{
+		UE_LOG(LogTemp, Log, TEXT("UnEquip EArmorType : Vest"));
+		VestMesh->SetStaticMesh(nullptr);
+		SetMaxHealth(CurrentHealth - VestAmount);
+		VestAmount = 0;
+		VestLevel = 0;
+	}
+	BroadcastArmor();
 }
 
 void AXVCharacter::SetWeapon(EWeaponType Weapon)
@@ -995,6 +1039,15 @@ void AXVCharacter::ItemInteract(const FInputActionValue& Value)
 	SetInventoryItem();
 }
 
+int32 AXVCharacter::GetHelmetLevel() const
+{
+	return HelmetLevel;
+}
+
+int32 AXVCharacter::GetVestLevel() const
+{
+	return VestLevel;
+}
 
 void AXVCharacter::SetCurrentItem(AInteractableItem* Item)
 {

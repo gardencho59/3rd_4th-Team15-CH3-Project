@@ -70,8 +70,6 @@ void AHealthPotionItem::FinishUse()
 		}
 
 		XVCharacter->AddHealth(HealAmount);
-		
-		XVCharacter->ConsumeHealthPotion();          // 인벤 개수 1 감소 + 델리게이트 방송
 		XVCharacter->SetCurrentItem(nullptr);        // 손에서 내려놓기(선택)
 	}
 

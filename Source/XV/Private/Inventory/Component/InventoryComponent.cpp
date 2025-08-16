@@ -497,6 +497,9 @@ void UInventoryComponent::EquipAttachment(const FAttachmentData& NewAttachment, 
 void UInventoryComponent::UnEquipArmor(EArmorType ArmorType)
 {
 	// 방어구 장착 해제 필요
+	AActor* Owner = GetOwner();
+	AXVCharacter* XVCharacter = Cast<AXVCharacter>(Owner);
+	XVCharacter->UnEquipArmor(ArmorType);
 	
 	switch (ArmorType)
 	{

@@ -27,6 +27,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnShieldPotionCountChanged, int32, 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnShieldTimeChanged, float, RemainTime);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnBandagePotionCountChanged, int32, NewCount);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCurrentWeaponChanged, AGunBase*, NewWeapon);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHelmetLevelChanged, int32, NewLevel);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnVestLevelChanged, int32, NewLevel);
 
 
 UCLASS()
@@ -40,6 +42,16 @@ public:
 	
 	UFUNCTION(BlueprintPure, Category="Weapon")
 	AGunBase* GetCurrentWeapon() const { return CurrentWeaponActor; }
+
+	UFUNCTION(BlueprintPure, Category="Armor")
+	int32 GetHelmetLevel() const;
+	UFUNCTION(BlueprintPure, Category="Armor")
+	int32 GetVestLevel() const;
+
+	UPROPERTY(BlueprintAssignable, Category="Armor")
+	FOnHelmetLevelChanged OnHelmetLevelChanged;
+	UPROPERTY(BlueprintAssignable, Category="Armor")
+	FOnVestLevelChanged OnVestLevelChanged;
 	
 	UPROPERTY(BlueprintAssignable, Category="Health")
 	FOnHealthChanged OnHealthChanged;
@@ -103,6 +115,7 @@ public:
 	
 	// 장비 장착
 	void SetArmor(const FArmorData& NewArmor, EArmorType Armor);
+	void UnEquipArmor(EArmorType Armor);
 
 	void SetWeapon(EWeaponType Weapon);
 	void SetCameraShake(TSubclassOf<class UCameraShakeBase> Shake);
@@ -281,12 +294,17 @@ private:
 	void FinishShield();
 	void TickShieldProgress();
 	void BroadcastHealth();
-	
+	void BroadcastArmor();
+
 	// 캐릭터 스테이터스
 	float CurrentHealth;
 	float MaxHealth;
 	float TurnRate;
 	float ShieldAmount;
+	float HelmetAmount; // 헬멧 체력 추가량
+	int32 HelmetLevel; // 헬멧 레벨
+	float VestAmount;  // 조끼 체력 추가량
+	int32 VestLevel; // 조끼 레벨
 	
 	bool bIsLookLeft;
 	bool bZoomLookLeft;
