@@ -9,8 +9,8 @@
 
 AHealthPotionItem::AHealthPotionItem()
 {
-	ChargeTime = 2.0f;
-	HealAmount = 30.f;
+	ChargeTime = 3.0f; // 몇 초 동안 눌러야 되는지
+	HealAmount = 40.f; // 체력 회복 수치
 	bIsUsing = false;
 }
 
@@ -64,6 +64,8 @@ void AHealthPotionItem::FinishUse()
 	{
 		if (UInventoryComponent* InventoryComp = XVCharacter->GetInventoryComp())
 		{
+			
+			UE_LOG(LogTemp, Warning, TEXT("%s"), *ItemDataComp->GetRowName().ToString());
 			InventoryComp->UseItem("HealthPotion", 1); // 인벤토리 수량 감소
 		}
 

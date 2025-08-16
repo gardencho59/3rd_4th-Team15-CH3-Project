@@ -55,6 +55,9 @@ public:
 	UInputAction* HealAction;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
 	UInputAction* ShieldAction;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
+	UInputAction* BandageAction;
+	
 	
 	virtual void BeginPlay() override;
 };

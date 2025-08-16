@@ -15,10 +15,10 @@
 #include "Components/WidgetComponent.h"
 #include "UIFollowerComponent.h"
 #include "Components/BoxComponent.h"
+#include "Item/BandageItem.h"
 #include "Item/InteractableItem.h"
 #include "Item/HealthPotionItem.h"
 #include "Item/ShieldItem.h"
-
 
 AXVCharacter::AXVCharacter()
 {
@@ -45,9 +45,9 @@ AXVCharacter::AXVCharacter()
 	InventoryComp = CreateDefaultSubobject<UInventoryComponent>(TEXT("Inventory"));
 	InteractionComp = CreateDefaultSubobject<UInteractionComponent>(TEXT("Interaction"));
 
-	NormalSpeed = 300.0f; // 기본 이동 속도
-	SprintSpeed = 500.0f; // 달리기 속도
-	SitSpeed = 250.0f; // 앉았을 때 속도
+	NormalSpeed = 200.0f;  // 기본 이동 속도
+	SprintSpeed = 400.0f;  // 달리기 속도
+	SitSpeed = 150.0f;     // 앉았을 때 속도
 
 	bIsRun = false;
 	bIsSit = false;
@@ -112,6 +112,7 @@ void AXVCharacter::BeginPlay()
 
 	SetInventoryItem();
 	BroadcastHealth();
+	SetCurrentItem(nullptr);
 }
 UInventoryComponent* AXVCharacter::GetInventoryComp() const
 {
@@ -144,14 +145,15 @@ float AXVCharacter::GetMaxHealth() const
 	return MaxHealth;
 }
 
-bool AXVCharacter::GetIsShieldActive() const
+float AXVCharacter::GetShieldTime() const
 {
-	return bIsShieldActive;
+	return ShieldTime;
 }
 
-void AXVCharacter::SetIsShieldActive(bool bIsShield)
+float AXVCharacter::GetShieldRemainTime()
 {
-	bIsShieldActive = bIsShield;
+	ShieldRemainTime = GetWorld()->GetTimerManager().GetTimerRemaining(ShieldTimerHandle);
+	return ShieldRemainTime;
 }
 
 void AXVCharacter::AddHealth(float Value)
@@ -164,8 +166,6 @@ void AXVCharacter::AddHealth(float Value)
 void AXVCharacter::AddDamage(float Value)
 {
 	CurrentHealth = FMath::Clamp(CurrentHealth - Value, 0.0f, MaxHealth);
-	FString Str = FString::Printf(TEXT("%f Damaged, Now Health : %f"), Value, CurrentHealth);
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, Str);
 	// 피격 애니메이션 추가
 	
 	BroadcastHealth();
@@ -247,10 +247,8 @@ void AXVCharacter::SetWeapon(EWeaponType Weapon)
 		CurrentWeaponType = Weapon;
 	}
 
-	FString WeaponTypeName = StaticEnum<EWeaponType>()->GetNameStringByValue((int64)CurrentWeaponType);
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, WeaponTypeName);
-
 	auto Anim = Cast<UXVPlayerAnimInstance>(GetMesh()->GetAnimInstance());
+	Anim->StopAllMontages(0.f);
 	
 	switch (CurrentWeaponType)
 	{
@@ -388,27 +386,6 @@ void AXVCharacter::OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor
 			
 			Door = nullptr;
 		}
-	}
-}
-
-void AXVCharacter::OnWeaponOverlapBegin(AGunBase* Weapon)
-{
-	CurrentOverlappingWeapon = Weapon;
-
-	if (Weapon)
-	{
-		//CurrentWeaponType = Weapon->GetWeaponType();
-		//FString WeaponTypeName = UEnum::GetValueAsString(Weapon->GetWeaponType());
-		//UE_LOG(LogTemp, Log, TEXT("Overlapping Weapon Type: %s"), *WeaponTypeName);
-	}
-}
-
-void AXVCharacter::OnWeaponOverlapEnd(const AGunBase* Weapon)
-{
-	if (CurrentOverlappingWeapon == Weapon)
-	{
-		CurrentOverlappingWeapon = nullptr;
-		//CurrentWeaponType = EWeaponType::None;
 	}
 }
 
@@ -633,6 +610,15 @@ void AXVCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 					&AXVCharacter::StartUseShieldItem
 				);
 	    	}
+	    	if (PlayerController->BandageAction)
+	    	{
+	    		EnhancedInput->BindAction(
+					PlayerController->BandageAction,
+					ETriggerEvent::Started,
+					this,
+					&AXVCharacter::StartUseBandageItem
+				);
+	    	}
 	    }
 	}
 }
@@ -767,18 +753,17 @@ void AXVCharacter::Fire(const FInputActionValue& Value)
 void AXVCharacter::Sit(const FInputActionValue& Value)
 {
 	if (bIsDie) return;
+	if (GetCharacterMovement()->IsFalling()) return; // 점프 상태에선 앉기 금지
 	if (GetCharacterMovement())
 	{		
 		if (!bIsSit)
 		{		
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, TEXT("Sit"));
 			GetCharacterMovement()->MaxWalkSpeed = SitSpeed;
 			bIsRun = false;
 			bIsSit = true;
 		}
 		else
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, TEXT("Stand"));
 			GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
 			bIsSit = false;
 		}
@@ -1060,13 +1045,36 @@ void AXVCharacter::StartUseShieldItem()
 	}	
 }
 
+void AXVCharacter::StartUseBandageItem()
+{
+	if (bIsDie) return;	
+
+	if (InventoryComp->GetItemQuantity("BandagePotion") <= 0)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No Bandage potions."));
+		return;
+	}
+	else
+	{
+		SpawnPotionForUse("BandagePotion"); // SetCurrentItem 내부에서 브로드캐스트 됨
+		if (CurrentItem)
+		{
+			CurrentItem->UseItem();
+			SetInventoryItem();
+		}
+	}	
+}
+
 void AXVCharacter::SetInventoryItem()
-{		
+{
+	UE_LOG(LogTemp, Warning, TEXT("SetInven"));
 	// 인벤토리 UI 연동 세팅
 	HealthPotionCount = InventoryComp->GetItemQuantity("HealthPotion");
 	OnHealthPotionCountChanged.Broadcast(HealthPotionCount);
 	ShieldPotionCount = InventoryComp->GetItemQuantity("ShieldPotion");
 	OnShieldPotionCountChanged.Broadcast(ShieldPotionCount);
+	BandagePotionCount = InventoryComp->GetItemQuantity("BandagePotion");
+	OnBandagePotionCountChanged.Broadcast(BandagePotionCount);
 }
 
 AInteractableItem* AXVCharacter::SpawnPotionForUse(FName ItemName)
@@ -1091,6 +1099,11 @@ AInteractableItem* AXVCharacter::SpawnPotionForUse(FName ItemName)
 	{
 		NewPotion =
 		GetWorld()->SpawnActor<AShieldItem>(AShieldItem::StaticClass(), Loc, Rot, Params);
+	}
+	else if (FName(TEXT("BandagePotion")) == ItemName)
+	{
+		NewPotion =
+		GetWorld()->SpawnActor<ABandageItem>(ABandageItem::StaticClass(), Loc, Rot, Params);
 	}
 
 	if (NewPotion)
@@ -1118,6 +1131,19 @@ void AXVCharacter::ShieldItem(float Shield, float Duration)
 		Duration,
 		false
 		);
+	
+	GetWorld()->GetTimerManager().SetTimer(
+		ShieldRemainTimerHandle,
+		this,
+		&AXVCharacter::TickShieldProgress,
+		0.3f,
+		true
+		);
+	
+	ShieldTime = Duration;
+	ShieldRemainTime = Duration;
+	
+	OnShieldTimeChanged.Broadcast(GetShieldRemainTime()); // 초기화
 }
 
 void AXVCharacter::FinishShield()
@@ -1125,4 +1151,10 @@ void AXVCharacter::FinishShield()
 	UE_LOG(LogTemp, Warning, TEXT("Finish Shield"));
 	SetMaxHealth(MaxHealth - ShieldAmount);
 	bIsShieldActive = false;
+	GetWorld()->GetTimerManager().ClearTimer(ShieldRemainTimerHandle);
+}
+
+void AXVCharacter::TickShieldProgress() 
+{
+	OnShieldTimeChanged.Broadcast(GetShieldRemainTime());
 }

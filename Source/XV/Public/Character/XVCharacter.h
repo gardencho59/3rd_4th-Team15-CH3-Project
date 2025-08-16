@@ -24,6 +24,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnHealthChanged, float, Current, f
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCurrentItemChanged, AInteractableItem*, NewItem);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHealthPotionCountChanged, int32, NewCount);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnShieldPotionCountChanged, int32, NewCount);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnShieldTimeChanged, float, RemainTime);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnBandagePotionCountChanged, int32, NewCount);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCurrentWeaponChanged, AGunBase*, NewWeapon);
 
 
@@ -42,13 +44,16 @@ public:
 	UPROPERTY(BlueprintAssignable, Category="Health")
 	FOnHealthChanged OnHealthChanged;
 	UFUNCTION(BlueprintPure) float GetHealthPercent() const { return (GetMaxHealth() > 0.f) ? GetHealth() / GetMaxHealth() : 0.f; }
-	
+
+	UPROPERTY(BlueprintAssignable, Category="Shield")
+	FOnShieldTimeChanged OnShieldTimeChanged;
 
 
 	UPROPERTY(BlueprintAssignable) FOnCurrentItemChanged OnCurrentItemChanged;
 	UPROPERTY(BlueprintAssignable) FOnHealthPotionCountChanged OnHealthPotionCountChanged;
 	UPROPERTY(BlueprintAssignable) FOnShieldPotionCountChanged OnShieldPotionCountChanged;
-
+	UPROPERTY(BlueprintAssignable) FOnBandagePotionCountChanged OnBandagePotionCountChanged;
+	
 	UFUNCTION(BlueprintCallable) void SetCurrentItem(AInteractableItem* NewItem);
 	UFUNCTION(BlueprintPure)   AInteractableItem* GetCurrentItem() const { return CurrentItem; }
 	UFUNCTION(BlueprintPure)   int32 GetHealthPotionCount() const { return HealthPotionCount; }
@@ -56,6 +61,7 @@ public:
 	void StartUseCurrentItem();
 	void StopUseCurrentItem();
 	void StartUseShieldItem();
+	void StartUseBandageItem();
 	void SetInventoryItem();
 	void ConsumeHealthPotion() { HealthPotionCount = FMath::Max(0, HealthPotionCount-1); OnHealthPotionCountChanged.Broadcast(HealthPotionCount); }
 
@@ -83,9 +89,9 @@ public:
 
 	// 실드 아이템
 	UFUNCTION(BlueprintPure, Category="Shield")
-	bool GetIsShieldActive() const;
+	float GetShieldTime() const;
 	UFUNCTION(BlueprintCallable, Category="Shield")
-	void SetIsShieldActive(bool bIsShield);
+	float GetShieldRemainTime();
 	void ShieldItem(float Shield, float Duration);
 	
 	void AddDamage(float Value);
@@ -119,6 +125,8 @@ public:
 	int32 HealthPotionCount = 0;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Inventory")
 	int32 ShieldPotionCount = 0;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Inventory")
+	int32 BandagePotionCount = 0;
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
@@ -266,12 +274,6 @@ protected:
 		AActor* OtherActor,
 		UPrimitiveComponent* OtherComp,
 		int32 OtherBodyIndex);
-
-	// 오버랩 시작 함수
-	void OnWeaponOverlapBegin(AGunBase* Weapon);
-	// 오버랩 끝 함수
-	void OnWeaponOverlapEnd(const AGunBase* Weapon);
-	
 	
 	UPROPERTY(BlueprintReadOnly, Category="State")
 	bool bIsDie;
@@ -279,6 +281,7 @@ protected:
 private:
 	AInteractableItem* SpawnPotionForUse(FName ItemName);
 	void FinishShield();
+	void TickShieldProgress();
 	void BroadcastHealth();
 	
 	// 캐릭터 스테이터스
@@ -290,6 +293,12 @@ private:
 	bool bIsLookLeft;
 	bool bZoomLookLeft;
 	bool bIsShieldActive;
+	
 	FTimerHandle DieTimerHandle;
 	FTimerHandle ShieldTimerHandle;
+	FTimerHandle ShieldRemainTimerHandle;
+
+	// 실드 아이템
+	float ShieldTime;
+	float ShieldRemainTime;
 };
