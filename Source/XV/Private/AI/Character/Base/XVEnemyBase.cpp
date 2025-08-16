@@ -8,11 +8,13 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "AI/AIComponents/AIConfigComponent.h"
 #include "AI/DebugTool/DebugTool.h"
+#include "AssetTypeActions/AssetDefinition_SoundBase.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "System/XVBaseGameMode.h"
 #include "Components/CapsuleComponent.h"
 #include "Perception/AIPerceptionComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Sound/SoundBase.h"
 
 AXVEnemyBase::AXVEnemyBase()
 	: RotateSpeed(480.f)
@@ -152,7 +154,6 @@ void AXVEnemyBase::GetDamage(float Damage)
 	UE_LOG(Log_XV_AI, Warning, TEXT("GetDamage : %f"),AIStatusComponent->CurrentHealth());
 	UE_LOG(Log_XV_AI, Warning, TEXT("GetDamage : GetDamage Start"));
 	
-	
 	AXVControllerBase* AIController = Cast<AXVControllerBase>(GetController());
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 
@@ -160,9 +161,18 @@ void AXVEnemyBase::GetDamage(float Damage)
 	// ▼ 체력이 0 이하로 떨어졌을 때만 사망 처리!
 	if (AIStatusComponent->CurrentHealth() <= 0.f)
 	{
+		if (true == AIController->AIBlackBoard->GetValueAsBool(TEXT("bIsBoss")))
+		{
+			if (DeathSound)
+			{
+				GetCharacterMovement()->GravityScale = 0.0f;
+				UGameplayStatics::PlaySoundAtLocation(this, DeathSound, GetActorLocation());
+			}
+		}
+		
 		UE_LOG(Log_XV_AI, Warning, TEXT("GetDamage : GetDamage Start2"));
 		AIController->AIPerception->SetActive(false);
-
+		
 		//
 		APawn* Pawn = AIController->GetPawn();
 		AXVEnemyBase* AIEnemy = Cast<AXVEnemyBase>(Pawn);
@@ -237,6 +247,19 @@ void AXVEnemyBase::GetDamage(float Damage)
 				// 델리게이트 람다 바인딩
 				// FOnMontageEnded DeathMontageEndedDelegate;
 				//DeathMontageEndedDelegate.BindLambda([this](UAnimMontage*, bool){DeathTimer();});
+
+				if (true == AIController->AIBlackBoard->GetValueAsBool(TEXT("bIsBoss")))
+				{
+					// 슬로우 모션 시작
+					UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.2f);
+
+					// 3초 후 복구 (타이머 사용)
+					FTimerHandle TimerHandle;
+					GetWorld()->GetTimerManager().SetTimer(TimerHandle, [this]()
+					{
+						UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 1.0f);
+					}, 3.0f, false);
+				}
 				
 				AnimInstance->Montage_Play(DeathMontage);
 				// AnimInstance->Montage_SetEndDelegate(DeathMontageEndedDelegate, DeathMontage);
@@ -415,9 +438,16 @@ void AXVEnemyBase::OnDamageEnded()
 		AIController->RunBehaviorTree(AIController->BehaviorTreeAsset);
 	}
 
-	if (true == AIController->AIBlackBoard->GetValueAsBool(TEXT("bIsBoss")) /*&& FMath::FRand() < 0.5f */)
+	if (true == AIController->AIBlackBoard->GetValueAsBool(TEXT("bIsBoss")) && FMath::FRand() < 0.5f)
 	{
-		TryRandomPortal();
+		if (AIStatusComponent->CurrentHealth() <= 0.f)
+		{
+			return;
+		}
+		else
+		{
+			TryRandomPortal();
+		}
 	}
 }
 
@@ -488,9 +518,16 @@ void AXVEnemyBase::EndAvoid()
 		);
 	}
 
-	if (true == AIController->AIBlackBoard->GetValueAsBool(TEXT("bIsBoss")))
+	if (true == AIController->AIBlackBoard->GetValueAsBool(TEXT("bIsBoss")) &&  FMath::FRand() < 0.5f)
 	{
-		TryRandomPortal();
+		if (AIStatusComponent->CurrentHealth() <= 0.f)
+		{
+			return;
+		}
+		else
+		{
+			TryRandomPortal();
+		}
 	}
 	
 	UE_LOG(LogTemp, Warning, TEXT("Now bIsAvoid boll is %d"), bIsAvoid);
