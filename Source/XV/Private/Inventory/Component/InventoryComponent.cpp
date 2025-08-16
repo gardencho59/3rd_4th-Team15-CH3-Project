@@ -38,6 +38,10 @@ void UInventoryComponent::UpdateInventory()
 	UE_LOG(LogTemp, Log, TEXT("Update Inventory!!!"));
 	SortInventory();
 	OnInventoryUpdated.Broadcast();
+	
+	AActor* Owner = GetOwner();
+	AXVCharacter* XVCharacter = Cast<AXVCharacter>(Owner);
+	XVCharacter->SetInventoryItem();
 }
 
 bool UInventoryComponent::PickUp(const FName& ItemID, const EItemType ItemType, float ItemQuantity)
