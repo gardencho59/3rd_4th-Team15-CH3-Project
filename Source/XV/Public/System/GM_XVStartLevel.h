@@ -15,10 +15,8 @@ public:
 	virtual void BeginPlay() override;
 	
 	virtual void StartGame()override;
-	virtual void SpawnEnemies() override;
 	virtual void OnEnemyKilled() override;
 	virtual void OnWaveTriggered() override;
-	void DelayedWaveTrigger();
 	virtual void EndGame(bool bIsClear) override;
 
 	bool IsOutdoor;

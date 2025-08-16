@@ -28,18 +28,18 @@ void AXVBaseGameMode::BeginPlay()
 		}
 		GetWorldTimerManager().SetTimerForNextTick([this, GS]()
 		{
-			if (GS->Missions.IsValidIndex(GS->CurrentMissionIdx))
-			{	
-				GS->OnMissionChanged.Broadcast(
-					GS->Missions[GS->CurrentMissionIdx].MissionTitle,
-					GS->Missions[GS->CurrentMissionIdx].MissionDescription
-					);
-			}
 			if (UGameInstance* GI = GetGameInstance())
 			{
 				if (UXVGameInstance* XVGI = Cast<UXVGameInstance>(GI))
 				{
-					GS->OnEnemyCountChanged.Broadcast(XVGI->TotalKilledEnemyCount);
+					if (GS->Missions.IsValidIndex(XVGI->CurrentMissionIdx))
+					{	
+						GS->OnMissionChanged.Broadcast(
+							GS->Missions[XVGI->CurrentMissionIdx].MissionTitle,
+							GS->Missions[XVGI->CurrentMissionIdx].MissionDescription
+							);
+						GS->OnEnemyCountChanged.Broadcast(XVGI->TotalKilledEnemyCount);
+					}
 				}
 			}
 		});
@@ -177,7 +177,14 @@ void AXVBaseGameMode::OnEnemyKilled()
 
 void AXVBaseGameMode::OnWaveTriggered()
 {
-	
+	if (AXVGameState* GS = GetGameState<AXVGameState>())
+	{
+		if (GS->IsWaveTriggered) return;
+
+		GS->IsWaveTriggered = true;
+		FindSpawnVolume();
+		SpawnEnemies();
+	}
 }
 
 void AXVBaseGameMode::EndGame(bool bIsClear)

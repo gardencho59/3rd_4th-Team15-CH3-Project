@@ -48,8 +48,6 @@ public:
 	int32 SpawnedEnemyCount;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Game Rules|Wave")
 	int32 KilledEnemyCount;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Game Rules|Mission")
-	int32 CurrentMissionIdx;
 
 	UPROPERTY(BlueprintAssignable, Category="Events")
 	FOnEnemyCountChanged OnEnemyCountChanged;
@@ -58,24 +56,32 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Mission")
 	TArray<FMissionData> Missions =
 		{
-			{ TEXT("Mission 1"), TEXT("Interact Button to Open Door") },
-			{ TEXT("Mission 2"), TEXT("Kill All Enemies") },
-			{ TEXT("Mission 3"), TEXT("Hack a Computer to Activate Interactive Button") },
-			{ TEXT("Mission 4"), TEXT("Interact Button to Open Door") },
-			{ TEXT("Mission 5"), TEXT("Kill All Enemies") },
-			{ TEXT("Mission 6"), TEXT("Access System to Open Door") },
-			{ TEXT("Mission 7"), TEXT("Kill All Enemies & Hold on Until the Door Opens") },
-			{ TEXT("Mission 8"), TEXT("BOSS") },
+			{ TEXT("Mission 1"), TEXT("Kill All Enemies") },
+			{ TEXT("Mission 2"), TEXT("Take the Elevator") },
+			{ TEXT("Mission 3"), TEXT("Interact Button to Open Door") },
+			{ TEXT("Mission 4"), TEXT("Kill All Enemies") },
+			{ TEXT("Mission 5"), TEXT("Hack a Computer to Activate Interactive Button") },
+			{ TEXT("Mission 6"), TEXT("Interact Button to Open Door") },
+			{ TEXT("Mission 7"), TEXT("Kill All Enemies") },
+			{ TEXT("Mission 8"), TEXT("Access System to Open Door") },
+			{ TEXT("Mission 9"), TEXT("Kill All Enemies & Hold on Until the Door Opens") },
+			{ TEXT("Mission 10"), TEXT("BOSS") },
 		};
 
 	void BroadcastMission()
 	{
-		CurrentMissionIdx++;
-		if (CurrentMissionIdx < Missions.Num())
+		if (UGameInstance* GI = GetGameInstance())
 		{
-			if (Missions.IsValidIndex(CurrentMissionIdx))
+			if (UXVGameInstance* XVGI = Cast<UXVGameInstance>(GI))
 			{
-				OnMissionChanged.Broadcast(Missions[CurrentMissionIdx].MissionTitle, Missions[CurrentMissionIdx].MissionDescription);
+				XVGI->CurrentMissionIdx++;
+				if (XVGI->CurrentMissionIdx < Missions.Num())
+				{
+					if (Missions.IsValidIndex(XVGI->CurrentMissionIdx))
+					{
+						OnMissionChanged.Broadcast(Missions[XVGI->CurrentMissionIdx].MissionTitle, Missions[XVGI->CurrentMissionIdx].MissionDescription);
+					}
+				}
 			}
 		}
 	}
