@@ -16,6 +16,8 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Game Data")
 	int32 CurrentLevelIdx;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Game Data")
+	int32 CurrentMissionIdx;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Game Data")
 	bool IsWaiting;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Game Data")
 	bool WasCinePlay;

@@ -37,14 +37,7 @@ void AXVGameMode::OnEnemyKilled()
 
 void AXVGameMode::OnWaveTriggered()
 {
-	if (AXVGameState* GS = GetGameState<AXVGameState>())
-	{
-		if (GS->IsWaveTriggered) return;
-
-		GS->IsWaveTriggered = true;
-		FindSpawnVolume();
-		SpawnEnemies();
-	}
+	Super::OnWaveTriggered();
 }
 
 void AXVGameMode::EndGame(bool bIsClear)

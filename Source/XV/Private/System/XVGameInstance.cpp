@@ -2,7 +2,8 @@
 
 UXVGameInstance::UXVGameInstance()
 {
-	CurrentLevelIdx = 1;
+	CurrentLevelIdx = 0;
+	CurrentMissionIdx = 0;
 	IsWaiting = true;
 	WasCinePlay = false;
 	IsOutdoor = false;
