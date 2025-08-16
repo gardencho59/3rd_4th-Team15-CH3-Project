@@ -719,7 +719,7 @@ void AXVCharacter::Fire(const FInputActionValue& Value)
 	if (bIsDie) return;
 	if (Value.Get<bool>() && CurrentWeaponType != EWeaponType::None && !bIsRun) // 빈 손 일 때, 달릴 때 발사 금지
 	{
-		if (!CurrentWeaponActor->IsCanFire()) return;
+		if (!CurrentWeaponActor->IsCanFire() || CurrentWeaponActor->IsReloading()) return;
 		
 		if (CurrentWeaponActor->GetCurrentAmmo() <= 0)
 		{
