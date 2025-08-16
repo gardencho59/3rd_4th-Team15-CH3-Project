@@ -43,7 +43,7 @@ void UInteractionComponent::InteractionTrace()
 		for (const FHitResult& HitResult : HitResults)
 		{
 			TargetActor = HitResult.GetActor();
-			if (TargetActor && TargetActor->GetClass()->ImplementsInterface(UItemInterface::StaticClass()))
+			if (TargetActor && TargetActor->GetClass()->ImplementsInterface(UItemInterface::StaticClass()) && TargetActor->Tags.Contains(FName("Interactable")))
 			{
 				UItemDataComponent* ItemDataComp = TargetActor->FindComponentByClass<UItemDataComponent>();
 				if (ItemDataComp)
@@ -51,7 +51,7 @@ void UInteractionComponent::InteractionTrace()
 					FName RowName = ItemDataComp->GetRowName();
 					if (UInteractionUI* UIInstance = GetUIInstance())
 					{
-						FString FormattedMessage = FString::Printf(TEXT("Press E : %s"), *RowName.ToString());
+						FString FormattedMessage = FString::Printf(TEXT("Press G : %s"), *RowName.ToString());
 						UIInstance->SetMessage(FText::FromString(FormattedMessage));
 					}
 				}

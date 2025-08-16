@@ -80,6 +80,15 @@ void UItemSlotUI::NativeOnDragCancelled(const FDragDropEvent& InDragDropEvent, U
 	
 }
 
+void UItemSlotUI::SetWidgetData(FName NewItemID, EItemType NewItemType, int32 NewItemQuantity, int32 NewIndex, UInventoryComponent* NewInventoryComp)
+{
+	ItemID = NewItemID;
+	ItemType = NewItemType;
+	ItemQuantity = NewItemQuantity;
+	Index = NewIndex;
+	InventoryComp = NewInventoryComp;
+}
+
 void UItemSlotUI::SetItemData()
 {
 
