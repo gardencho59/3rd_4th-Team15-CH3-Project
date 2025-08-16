@@ -31,11 +31,6 @@ FReply UAttachmentSlot::NativeOnPreviewMouseButtonDown(const FGeometry& InGeomet
 	return FReply::Unhandled();
 }
 
-bool UAttachmentSlot::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation)
-{
-	return false;
-}
-
 void UAttachmentSlot::NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& OutOperation)
 {
 	UE_LOG(LogTemp, Display, TEXT("NativeOnDragDetected"));
@@ -91,7 +86,7 @@ void UAttachmentSlot::NativeOnDragCancelled(const FDragDropEvent& InDragDropEven
 	}
 
 	// 인벤 UI 밖이면
-	if (true)
+	if (!InventoryUI->IsOverAnyBorder(DropPos))
 	{
 		InventoryComp->DropFromAttachment(ItemID);
 		UnEquipAttachment();

@@ -90,20 +90,10 @@ public:
 
 	bool bIsFull = false;
 	
-	// 방어구 관련
-	void EquipArmor(const FArmorData& NewArmor, EArmorType ArmorType);
+	// 방어구 및 부착물 관련
 	
-	// UPROPERTY()
-	// FOnArmorChanged OnArmorChanged;
-
-	// UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Armor")
-	// FArmorData ArmorData;
-
 	UPROPERTY()
 	FEquippedArmor EquippedArmor; // 현재 장착중인 장비
-
-	// 부착물 관련
-	void EquipAttachment(const FAttachmentData& NewAttachment, EAttachmentType AttachmentType, EWeaponType WeaponType);
 
 	UPROPERTY()
 	FEquippedAttachment RifleAttachment; // 현재 장착중인 라이플 부착물
@@ -111,6 +101,8 @@ public:
 	UPROPERTY()
 	FEquippedAttachment PistolAttachment; // 현재 장착중인 피스톨 부착물
 
+	void EquipArmor(const FArmorData& NewArmor, EArmorType ArmorType);
+	void EquipAttachment(const FAttachmentData& NewAttachment, EAttachmentType AttachmentType, EWeaponType WeaponType);
 	
 	void UnEquipArmor(EArmorType ArmorType);
 	void UnEquipAttachment(EAttachmentType AttachmentType, EWeaponType WeaponType);

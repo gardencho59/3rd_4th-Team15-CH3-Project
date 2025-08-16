@@ -3,9 +3,7 @@
 #include "Inventory/Data/Armor/ArmorData.h"
 #include "Inventory/Data/Armor/ArmorType.h"
 #include "Inventory/Data/Item/ItemData.h"
-#include "Inventory/Data/Item/ItemType.h"
 #include "Blueprint/DragDropOperation.h"
-#include "Blueprint/WidgetBlueprintLibrary.h"
 #include "Components/Border.h"
 #include "Inventory/Component/InventoryComponent.h"
 
@@ -54,18 +52,31 @@ bool UInventoryUI::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEven
 		return false;
 	}
 	
-	UItemSlotUI* DraggedSlot = Cast<UItemSlotUI>(InOperation->Payload);
-	if (!DraggedSlot)
+	FVector2D DropPosition = InDragDropEvent.GetScreenSpacePosition();
+	UItemSlotUI* DraggedItemSlot = Cast<UItemSlotUI>(InOperation->Payload);
+	if (!DraggedItemSlot)
 	{
-		UE_LOG(LogTemp, Log, TEXT("!Dragged Slot"));
 		return false;
 	}
-	
-	FName ItemID = DraggedSlot->ItemID;
+	if (DraggedItemSlot)
+	{
+		UE_LOG(LogTemp, Log, TEXT("DraggedItemSlot"))
+		if (IsOverInventory(DropPosition))
+		{
+			return true;
+		}
+	}
+
+	FName ItemID = DraggedItemSlot->ItemID;
 	FArmorData* ArmorData = ArmorDataTable->FindRow<FArmorData>(ItemID, TEXT("Get Armor Row in InventoryUI"));
 	FAttachmentData* AttachmentData = AttachmentDataTable->FindRow<FAttachmentData>(ItemID, TEXT("Get Attachment Row in InventoryUI"));
 	if (!AttachmentData && !ArmorData)
 	{
+		UE_LOG(LogTemp, Log, TEXT("Is Over Any Border"))
+		if (IsOverAnyBorder(DropPosition))
+		{
+			return true;
+		}
 		return false;
 	}
 
@@ -76,45 +87,39 @@ bool UInventoryUI::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEven
 		return false;
 	}
 
-	FVector2D DropPosition = InDragDropEvent.GetScreenSpacePosition();
-	// 장비 부착 -> 이미 부착된 상태면 원래 아이템 인벤에 추가되어야함
+	// 장비 부착
 	if (ArmorData)
 	{
-		if (BorderHelmet->GetCachedGeometry().IsUnderLocation(DropPosition) && ArmorData->ArmorType == EArmorType::Helmet && ItemData->ItemType == EItemType::Armor)
+		if (IsOverBorder(BorderHelmet, DropPosition) && ArmorData->ArmorType == EArmorType::Helmet)
 		{
 			EquipArmor(WBP_Helmet, *ItemData, *ArmorData, EArmorType::Helmet);
-			return false;
 		}
-		if (BorderVest->GetCachedGeometry().IsUnderLocation(DropPosition) && ArmorData->ArmorType == EArmorType::Vest && ItemData->ItemType == EItemType::Armor)
+		if (IsOverBorder(BorderVest, DropPosition) && ArmorData->ArmorType == EArmorType::Vest)
 		{
 			EquipArmor(WBP_Vest, *ItemData, *ArmorData, EArmorType::Vest);
-			return false;
 		}	
 	}
 
 	if (AttachmentData)
 	{
 		// 라이플 부착물 부착
-		if (RifleSilencer->GetCachedGeometry().IsUnderLocation(DropPosition) && AttachmentData->AttachmentType == EAttachmentType::Silencer && ItemData->ItemType == EItemType::Attachment)
+		if (IsOverBorder(RifleSilencer, DropPosition) && AttachmentData->AttachmentType == EAttachmentType::Silencer)
 		{
 			EquipAttachment(WBP_RifleSilencer, *ItemData, *AttachmentData, EAttachmentType::Silencer, EWeaponType::Rifle);
-			return false;
 		}
-		if (RifleExtendedMag->GetCachedGeometry().IsUnderLocation(DropPosition) && AttachmentData->AttachmentType == EAttachmentType::ExtendedMag && ItemData->ItemType == EItemType::Attachment)
+		if (IsOverBorder(RifleExtendedMag, DropPosition) && AttachmentData->AttachmentType == EAttachmentType::ExtendedMag)
 		{
 			EquipAttachment(WBP_RifleExtendedMag, *ItemData, *AttachmentData, EAttachmentType::ExtendedMag, EWeaponType::Rifle);
-			return false;
 		}
 	
 		// 피스톨 부착물 부착
-		if (PistolSilencer->GetCachedGeometry().IsUnderLocation(DropPosition) && AttachmentData->AttachmentType == EAttachmentType::Silencer && ItemData->ItemType == EItemType::Attachment)
+		if (IsOverBorder(PistolSilencer, DropPosition) && AttachmentData->AttachmentType == EAttachmentType::Silencer)
 		{
 			EquipAttachment(WBP_PistolSilencer, *ItemData, *AttachmentData, EAttachmentType::Silencer, EWeaponType::Pistol);
 		}
-		if (PistolExtendedMag->GetCachedGeometry().IsUnderLocation(DropPosition) && AttachmentData->AttachmentType == EAttachmentType::ExtendedMag && ItemData->ItemType == EItemType::Attachment)
+		if (IsOverBorder(PistolExtendedMag, DropPosition) && AttachmentData->AttachmentType == EAttachmentType::ExtendedMag)
 		{
 			EquipAttachment(WBP_PistolExtendedMag, *ItemData, *AttachmentData, EAttachmentType::ExtendedMag, EWeaponType::Pistol);
-			return false;
 		}
 	}
 	return true;
@@ -164,7 +169,28 @@ void UInventoryUI::CreateItemSlots()
 
 bool UInventoryUI::IsOverInventory(FVector2D ScreenPos)
 {
-	if (ItemScrollBorder->GetCachedGeometry().IsUnderLocation(ScreenPos))
+	if (BorderInventory->GetCachedGeometry().IsUnderLocation(ScreenPos))
+	{
+		return true;
+	}
+	return false;
+}
+
+bool UInventoryUI::IsOverBorder(UBorder* Border, FVector2D ScreenPos)
+{
+	if (Border->GetCachedGeometry().IsUnderLocation(ScreenPos))
+	{
+		return true;
+	}
+	return false;
+}
+
+bool UInventoryUI::IsOverAnyBorder(FVector2D ScreenPos)
+{
+	if (BorderInventory->GetCachedGeometry().IsUnderLocation(ScreenPos) ||
+		BorderEquipment->GetCachedGeometry().IsUnderLocation(ScreenPos) ||
+		BorderRifle->GetCachedGeometry().IsUnderLocation(ScreenPos) ||
+		BorderPistol->GetCachedGeometry().IsUnderLocation(ScreenPos))
 	{
 		return true;
 	}
@@ -173,11 +199,11 @@ bool UInventoryUI::IsOverInventory(FVector2D ScreenPos)
 
 void UInventoryUI::EquipArmor(UAttachmentSlot* Widget, FItemData& ItemData, FArmorData& ArmorData, EArmorType ArmorType)
 {
-	if (!Widget->InventoryComp)
+	if (Widget->IsEquipped)
 	{
-		Widget->InventoryComp = InventoryComp;
+		// 현재 장착 중인 무기 해제
+		InventoryComp->AddToInventory(Widget->ItemID);
 	}
-
 	Widget->SetWidgetData(ItemData.ItemName, ItemData.ItemType, ItemData.ItemIcon, this, InventoryComp, ArmorType, EAttachmentType::None, EWeaponType::None); // 위젯에 데이터 전달
 	Widget->EquipAttachment(); // 위젯에 장착
 	InventoryComp->EquipArmor(ArmorData, ArmorType); // 인벤토리 컴포넌트 방어구 장착 호출
@@ -185,11 +211,11 @@ void UInventoryUI::EquipArmor(UAttachmentSlot* Widget, FItemData& ItemData, FArm
 
 void UInventoryUI::EquipAttachment(UAttachmentSlot* Widget, FItemData& ItemData, FAttachmentData& AttachmentData, EAttachmentType AttachmentType, EWeaponType WeaponType)
 {
-	if (!Widget->InventoryComp)
+	if (Widget->IsEquipped)
 	{
-		Widget->InventoryComp = InventoryComp;
+		// 현재 장착 중인 무기 해제
+		InventoryComp->AddToInventory(Widget->ItemID);
 	}
-
 	Widget->SetWidgetData(ItemData.ItemName, ItemData.ItemType, ItemData.ItemIcon, this, InventoryComp, EArmorType::None, AttachmentType, WeaponType); // 위젯에 데이터 전달
 	Widget->EquipAttachment(); // 위젯에 장착
 	InventoryComp->EquipAttachment(AttachmentData, AttachmentType, WeaponType); // 인벤토리 컴포넌트 부착물 장비 장착 호출

@@ -5,7 +5,6 @@
 #include "Components/WrapBox.h"
 #include "Components/Border.h"
 #include "AttachmentSlot.h"
-#include "Weapon/WeaponTypes.h"
 #include "Inventory/Data/Armor/ArmorType.h"
 #include "Inventory/Data/Attachment/AttachmentType.h"
 #include "Inventory/UI/ItemSlotUI.h"
@@ -17,6 +16,8 @@ struct FItemData;
 struct FArmorData;
 struct FAttachmentData;
 
+enum class EWeaponType : uint8;
+
 UCLASS()
 class XV_API UInventoryUI : public UUserWidget
 {
@@ -27,6 +28,11 @@ public:
 	UInventoryUI(const FObjectInitializer& ObjectInitializer);
 	
 	bool IsOverInventory(FVector2D ScreenPos);
+
+	bool IsOverBorder(UBorder* Border, FVector2D ScreenPos);
+
+	bool IsOverAnyBorder(FVector2D ScreenPos);
+	
 protected:
 	
 	virtual void NativeConstruct() override;
@@ -51,7 +57,16 @@ protected:
 	UWrapBox* ItemWrapBox;
 	
 	UPROPERTY(meta = (BindWidget))
-	UBorder* ItemScrollBorder;
+	UBorder* BorderInventory;
+
+	UPROPERTY(meta = (BindWidget))
+	UBorder* BorderEquipment;
+	
+	UPROPERTY(meta = (BindWidget))
+	UBorder* BorderRifle;
+	
+	UPROPERTY(meta = (BindWidget))
+	UBorder* BorderPistol;
 	
 	// 방어구 관련
 	
