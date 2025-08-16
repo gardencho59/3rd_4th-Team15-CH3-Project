@@ -155,12 +155,7 @@ void UInventoryUI::CreateItemSlots()
 		{
 			return;
 		}
-		NewSlot->InventoryComp = InventoryComp;
-		NewSlot->ItemID = Item.ItemID;
-		NewSlot->ItemType = Item.ItemType;
-		NewSlot->ItemQuantity = Item.ItemQuantity;
-		NewSlot->Index = Index;
-		
+		NewSlot->SetWidgetData(Item.ItemID, Item.ItemType, Item.ItemQuantity, Index, InventoryComp);
 		NewSlot->SetItemData();
 
 		ItemWrapBox->AddChild(NewSlot);
@@ -183,10 +178,9 @@ void UInventoryUI::EquipArmor(UAttachmentSlot* Widget, FItemData& ItemData, FArm
 		Widget->InventoryComp = InventoryComp;
 	}
 
-	Widget->ItemID = ItemData.ItemName;
-	Widget->InventoryUI = this;
-	Widget->ImageIcon->SetBrushFromTexture(ItemData.ItemIcon); // 아이콘 설정
-	InventoryComp->EquipArmor(ArmorData, ArmorType); // 인벤토리 컴포넌트 장비 장착 호출
+	Widget->SetWidgetData(ItemData.ItemName, ItemData.ItemType, ItemData.ItemIcon, this, InventoryComp, ArmorType, EAttachmentType::None, EWeaponType::None); // 위젯에 데이터 전달
+	Widget->EquipAttachment(); // 위젯에 장착
+	InventoryComp->EquipArmor(ArmorData, ArmorType); // 인벤토리 컴포넌트 방어구 장착 호출
 }
 
 void UInventoryUI::EquipAttachment(UAttachmentSlot* Widget, FItemData& ItemData, FAttachmentData& AttachmentData, EAttachmentType AttachmentType, EWeaponType WeaponType)
@@ -195,8 +189,8 @@ void UInventoryUI::EquipAttachment(UAttachmentSlot* Widget, FItemData& ItemData,
 	{
 		Widget->InventoryComp = InventoryComp;
 	}
-	Widget->ItemID = ItemData.ItemName;
-	Widget->InventoryUI = this;
-	Widget->ImageIcon->SetBrushFromTexture(ItemData.ItemIcon); // 아이콘 설정
-	InventoryComp->EquipAttachment(AttachmentData, AttachmentType, WeaponType); // 인벤토리 부착물 장비 장착 호출
+
+	Widget->SetWidgetData(ItemData.ItemName, ItemData.ItemType, ItemData.ItemIcon, this, InventoryComp, EArmorType::None, AttachmentType, WeaponType); // 위젯에 데이터 전달
+	Widget->EquipAttachment(); // 위젯에 장착
+	InventoryComp->EquipAttachment(AttachmentData, AttachmentType, WeaponType); // 인벤토리 컴포넌트 부착물 장비 장착 호출
 }

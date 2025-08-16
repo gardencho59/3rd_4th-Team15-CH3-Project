@@ -8,11 +8,22 @@ UAttachmentSlot::UAttachmentSlot(const FObjectInitializer& ObjectInitializer)
 {
 }
 
+
+void UAttachmentSlot::NativeConstruct()
+{
+	Super::NativeConstruct();
+	ImageIcon->SetVisibility(ESlateVisibility::Collapsed);
+}
+
 FReply UAttachmentSlot::NativeOnPreviewMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
 	UE_LOG(LogTemp, Display, TEXT("NativeOnPreviewMouseButtonDown"));
 	if (InMouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
 	{
+		if (!IsEquipped)
+		{
+			return FReply::Unhandled();
+		}
 		FEventReply ReplyResult = UWidgetBlueprintLibrary::DetectDragIfPressed(InMouseEvent, this, EKeys::LeftMouseButton);
 		return ReplyResult.NativeReply;
 	}
@@ -70,10 +81,12 @@ void UAttachmentSlot::NativeOnDragCancelled(const FDragDropEvent& InDragDropEven
 	{
 		return;
 	}
+
+	// 인베토리 안일 때
 	if (InventoryUI->IsOverInventory(DropPos))
 	{
 		InventoryComp->AddToInventory(ItemID);
-		UnEquipped();
+		UnEquipAttachment();
 		return;
 	}
 
@@ -81,12 +94,46 @@ void UAttachmentSlot::NativeOnDragCancelled(const FDragDropEvent& InDragDropEven
 	if (true)
 	{
 		InventoryComp->DropFromAttachment(ItemID);
-		UnEquipped();
+		UnEquipAttachment();
 	}
 	
 }
 
-void UAttachmentSlot::UnEquipped()
+
+void UAttachmentSlot::SetWidgetData(FName NewItemID, EItemType NewItemType, UTexture2D* NewImageIcon,
+	UInventoryUI* NewInventoryUI, UInventoryComponent* NewInventoryComponent, EArmorType NewArmorType, EAttachmentType NewAttachmentType, EWeaponType NewWeaponType)
+{
+	ItemID = NewItemID;
+	ItemType = NewItemType;
+	ItemTexture = NewImageIcon;
+	InventoryUI = NewInventoryUI;
+	InventoryComp = NewInventoryComponent;
+
+	ArmorType = NewArmorType;
+	AttachmentType = NewAttachmentType;
+	WeaponType = NewWeaponType;
+}
+
+void UAttachmentSlot::EquipAttachment()
+{
+	ImageIcon->SetBrushFromTexture(ItemTexture);
+	ImageIcon->SetVisibility(ESlateVisibility::Visible);
+	IsEquipped = true;
+}
+
+void UAttachmentSlot::UnEquipAttachment()
 {
 	UE_LOG(LogTemp, Display, TEXT("UnEquipped"));
+	ImageIcon->SetVisibility(ESlateVisibility::Collapsed);
+	IsEquipped = false;
+	
+	switch (ItemType)
+	{
+	case EItemType::Armor:
+		InventoryComp->UnEquipArmor(ArmorType);
+		break;
+	case EItemType::Attachment:
+		InventoryComp->UnEquipAttachment(AttachmentType, WeaponType);
+		break;
+	}
 }

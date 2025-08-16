@@ -27,8 +27,9 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	// 인벤토리 아이템
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
-	TArray<FItemSlot> ItemSlots; // 인벤토리에서 관리하는 아이템 데이터
+	TArray<FItemSlot> ItemSlots;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
 	int32 InventorySize;
@@ -109,4 +110,8 @@ public:
 	
 	UPROPERTY()
 	FEquippedAttachment PistolAttachment; // 현재 장착중인 피스톨 부착물
+
+	
+	void UnEquipArmor(EArmorType ArmorType);
+	void UnEquipAttachment(EAttachmentType AttachmentType, EWeaponType WeaponType);
 };

@@ -9,6 +9,8 @@
 #include "ItemSlotPreview.h"
 #include "ItemSlotUI.generated.h"
 
+class UInventoryComponent;
+
 UCLASS()
 class XV_API UItemSlotUI : public UUserWidget
 {
@@ -44,6 +46,9 @@ protected:
 	UDataTable* ItemData;
 	
 public:
+
+	void SetWidgetData(FName NewItemID, EItemType NewItemType, int32 NewItemQuantity, int32 NewIndex, UInventoryComponent* NewInventoryComp);
+	
 	void SetItemData();
 	
 	UPROPERTY()

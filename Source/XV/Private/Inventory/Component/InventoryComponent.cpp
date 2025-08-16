@@ -501,3 +501,55 @@ void UInventoryComponent::EquipAttachment(const FAttachmentData& NewAttachment, 
 		}
 	}
 }
+
+void UInventoryComponent::UnEquipArmor(EArmorType ArmorType)
+{
+	// 방어구 장착 해제 필요
+	
+	switch (ArmorType)
+	{
+	case EArmorType::Helmet:
+		UE_LOG(LogTemp, Log, TEXT("UnEquip Helmet!!"));
+		EquippedArmor.Helmet = FArmorData();
+		break;
+	case EArmorType::Vest:
+		UE_LOG(LogTemp, Log, TEXT("UnEquip Helmet!!"));
+		EquippedArmor.Vest = FArmorData();
+		break;
+	}
+}
+
+void UInventoryComponent::UnEquipAttachment(EAttachmentType AttachmentType, EWeaponType WeaponType)
+{
+	// 총기 부착물 장착 해제 필요
+	switch (WeaponType)
+	{
+	case EWeaponType::Rifle:
+		switch (AttachmentType)
+		{
+		case EAttachmentType::Silencer:
+			UE_LOG(LogTemp, Log, TEXT("UnEquip Helmet!!"));
+			RifleAttachment.Silencer = FAttachmentData();
+			break;
+		case EAttachmentType::ExtendedMag:
+			UE_LOG(LogTemp, Log, TEXT("UnEquip Helmet!!"));
+			RifleAttachment.ExtendedMag = FAttachmentData();
+			break;
+		}
+		break;
+	case EWeaponType::Pistol:
+		switch (AttachmentType)
+		{
+		case EAttachmentType::Silencer:
+			UE_LOG(LogTemp, Log, TEXT("UnEquip Helmet!!"));
+			PistolAttachment.Silencer = FAttachmentData();
+			break;
+		case EAttachmentType::ExtendedMag:
+			UE_LOG(LogTemp, Log, TEXT("UnEquip Helmet!!"));
+			PistolAttachment.ExtendedMag = FAttachmentData();
+			break;
+		}
+		break;
+	}
+
+}
