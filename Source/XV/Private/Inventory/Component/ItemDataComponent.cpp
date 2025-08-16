@@ -7,6 +7,11 @@ UItemDataComponent::UItemDataComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
+void UItemDataComponent::SetItemQuantity(int32 NewItemQuantity)
+{
+	ItemQuantity = NewItemQuantity;
+}
+
 FItemData* UItemDataComponent::GetItemData()
 {
 	if (!ItemDataHandle.DataTable)
@@ -21,11 +26,6 @@ FItemData* UItemDataComponent::GetItemData()
 	}
 
 	return ItemRow;
-}
-
-FName UItemDataComponent::GetRowName()
-{
-	return ItemDataHandle.RowName;
 }
 
 void UItemDataComponent::PickUp(AActor* Interactor)

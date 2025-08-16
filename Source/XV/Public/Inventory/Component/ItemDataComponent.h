@@ -14,18 +14,23 @@ class XV_API UItemDataComponent : public UActorComponent
 public:
 	UItemDataComponent();
 
+	void SetItemQuantity(int32 NewItemQuantity);
+
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Item")
 	FDataTableRowHandle ItemDataHandle;
 
 	// 아이템별 획득 수량
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Item")
-	float ItemQuantity;
+	int32 ItemQuantity;
 		
+
+public:	
 	FItemData* GetItemData();
 
-public:
-	FName GetRowName();
+	FORCEINLINE FName GetRowName() const {return ItemDataHandle.RowName;}
+
+	FORCEINLINE int32 GetItemQuantity() const { return ItemQuantity; }
 	
 	void PickUp(AActor* Interactor);
 };

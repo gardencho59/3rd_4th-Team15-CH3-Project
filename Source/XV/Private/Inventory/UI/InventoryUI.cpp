@@ -6,6 +6,7 @@
 #include "Blueprint/DragDropOperation.h"
 #include "Components/Border.h"
 #include "Inventory/Component/InventoryComponent.h"
+#include "Weapon/WeaponTypes.h"
 
 UInventoryUI::UInventoryUI(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)

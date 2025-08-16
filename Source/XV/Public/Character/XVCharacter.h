@@ -141,15 +141,13 @@ protected:
 	float ZoomCameraLength;
 
 	// 인벤토리 관련
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	class UInteractionComponent* InteractionComp;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	class UInventoryComponent* InventoryComp;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item|UI")
-	class UWidgetComponent* InteractionWidget;
-
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	class UInteractionComponent* InteractionComp;
+	
 	// 카메라 앉기 관련 변수들
 	UPROPERTY(EditDefaultsOnly, Category = "Camera")
 	FVector StandCameraOffset; // 서 있을 때 카메라 높이
