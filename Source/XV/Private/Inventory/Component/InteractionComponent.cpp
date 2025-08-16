@@ -43,7 +43,7 @@ void UInteractionComponent::InteractionTrace()
 		for (const FHitResult& HitResult : HitResults)
 		{
 			TargetActor = HitResult.GetActor();
-			if (TargetActor && TargetActor->GetClass()->ImplementsInterface(UItemInterface::StaticClass()))
+			if (TargetActor && TargetActor->GetClass()->ImplementsInterface(UItemInterface::StaticClass()) && TargetActor->Tags.Contains(FName("Interactable")))
 			{
 				UItemDataComponent* ItemDataComp = TargetActor->FindComponentByClass<UItemDataComponent>();
 				if (ItemDataComp)

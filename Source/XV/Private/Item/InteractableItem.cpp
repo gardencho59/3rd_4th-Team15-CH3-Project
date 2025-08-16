@@ -20,7 +20,8 @@ AInteractableItem::AInteractableItem()
 	StaticMesh->SetupAttachment(Scene);
 	
 	ItemDataComp = CreateDefaultSubobject<UItemDataComponent>(TEXT("ItemData"));
-	
+
+	Tags.Add(FName("Interactable"));
 }
 
 void AInteractableItem::UseItem()
