@@ -11,6 +11,7 @@ class UAIStatusComponent;
 class UAIConfigComponent;
 class UXVDataAssetBase;
 class AXVControllerBase;
+class USoundBase;
 
 UCLASS()
 class XV_API AXVEnemyBase : public ACharacter
@@ -26,6 +27,9 @@ protected:
 
 	// === 컴포넌트 ========================================================================================================//
 protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
+	TObjectPtr<USoundBase> DeathSound;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
 	TObjectPtr<UAIConfigComponent> AIConfigComponent;
 
