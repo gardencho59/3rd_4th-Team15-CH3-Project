@@ -62,6 +62,7 @@ public:
 	
 	bool IsSilence() const;
 	bool IsMag() const;
+	bool IsEquiped(bool equiped);
 	
 	virtual FVector GetAimDirection() const override;
 	virtual FVector GetMuzzleLocation() const override;
@@ -103,6 +104,7 @@ protected:
 	int32 CurrentMaxAmmo;
 	int32 RemainingAmmo;
 	bool bIsReloading;
+	bool bIsEquiped;
 	bool bCanFire;
 
 	// 파츠 장착 상태
