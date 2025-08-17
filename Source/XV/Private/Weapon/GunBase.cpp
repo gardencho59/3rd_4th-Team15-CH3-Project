@@ -66,6 +66,9 @@ FVector AGunBase::GetAimDirection() const
 void AGunBase::SetAMMO(int32 SetAmmo)
 {
     RemainingAmmo = SetAmmo;
+
+    OnMagAmmoChanged.Broadcast(CurrentAmmo, GetMagSize());
+    OnReserveAmmoChanged.Broadcast(RemainingAmmo);
 }
 
 FVector AGunBase::GetMuzzleLocation() const
