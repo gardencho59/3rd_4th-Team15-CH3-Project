@@ -2,6 +2,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "Weapon/ProjectileBullet.h"
 #include "NiagaraFunctionLibrary.h"
+#include "Character/XVCharacter.h"
+#include "Inventory/Component/InventoryComponent.h"
 
 
 AGunBase::AGunBase()
@@ -302,6 +304,9 @@ void AGunBase::DetachExtendedMag()
         if (CurrentAmmo > DefaultMaxAmmo)
         {
             CurrentAmmo = DefaultMaxAmmo;
+            // ★ 시작 상태도 UI에 알려주기
+            OnMagAmmoChanged.Broadcast(CurrentAmmo, GetMagSize());
+            OnReserveAmmoChanged.Broadcast(RemainingAmmo);
         }
 
         bIsExtendedMagAttached = false;

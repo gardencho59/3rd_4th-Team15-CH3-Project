@@ -1043,7 +1043,7 @@ void AXVCharacter::Reload(const FInputActionValue& Value)
 	{
 		return;
 	}
-	if (bIsDie || bIsRun || CurrentWeaponActor->GetRemainingAmmo() <= 0) return;
+	if (bIsDie || bIsRun || CurrentWeaponActor->GetRemainingAmmo() <= 0 || CurrentWeaponActor->GetCurrentAmmo() == CurrentWeaponActor->GetCurrentMaxAmmo()) return;
 	if (CurrentWeaponType != EWeaponType::None && !CurrentWeaponActor->IsReloading())
 	{
 		auto Anim = Cast<UXVPlayerAnimInstance>(GetMesh()->GetAnimInstance());
