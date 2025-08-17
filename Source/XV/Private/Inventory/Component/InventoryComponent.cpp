@@ -30,35 +30,40 @@ void UInventoryComponent::BeginPlay()
 		FItemSlot& ItemSlot = ItemSlots[Index];
 		ResetSlot(&ItemSlot);
 	}
-	SetCurrentAMMO();
+	SetCurrentAMMO(EItemType::AMMORifle);
+	SetCurrentAMMO(EItemType::AMMOPistol);
 	UpdateInventory();
 
 	
 }
 
-void UInventoryComponent::SetCurrentAMMO()
+void UInventoryComponent::SetCurrentAMMO(EItemType ItemType)
 {
 	AActor* Owner = GetOwner();
 	AXVCharacter* XVCharacter = Cast<AXVCharacter>(Owner);
-	AGunBase* Rifle = XVCharacter->GetWeaponActor(EWeaponType::Rifle);
-	AGunBase* Pistol = XVCharacter->GetWeaponActor(EWeaponType::Pistol);
+	AGunBase* GunBase = XVCharacter->GetWeaponActor(ChangeItemTypeToWeaponType(ItemType));
 
-	int32 CurrentRifleAMMO = 0;
-	int32 CurrentPistolAMMO = 0;
+	int32 CurrentAMMO = 0;
 	for (FItemSlot& ItemSlot : ItemSlots)
 	{
-		switch (ItemSlot.ItemType)
+		if (ItemSlot.ItemType == ItemType)
 		{
-		case EItemType::AMMORifle:
-			CurrentRifleAMMO += ItemSlot.ItemQuantity;
-			break;
-		case EItemType::AMMOPistol:
-			CurrentPistolAMMO += ItemSlot.ItemQuantity;
-			break;
+			CurrentAMMO += ItemSlot.ItemQuantity;
 		}
 	}
-	Rifle->SetAMMO(CurrentRifleAMMO);
-	Pistol->SetAMMO(CurrentPistolAMMO);
+	GunBase->SetAMMO(CurrentAMMO);
+}
+
+EWeaponType UInventoryComponent::ChangeItemTypeToWeaponType(EItemType ItemType)
+{
+	switch (ItemType)
+	{
+	case EItemType::AMMORifle:
+		return EWeaponType::Rifle;
+	case EItemType::AMMOPistol:
+		return EWeaponType::Pistol;
+	}
+	return EWeaponType::None;
 }
 
 void UInventoryComponent::ResetSlot(FItemSlot* ItemSlot)
@@ -117,7 +122,7 @@ bool UInventoryComponent::PickUp(const FName& ItemID, const EItemType ItemType, 
 			}
 		}
 	}
-	SetCurrentAMMO();
+	SetCurrentAMMO(ItemType);
 	UpdateInventory();
 
 	if (bIsSuccess)
@@ -275,7 +280,7 @@ void UInventoryComponent::DropFromInventory(const FName ItemID, const EItemType 
 	
 	ResetSlot(&ItemSlots[SlotIndex]);
 
-	SetCurrentAMMO();
+	SetCurrentAMMO(ItemType);
 	UpdateInventory();
 	
 	FItemSFX ItemSFX = GetItemSFX(ItemID);
@@ -401,8 +406,6 @@ int32 UInventoryComponent::ConsumeAMMO(EItemType ItemType, int32 ItemQuantity)
 		if (FoundData[i]->ItemQuantity < NeedAMMO)
 		{
 			TargetAMMO += FoundData[i]->ItemQuantity;
-					
-			
 			ResetSlot(FoundData[i]);
 		}
 		else
@@ -415,7 +418,7 @@ int32 UInventoryComponent::ConsumeAMMO(EItemType ItemType, int32 ItemQuantity)
 			break;
 		}
 	}
-	SetCurrentAMMO();
+	SetCurrentAMMO(ItemType);
 	UpdateInventory();
 	return TargetAMMO;
 }
