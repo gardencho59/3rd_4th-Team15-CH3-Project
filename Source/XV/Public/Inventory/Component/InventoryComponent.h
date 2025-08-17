@@ -50,6 +50,8 @@ public:
 
 	void SetCurrentAMMO();
 
+	void ResetSlot(FItemSlot* ItemSlot);
+	
 	bool PickUp(const FName& ItemID, const EItemType, float ItemQuantity);
 
 	bool FindMatchingSlot(const FName& ItemID, int32& OutIndex);
@@ -75,6 +77,10 @@ public:
 	void SetItemQuantity(AActor* DroppedItem, const int32 SlotIndex);
 
 	void UseItem(const FName ItemID, const int32 ItemQuantity);
+
+	int32 UseAMMO(EWeaponType WeaponType, int32 ItemQuantity);
+	
+	int32 ConsumeAMMO(EItemType ItemType, int32 ItemQuantity);
 
 	void SortInventory();
 

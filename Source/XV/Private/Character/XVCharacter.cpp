@@ -1031,6 +1031,8 @@ void AXVCharacter::Reload(const FInputActionValue& Value)
 		{
 			Anim->PlayReloadAnim(CurrentWeaponActor);
 		}
+		int32 NeedAMMO = CurrentWeaponActor->GetMagSize() - CurrentWeaponActor->GetCurrentAmmo();
+		int32 CurrentAMMO = InventoryComp->UseAMMO(CurrentWeaponType, NeedAMMO);
 		CurrentWeaponActor->Reload();
 	}
 }
