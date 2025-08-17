@@ -13,6 +13,7 @@ AGunBase::AGunBase()
 
     bIsReloading = false;
     bCanFire = true;
+    bIsEquiped = false;
     bSilencerAttached = false;
     bIsExtendedMagAttached = false;
     CurrentAmmo = 0;
@@ -67,8 +68,11 @@ void AGunBase::SetAMMO(int32 SetAmmo)
 {
     RemainingAmmo = SetAmmo;
 
-    OnMagAmmoChanged.Broadcast(CurrentAmmo, GetMagSize());
-    OnReserveAmmoChanged.Broadcast(RemainingAmmo);
+    if (bIsEquiped)
+    {
+        OnMagAmmoChanged.Broadcast(CurrentAmmo, GetMagSize());
+        OnReserveAmmoChanged.Broadcast(RemainingAmmo);
+    }
 }
 
 FVector AGunBase::GetMuzzleLocation() const
@@ -137,7 +141,7 @@ void AGunBase::FireBullet()
 
 void AGunBase::Reload(int32 ReloadAmount)
 {
-    if (!WeaponDataAsset || bIsReloading || RemainingAmmo <= 0)
+    if (!WeaponDataAsset || bIsReloading)
         return;
 
     bIsReloading = true;
@@ -155,7 +159,7 @@ void AGunBase::Reload(int32 ReloadAmount)
 
 void AGunBase::FinishReload(int32 ReloadAmount)
 {
-    CurrentAmmo  = ReloadAmount;
+    CurrentAmmo  += ReloadAmount;
     bIsReloading = false;
     bCanFire     = true;
 
@@ -293,7 +297,7 @@ void AGunBase::DetachExtendedMag()
     if (bIsExtendedMagAttached && WeaponDataAsset)
     {
         // 원래 장탄 수로 복구
-        WeaponDataAsset->MaxAmmo = DefaultMaxAmmo;
+        CurrentMaxAmmo = DefaultMaxAmmo;
 
         if (CurrentAmmo > DefaultMaxAmmo)
         {
@@ -324,6 +328,12 @@ bool AGunBase::IsCanFire() const { return bCanFire; }
 
 bool AGunBase::IsSilence() const { return bSilencerAttached; }
 bool AGunBase::IsMag() const { return bIsExtendedMagAttached; }
+bool AGunBase::IsEquiped(bool equiped)
+{
+    bIsEquiped = equiped;
+    
+    return bIsEquiped;
+}
 
 int32 AGunBase::GetCurrentMaxAmmo() const { return CurrentMaxAmmo; }
 int32 AGunBase::GetRemainingAmmo() const { return RemainingAmmo; }
