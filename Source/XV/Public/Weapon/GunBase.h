@@ -55,7 +55,7 @@ public:
 	virtual void FireBullet() override;
 	
 	virtual void EmptyFireBullet() override;
-	virtual void Reload() override;
+	virtual void Reload(int32 ReloadAmount) override;
 	
 	virtual bool IsReloading() const override;
 	virtual bool IsCanFire() const override;
@@ -66,6 +66,9 @@ public:
 	virtual FVector GetAimDirection() const override;
 	virtual FVector GetMuzzleLocation() const override;
 
+
+	UFUNCTION(BlueprintPure, Category="Weapon|Ammo")
+	virtual int32 GetCurrentMaxAmmo() const;
 	UFUNCTION(BlueprintPure, Category="Weapon|Ammo")
 	virtual int32 GetRemainingAmmo() const override;
 	UFUNCTION(BlueprintPure, Category="Weapon|Ammo")
@@ -84,7 +87,7 @@ protected:
 	void SpawnBullet();
 	void PlayEffects();
 	void PlaySoundAtMuzzle(USoundBase* Sound) const;
-	void FinishReload();
+	void FinishReload(int32 ReloadAmount);
 	
 	UPROPERTY(VisibleAnywhere, Category = "Mesh")
 	USkeletalMeshComponent* GunMesh;

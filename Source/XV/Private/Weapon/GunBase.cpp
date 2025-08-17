@@ -135,7 +135,7 @@ void AGunBase::FireBullet()
     }, WeaponDataAsset->FireRate, false);
 }
 
-void AGunBase::Reload()
+void AGunBase::Reload(int32 ReloadAmount)
 {
     if (!WeaponDataAsset || bIsReloading || RemainingAmmo <= 0)
         return;
@@ -145,22 +145,17 @@ void AGunBase::Reload()
     PlaySoundAtMuzzle(WeaponDataAsset->ReloadSound);
 
     GetWorld()->GetTimerManager().SetTimer(
-        ReloadTimerHandle,
-        this,
-        &AGunBase::FinishReload,
-        WeaponDataAsset->ReloadTime,
-        false
-    );
+    ReloadTimerHandle,
+    [this, ReloadAmount]() { FinishReload(ReloadAmount); },  // 람다로 감싸기
+    WeaponDataAsset->ReloadTime,
+    false
+);
+
 }
 
-void AGunBase::FinishReload()
+void AGunBase::FinishReload(int32 ReloadAmount)
 {
-    const int32 MaxAmmo = CurrentMaxAmmo;
-    const int32 Needed  = MaxAmmo - CurrentAmmo;
-    const int32 ReloadAmount = FMath::Min(Needed, RemainingAmmo);
-
-    CurrentAmmo   += ReloadAmount;
-    RemainingAmmo -= ReloadAmount;
+    CurrentAmmo  = ReloadAmount;
     bIsReloading = false;
     bCanFire     = true;
 
@@ -330,6 +325,7 @@ bool AGunBase::IsCanFire() const { return bCanFire; }
 bool AGunBase::IsSilence() const { return bSilencerAttached; }
 bool AGunBase::IsMag() const { return bIsExtendedMagAttached; }
 
+int32 AGunBase::GetCurrentMaxAmmo() const { return CurrentMaxAmmo; }
 int32 AGunBase::GetRemainingAmmo() const { return RemainingAmmo; }
 int32 AGunBase::GetCurrentAmmo() const { return CurrentAmmo; }
 
