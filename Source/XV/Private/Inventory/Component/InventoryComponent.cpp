@@ -47,7 +47,7 @@ void UInventoryComponent::UpdateInventory()
 
 bool UInventoryComponent::PickUp(const FName& ItemID, const EItemType ItemType, float ItemQuantity)
 {
-	bIsFull = false;
+	bool bIsFull = false;
 	PrintInventory();
 	bool bIsSuccess = false;
 	while (ItemQuantity > 0 && !bIsFull)
@@ -344,33 +344,34 @@ void UInventoryComponent::SortInventory()
 	});
 }
 
-void UInventoryComponent::AddToInventory(const FName ItemID)
+bool UInventoryComponent::AddToInventory(const FName ItemID)
 {
-	if (!bIsFull)
+	int32 AvailableIndex = -1;
+	if (AnyAvailableSlots(AvailableIndex))
 	{
 		FItemData* ItemRow = GetItemData(ItemID);
 		if (!ItemRow)
 		{
-			return;
+			return false;
 		}
-		int32 AvailableIndex = -1;
-		if (AnyAvailableSlots(AvailableIndex))
-		{
-			AddToNewSlot(ItemID, ItemRow->ItemType, 1, AvailableIndex);
-		}
-		else
-		{
-			UE_LOG(LogTemp, Log, TEXT("Inventory Is Full!!"));
-		}
+		
+		AddToNewSlot(ItemID, ItemRow->ItemType, 1, AvailableIndex);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Log, TEXT("Inventory Is Full!!"));
+		return false;
 	}
 	UpdateInventory();
 	
 	FItemSFX ItemSFX = GetItemSFX(ItemID);
 	if (!ItemSFX.Move)
 	{
-		return;
+		return true;
 	}
 	PlaySFX(ItemSFX.Move);
+
+	return true;
 }
 
 float UInventoryComponent::GetItemQuantity(const FName ItemID)
