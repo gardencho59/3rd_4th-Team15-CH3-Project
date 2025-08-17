@@ -49,7 +49,7 @@ void UInteractionComponent::InteractionTrace()
 		Start,
 		End,
 		FQuat::Identity,
-		ECC_GameTraceChannel3,
+		ECC_WorldStatic,
 		FCollisionShape::MakeSphere(SphereRadius),
 		Params);
 		
@@ -80,6 +80,10 @@ void UInteractionComponent::InteractionTrace()
 			if (ItemDataComp)
 			{
 				FItemData* ItemData = ItemDataComp->GetItemData();
+				if (!ItemData)
+				{
+					return;
+				}
 				int32 ItemQuantity = ItemDataComp->GetItemQuantity();
 				SetUI(*ItemData, ItemQuantity, true);
 			}
