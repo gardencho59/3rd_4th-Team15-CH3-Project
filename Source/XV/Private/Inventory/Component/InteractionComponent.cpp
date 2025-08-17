@@ -74,12 +74,16 @@ void UInteractionComponent::InteractionTrace()
 			SetUI(FItemData(), 0, false);
 		}
 		TargetActor = NewTargetActor;
-		if (TargetActor && TargetActor->GetClass()->ImplementsInterface(UItemInterface::StaticClass()) && TargetActor->Tags.Contains(FName("Interactable")))
+		if (TargetActor && TargetActor->GetClass()->ImplementsInterface(UItemInterface::StaticClass())) // && TargetActor->Tags.Contains(FName("Interactable")))
 		{
 			UItemDataComponent* ItemDataComp = TargetActor->FindComponentByClass<UItemDataComponent>();
 			if (ItemDataComp)
 			{
 				FItemData* ItemData = ItemDataComp->GetItemData();
+				if (!ItemData)
+				{
+					return;
+				}
 				int32 ItemQuantity = ItemDataComp->GetItemQuantity();
 				SetUI(*ItemData, ItemQuantity, true);
 			}

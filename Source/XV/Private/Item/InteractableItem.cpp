@@ -11,20 +11,26 @@ AInteractableItem::AInteractableItem()
 	
 	PrimaryActorTick.bCanEverTick = false;
 
-	Scene = CreateDefaultSubobject<USceneComponent>(TEXT("SceneRoot"));
-	SetRootComponent(Scene);
+	// Scene = CreateDefaultSubobject<USceneComponent>(TEXT("SceneRoot"));
 
 	Collision = CreateDefaultSubobject<USphereComponent>(TEXT("Sphere Collision"));
 	Collision->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
-	Collision->SetupAttachment(Scene);
+	// Collision->SetupAttachment(Scene);
+	SetRootComponent(Collision);
 
 	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMesh"));
-	StaticMesh->SetupAttachment(Scene);
+	StaticMesh->SetupAttachment(Collision);
+
+	StaticMesh->SetSimulatePhysics(true);
+	StaticMesh->SetMassOverrideInKg(NAME_None, 500.0f, true);
+
+	StaticMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	StaticMesh->SetCollisionObjectType(ECC_GameTraceChannel3);
 	
 	ItemDataComp = CreateDefaultSubobject<UItemDataComponent>(TEXT("ItemData"));
 
 	InteractionWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("InteractionWidget"));
-	InteractionWidget->SetupAttachment(RootComponent);
+	InteractionWidget->SetupAttachment(Collision);
 
 	if (InteractionWidgetClass)
 	{
@@ -33,12 +39,8 @@ AInteractableItem::AInteractableItem()
 	InteractionWidget->SetWidgetSpace(EWidgetSpace::Screen);
 	InteractionWidget->SetDrawSize(FVector2D(300.0f, 100.0f));
 	
-	Tags.Add(FName("Interactable"));
-	
-	Collision->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	Collision->SetCollisionObjectType(ECC_GameTraceChannel3);
-	Collision->SetCollisionResponseToAllChannels(ECR_Ignore);
-	Collision->SetCollisionResponseToChannel(ECC_GameTraceChannel3, ECR_Block);
+	// Tags.Add(FName("Interactable"));
+
 }
 
 void AInteractableItem::UseItem()
@@ -53,14 +55,6 @@ float AInteractableItem::GetItemTime()
 float AInteractableItem::GetItemRemainTime()
 {
 	return ItemRemainTime;
-}
-
-void AInteractableItem::BeginPlay()
-{
-	Super::BeginPlay();
-
-	StaticMesh->SetSimulatePhysics(true);
-	StaticMesh->SetMassOverrideInKg(NAME_None, 50.0f, true);
 }
 
 void AInteractableItem::Interact()

@@ -28,7 +28,7 @@ protected:
 public:	
 	FItemData* GetItemData();
 
-	FORCEINLINE FName GetRowName() const {return ItemDataHandle.RowName;}
+	FName GetRowName();
 
 	FORCEINLINE int32 GetItemQuantity() const { return ItemQuantity; }
 	
