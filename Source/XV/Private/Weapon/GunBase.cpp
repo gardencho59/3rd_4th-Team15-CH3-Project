@@ -16,7 +16,7 @@ AGunBase::AGunBase()
     bSilencerAttached = false;
     bIsExtendedMagAttached = false;
     CurrentAmmo = 0;
-    RemainingAmmo = 70;
+    RemainingAmmo = 0;
 }
 
 FVector AGunBase::GetAimDirection() const
@@ -63,6 +63,10 @@ FVector AGunBase::GetAimDirection() const
     return FVector::ZeroVector;
 }
 
+void AGunBase::SetAMMO(int32 SetAmmo)
+{
+    RemainingAmmo = SetAmmo;
+}
 
 FVector AGunBase::GetMuzzleLocation() const
 {
@@ -250,7 +254,6 @@ void AGunBase::AttachSilencer()
 
     bSilencerAttached = true;
 }
-
 
 void AGunBase::DetachSilencer()
 {

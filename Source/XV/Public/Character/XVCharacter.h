@@ -70,6 +70,8 @@ public:
 	UFUNCTION(BlueprintPure)   AInteractableItem* GetCurrentItem() const { return CurrentItem; }
 	UFUNCTION(BlueprintPure)   int32 GetHealthPotionCount() const { return HealthPotionCount; }
 
+	AGunBase* GetWeaponActor(EWeaponType Weapon);
+	
 	void StartUseCurrentItem();
 	void StopUseCurrentItem();
 	void StartUseShieldItem();
