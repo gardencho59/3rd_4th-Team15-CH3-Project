@@ -69,14 +69,13 @@ void AGM_XVStartLevel::EndGame(bool bIsClear)
 		{
 			if (UXVGameInstance* XVGI = Cast<UXVGameInstance>(GI))
 			{
-				XVGI->IsWaiting = true;
 				UGameplayStatics::OpenLevel(GetWorld(), "Level_Laboratory_Demo");
 			}
 		}
 	}
 	else
 	{
-		UGameplayStatics::OpenLevel(GetWorld(), "Showcase");
+		Super::EndGame(bIsClear);
 	}
 }
 
