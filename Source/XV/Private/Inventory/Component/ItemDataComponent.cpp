@@ -28,6 +28,15 @@ FItemData* UItemDataComponent::GetItemData()
 	return ItemRow;
 }
 
+FName UItemDataComponent::GetRowName()
+{
+	if (ItemDataHandle.DataTable)
+	{
+		return ItemDataHandle.RowName;
+	}
+	return FName();
+}
+
 void UItemDataComponent::PickUp(AActor* Interactor)
 {
 	AActor* Owner = GetOwner();

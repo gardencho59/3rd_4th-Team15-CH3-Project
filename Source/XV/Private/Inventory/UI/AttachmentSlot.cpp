@@ -80,7 +80,12 @@ void UAttachmentSlot::NativeOnDragCancelled(const FDragDropEvent& InDragDropEven
 	// 인베토리 안일 때
 	if (InventoryUI->IsOverInventory(DropPos))
 	{
-		InventoryComp->AddToInventory(ItemID);
+		bool IsSuccess = InventoryComp->AddToInventory(ItemID);
+		UE_LOG(LogTemp, Log, TEXT("IsSuccess: %s"), IsSuccess ? TEXT("true") : TEXT("false"));
+		if (!IsSuccess)
+		{
+			return;
+		}
 		UnEquipAttachment();
 		return;
 	}

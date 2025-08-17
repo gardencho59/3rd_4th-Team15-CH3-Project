@@ -76,7 +76,7 @@ public:
 
 	void SortInventory();
 
-	void AddToInventory(const FName ItemID);
+	bool AddToInventory(const FName ItemID);
 
 	// Getter 함수
 	
@@ -90,8 +90,6 @@ public:
 	void PrintInventory(); // 디버깅용
 
 	const TArray<FItemSlot>& GetItemSlots() const {return ItemSlots;}
-
-	bool bIsFull = false;
 	
 	// 방어구 및 부착물 관련
 	
