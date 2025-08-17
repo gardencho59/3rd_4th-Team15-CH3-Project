@@ -28,9 +28,7 @@ void UInventoryComponent::BeginPlay()
 	for (int32 Index = Added; Index < InventorySize; ++Index)
 	{
 		FItemSlot& ItemSlot = ItemSlots[Index];
-		ItemSlot.ItemID = NAME_None;
-		ItemSlot.ItemType = EItemType::None;
-		ItemSlot.ItemQuantity = 0.f;
+		ResetSlot(&ItemSlot);
 	}
 	SetCurrentAMMO();
 	UpdateInventory();
@@ -61,6 +59,13 @@ void UInventoryComponent::SetCurrentAMMO()
 	}
 	Rifle->SetAMMO(CurrentRifleAMMO);
 	Pistol->SetAMMO(CurrentPistolAMMO);
+}
+
+void UInventoryComponent::ResetSlot(FItemSlot* ItemSlot)
+{
+	ItemSlot->ItemID = NAME_None;
+	ItemSlot->ItemType = EItemType::None;
+	ItemSlot->ItemQuantity = 0.f;
 }
 
 void UInventoryComponent::UpdateInventory()
@@ -267,10 +272,10 @@ void UInventoryComponent::DropFromInventory(const FName ItemID, const EItemType 
 		}
 	}
 	
-	ItemSlots[SlotIndex].ItemID = NAME_None;
-	ItemSlots[SlotIndex].ItemType = EItemType::None;
-	ItemSlots[SlotIndex].ItemQuantity = 0;
 	
+	ResetSlot(&ItemSlots[SlotIndex]);
+
+	SetCurrentAMMO();
 	UpdateInventory();
 	
 	FItemSFX ItemSFX = GetItemSFX(ItemID);
@@ -348,14 +353,71 @@ void UInventoryComponent::UseItem(const FName ItemID, const int32 ItemQuantity)
 			ItemSlot.ItemQuantity -= ItemQuantity;
 			if (ItemSlot.ItemQuantity == 0)
 			{
-				ItemSlot.ItemID = NAME_None;
-				ItemSlot.ItemType = EItemType::None;
-				ItemSlot.ItemQuantity = 0;
+				ResetSlot(&ItemSlot);
 			}
 			UpdateInventory();
 			return;
 		}
 	}
+}
+
+int32 UInventoryComponent::UseAMMO(EWeaponType WeaponType, int32 ItemQuantity)
+{
+
+	switch (WeaponType)
+	{
+	case EWeaponType::Rifle:
+		return ConsumeAMMO(EItemType::AMMORifle, ItemQuantity);
+
+	case EWeaponType::Pistol:
+		return ConsumeAMMO(EItemType::AMMOPistol, ItemQuantity);
+	}
+	return 0.f;
+}
+
+int32 UInventoryComponent::ConsumeAMMO(EItemType ItemType, int32 ItemQuantity)
+{
+	TArray<FItemSlot*> FoundData;
+	int32 CurrentAMMO = 0;
+	int32 TargetAMMO = 0;
+
+	for (FItemSlot& ItemSlot : ItemSlots)
+	{
+		if (ItemSlot.ItemType == ItemType)
+		{
+			FoundData.Add(&ItemSlot);
+			CurrentAMMO += ItemSlot.ItemQuantity;
+		}
+	}
+		
+	if (CurrentAMMO == 0)
+	{
+		return TargetAMMO;
+	}
+	for (int32 i = FoundData.Num() - 1; i >= 0; --i)
+	{
+		int32 NeedAMMO = ItemQuantity - TargetAMMO;
+			
+		if (FoundData[i]->ItemQuantity < NeedAMMO)
+		{
+			TargetAMMO += FoundData[i]->ItemQuantity;
+					
+			
+			ResetSlot(FoundData[i]);
+		}
+		else
+		{
+			TargetAMMO += NeedAMMO;
+			FoundData[i]->ItemQuantity -= NeedAMMO;
+		}
+		if (TargetAMMO >= ItemQuantity)
+		{
+			break;
+		}
+	}
+	SetCurrentAMMO();
+	UpdateInventory();
+	return TargetAMMO;
 }
 
 void UInventoryComponent::SortInventory()
@@ -468,9 +530,7 @@ void UInventoryComponent::EquipArmor(const FArmorData& NewArmor, EArmorType Armo
 		if (ItemSlot.ItemID == NewArmor.ArmorName)
 		{
 			UE_LOG(LogTemp, Log, TEXT("NewArmor: %s"), *NewArmor.ArmorName.ToString());
-			ItemSlot.ItemID = NAME_None;
-			ItemSlot.ItemType = EItemType::None;
-			ItemSlot.ItemQuantity = 0;
+			ResetSlot(&ItemSlot);
 			UpdateInventory();
 			return;
 		}
@@ -523,9 +583,7 @@ void UInventoryComponent::EquipAttachment(const FAttachmentData& NewAttachment, 
 		if (ItemSlot.ItemID == NewAttachment.AttachmentName)
 		{
 			UE_LOG(LogTemp, Log, TEXT("NewAttachment: %s"), *NewAttachment.AttachmentName.ToString());
-			ItemSlot.ItemID = NAME_None;
-			ItemSlot.ItemType = EItemType::None;
-			ItemSlot.ItemQuantity = 0;
+			ResetSlot(&ItemSlot);
 			UpdateInventory();
 			return;
 		}
