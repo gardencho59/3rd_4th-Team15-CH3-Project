@@ -32,20 +32,35 @@ void UInventoryComponent::BeginPlay()
 		ItemSlot.ItemType = EItemType::None;
 		ItemSlot.ItemQuantity = 0.f;
 	}
+	SetCurrentAMMO();
 	UpdateInventory();
 
 	
 }
 
-void UInventoryComponent::SetCurrentAMMO(FName ItemID)
+void UInventoryComponent::SetCurrentAMMO()
 {
 	AActor* Owner = GetOwner();
 	AXVCharacter* XVCharacter = Cast<AXVCharacter>(Owner);
-	AGunBase* Pistol = XVCharacter->GetWeaponActor(EWeaponType::Pistol);
 	AGunBase* Rifle = XVCharacter->GetWeaponActor(EWeaponType::Rifle);
+	AGunBase* Pistol = XVCharacter->GetWeaponActor(EWeaponType::Pistol);
 
-	//Pistol->SetAMMO();
-	//Rifle->SetAMMO();
+	int32 CurrentRifleAMMO = 0;
+	int32 CurrentPistolAMMO = 0;
+	for (FItemSlot& ItemSlot : ItemSlots)
+	{
+		switch (ItemSlot.ItemType)
+		{
+		case EItemType::AMMORifle:
+			CurrentRifleAMMO += ItemSlot.ItemQuantity;
+			break;
+		case EItemType::AMMOPistol:
+			CurrentPistolAMMO += ItemSlot.ItemQuantity;
+			break;
+		}
+	}
+	Rifle->SetAMMO(CurrentRifleAMMO);
+	Pistol->SetAMMO(CurrentPistolAMMO);
 }
 
 void UInventoryComponent::UpdateInventory()
@@ -97,6 +112,7 @@ bool UInventoryComponent::PickUp(const FName& ItemID, const EItemType ItemType, 
 			}
 		}
 	}
+	SetCurrentAMMO();
 	UpdateInventory();
 
 	if (bIsSuccess)
@@ -238,7 +254,7 @@ void UInventoryComponent::DropFromInventory(const FName ItemID, const EItemType 
 {
 	
 	
-	if (ItemType == EItemType::AMMO)
+	if (ItemType == EItemType::AMMOPistol || ItemType == EItemType::AMMORifle)
 	{
 		AActor* DroppedItem = SpawnItem(ItemID);
 		SetItemQuantity(DroppedItem, SlotIndex);

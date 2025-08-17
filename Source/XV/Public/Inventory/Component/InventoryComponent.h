@@ -48,7 +48,7 @@ public:
 	
 	void UpdateInventory();
 
-	void SetCurrentAMMO(FName ItemID);
+	void SetCurrentAMMO();
 
 	bool PickUp(const FName& ItemID, const EItemType, float ItemQuantity);
 
