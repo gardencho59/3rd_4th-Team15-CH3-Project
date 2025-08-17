@@ -39,7 +39,7 @@ AInteractableItem::AInteractableItem()
 	InteractionWidget->SetWidgetSpace(EWidgetSpace::Screen);
 	InteractionWidget->SetDrawSize(FVector2D(300.0f, 100.0f));
 	
-	Tags.Add(FName("Interactable"));
+	// Tags.Add(FName("Interactable"));
 
 }
 

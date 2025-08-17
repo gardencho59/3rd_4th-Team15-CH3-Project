@@ -49,7 +49,7 @@ void UInteractionComponent::InteractionTrace()
 		Start,
 		End,
 		FQuat::Identity,
-		ECC_WorldStatic,
+		ECC_GameTraceChannel3,
 		FCollisionShape::MakeSphere(SphereRadius),
 		Params);
 		
@@ -74,7 +74,7 @@ void UInteractionComponent::InteractionTrace()
 			SetUI(FItemData(), 0, false);
 		}
 		TargetActor = NewTargetActor;
-		if (TargetActor && TargetActor->GetClass()->ImplementsInterface(UItemInterface::StaticClass()) && TargetActor->Tags.Contains(FName("Interactable")))
+		if (TargetActor && TargetActor->GetClass()->ImplementsInterface(UItemInterface::StaticClass())) // && TargetActor->Tags.Contains(FName("Interactable")))
 		{
 			UItemDataComponent* ItemDataComp = TargetActor->FindComponentByClass<UItemDataComponent>();
 			if (ItemDataComp)
