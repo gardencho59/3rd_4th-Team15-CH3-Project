@@ -38,7 +38,7 @@ void UInteractionUI::SetUI()
 	}
 
 	FText Message;
-	if (ItemData.ItemType == EItemType::AMMO)
+	if (ItemData.ItemType == EItemType::AMMORifle || ItemData.ItemType == EItemType::AMMOPistol)
 	{
 		Message = FText::Format(
 			FText::FromString("{0} x {1}"),
