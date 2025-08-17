@@ -1,14 +1,23 @@
 #include "System/XVBaseGameMode.h"
 
-#include "VisualizeTexture.h"
+#include "AIController.h"
 #include "System/XVGameState.h"
 #include "Kismet/GameplayStatics.h"
 #include "World/SpawnVolume.h"
 #include "AI/Character/Base/XVEnemyBase.h"
 #include "Blueprint/UserWidget.h"
+#include "Character/XVCharacter.h"
 #include "GameFramework/PlayerController.h"
 #include "System/XVGameInstance.h"
+#include "GameFramework/Character.h"
+#include "Components/CapsuleComponent.h"
+#include "Perception/AIPerceptionStimuliSourceComponent.h"
+#include "Perception/AIPerceptionComponent.h"
 
+AXVBaseGameMode::AXVBaseGameMode()
+{
+	MaxLevel = 4;
+}
 
 void AXVBaseGameMode::BeginPlay()
 {
@@ -175,6 +184,87 @@ void AXVBaseGameMode::OnEnemyKilled()
 	}
 }
 
+void AXVBaseGameMode::RespawnPlayer(AController* Controller, float RespawnDelay)
+{
+	if (!Controller) return;
+
+	APawn* DeadPawn = Controller->GetPawn();
+	if (!DeadPawn) return;
+
+	FVector RespawnLocation = DeadPawn->GetActorLocation();
+	FRotator RespawnRotation = DeadPawn->GetActorRotation();
+	
+	Controller->UnPossess();
+	if (AXVCharacter* DeadCharacter = Cast<AXVCharacter>(DeadPawn))
+	{
+		if (UAIPerceptionStimuliSourceComponent* Stimuli = DeadCharacter->FindComponentByClass<UAIPerceptionStimuliSourceComponent>())
+		{
+			Stimuli->UnregisterFromPerceptionSystem();
+		}
+
+		TArray<AActor*> FoundPawns;
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), APawn::StaticClass(), FoundPawns);
+
+		for (AActor* Actor : FoundPawns)
+		{
+			APawn* Pawn = Cast<APawn>(Actor);
+			if (!Pawn) continue;
+
+			AAIController* AICon = Cast<AAIController>(Pawn->GetController());
+			if (!AICon) continue;
+
+			if (UAIPerceptionComponent* Perception = AICon->FindComponentByClass<UAIPerceptionComponent>())
+			{
+				Perception->ForgetActor(DeadCharacter);
+			}
+		}
+		
+		DeadCharacter->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+	
+	FTimerHandle TimerHandle;
+	GetWorldTimerManager().SetTimer(TimerHandle, [this, Controller, DeadPawn, RespawnLocation, RespawnRotation]()
+	{
+		
+		if (AXVCharacter* DeadCharacter = Cast<AXVCharacter>(DeadPawn))
+		{
+			
+			DeadCharacter->SetActorLocation(RespawnLocation, false, nullptr, ETeleportType::TeleportPhysics);
+			DeadCharacter->SetActorRotation(RespawnRotation);
+			
+
+			if (USkeletalMeshComponent* Mesh = DeadCharacter->GetMesh())
+			{
+				Mesh->SetSimulatePhysics(false);
+				Mesh->SetCollisionProfileName(TEXT("Pawn"));
+				Mesh->AttachToComponent(
+				DeadCharacter->GetCapsuleComponent(),
+				FAttachmentTransformRules::KeepRelativeTransform
+				);
+			}
+			
+			DeadCharacter->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+			
+			if (UAIPerceptionStimuliSourceComponent* Stimuli = DeadCharacter->FindComponentByClass<UAIPerceptionStimuliSourceComponent>())
+			{
+				Stimuli->RegisterWithPerceptionSystem();
+			}
+			
+			DeadCharacter->CurrentHealth = DeadCharacter->MaxHealth;
+			DeadCharacter->bIsDie = false;
+
+			if (UAnimInstance* AnimInstance = DeadCharacter->GetMesh()->GetAnimInstance())
+			{
+				AnimInstance->StopAllMontages(0.2f);
+			}
+			
+			DeadCharacter->GetMesh()->GetAnimInstance()->Montage_Stop(0.0f);
+			
+			Controller->Possess(DeadCharacter);
+		}
+	}, RespawnDelay, false);
+}
+
 void AXVBaseGameMode::OnWaveTriggered()
 {
 	if (AXVGameState* GS = GetGameState<AXVGameState>())
@@ -189,9 +279,38 @@ void AXVBaseGameMode::OnWaveTriggered()
 
 void AXVBaseGameMode::EndGame(bool bIsClear)
 {
-	if (AXVGameState* GS = GetGameState<AXVGameState>())
+	if (bIsClear)
 	{
-		GS->SpawnPatrolEnemyCount = 0;
+		if (UGameInstance* GI = GetGameInstance())
+		{
+			if (UXVGameInstance* XVGI = Cast<UXVGameInstance>(GI))
+			{
+				if (XVGI->CurrentLevelIdx <	MaxLevel)
+				{
+					XVGI->CurrentLevelIdx++;
+					if (AXVGameState* GS = GetGameState<AXVGameState>())
+					{
+						if (!GS->IsWaveTriggered) return;
+						GS->IsWaveTriggered = false;
+					}
+				}
+				else
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Game Clear!"));
+				}
+			}
+		}
+	}
+	else
+	{
+		if (APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0))
+		{
+			if (AXVGameState* GS = GetGameState<AXVGameState>())
+			{
+				GS->IsWaveTriggered = false;
+			}
+			RespawnPlayer(PC, 1.0f);
+		}
 	}
 }
 

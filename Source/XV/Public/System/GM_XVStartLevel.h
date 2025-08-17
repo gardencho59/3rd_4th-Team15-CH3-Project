@@ -18,8 +18,7 @@ public:
 	virtual void OnEnemyKilled() override;
 	virtual void OnWaveTriggered() override;
 	virtual void EndGame(bool bIsClear) override;
-
-	bool IsOutdoor;
+	
 	bool bWavePending;
 	float Delay;
 

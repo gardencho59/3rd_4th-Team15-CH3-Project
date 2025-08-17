@@ -185,12 +185,9 @@ void AXVControllerBase::OnTargetInfoUpdated(AActor* Actor, FAIStimulus Stimulus)
 	{
 		if (UXVGameInstance* XVGI = Cast<UXVGameInstance>(GI))
 		{
-			if (!XVGI->IsOutdoor)
+			if (AXVBaseGameMode* BaseGameMode = Cast<AXVBaseGameMode>(GetWorld()->GetAuthGameMode()))
 			{
-				if (AXVBaseGameMode* BaseGameMode = Cast<AXVBaseGameMode>(GetWorld()->GetAuthGameMode()))
-				{
-					BaseGameMode->OnWaveTriggered();
-				}
+				BaseGameMode->OnWaveTriggered();
 			}
 		}
 	}
