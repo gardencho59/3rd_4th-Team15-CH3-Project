@@ -48,7 +48,9 @@ public:
 	
 	void UpdateInventory();
 
-	void SetCurrentAMMO();
+	void SetCurrentAMMO(EItemType ItemType);
+
+	EWeaponType ChangeItemTypeToWeaponType(EItemType ItemType);
 
 	void ResetSlot(FItemSlot* ItemSlot);
 	
