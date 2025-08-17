@@ -415,6 +415,7 @@ int32 UInventoryComponent::ConsumeAMMO(EItemType ItemType, int32 ItemQuantity)
 			break;
 		}
 	}
+	SetCurrentAMMO();
 	UpdateInventory();
 	return TargetAMMO;
 }
