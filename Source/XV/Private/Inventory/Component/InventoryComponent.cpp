@@ -1,6 +1,7 @@
 #include "Inventory/Component/InventoryComponent.h"
 #include "Inventory/Component/ItemDataComponent.h"
 #include "Character/XVCharacter.h"
+#include "Weapon/GunBase.h"
 #include "Inventory/Data/Item/ItemSlot.h"
 #include "Inventory/Data/Item/ItemData.h"
 #include "Inventory/Data/Item/ItemType.h"
@@ -32,6 +33,19 @@ void UInventoryComponent::BeginPlay()
 		ItemSlot.ItemQuantity = 0.f;
 	}
 	UpdateInventory();
+
+	
+}
+
+void UInventoryComponent::SetCurrentAMMO(FName ItemID)
+{
+	AActor* Owner = GetOwner();
+	AXVCharacter* XVCharacter = Cast<AXVCharacter>(Owner);
+	AGunBase* Pistol = XVCharacter->GetWeaponActor(EWeaponType::Pistol);
+	AGunBase* Rifle = XVCharacter->GetWeaponActor(EWeaponType::Rifle);
+
+	//Pistol->SetAMMO();
+	//Rifle->SetAMMO();
 }
 
 void UInventoryComponent::UpdateInventory()
@@ -450,7 +464,10 @@ void UInventoryComponent::EquipArmor(const FArmorData& NewArmor, EArmorType Armo
 void UInventoryComponent::EquipAttachment(const FAttachmentData& NewAttachment, EAttachmentType AttachmentType, EWeaponType WeaponType)
 {
 	// 무기 부착 관련 함수
-
+	AActor* Owner = GetOwner();
+	AXVCharacter* XVCharacter = Cast<AXVCharacter>(Owner);
+	AGunBase* GunBase = XVCharacter->GetWeaponActor(WeaponType);
+	
 	UE_LOG(LogTemp, Log, TEXT("WeaponType: %s"), *StaticEnum<EWeaponType>()->GetNameStringByValue(static_cast<int64>(WeaponType)));
 	switch (AttachmentType)
 	{
@@ -460,10 +477,12 @@ void UInventoryComponent::EquipAttachment(const FAttachmentData& NewAttachment, 
 		case EWeaponType::Rifle:
 			UE_LOG(LogTemp, Log, TEXT("Equip Silencer To Rifle"));
 			RifleAttachment.Silencer = NewAttachment;
+			GunBase->AttachSilencer();
 			break;
 		case EWeaponType::Pistol:
 			UE_LOG(LogTemp, Log, TEXT("Equip Silencer To Pistol"));
 			PistolAttachment.Silencer = NewAttachment;
+			GunBase->AttachSilencer();
 			break;
 		}
 		break;
@@ -473,10 +492,12 @@ void UInventoryComponent::EquipAttachment(const FAttachmentData& NewAttachment, 
 		case EWeaponType::Rifle:
 			UE_LOG(LogTemp, Log, TEXT("Equip ExtendedMag To Rifle"));
 			RifleAttachment.ExtendedMag = NewAttachment;
+			GunBase->AttachExtendedMag();
 			break;
 		case EWeaponType::Pistol:
 			UE_LOG(LogTemp, Log, TEXT("Equip ExtendedMag To Pistol"));
 			PistolAttachment.ExtendedMag = NewAttachment;
+			GunBase->AttachExtendedMag();
 			break;
 		}
 		break;
@@ -517,19 +538,25 @@ void UInventoryComponent::UnEquipArmor(EArmorType ArmorType)
 
 void UInventoryComponent::UnEquipAttachment(EAttachmentType AttachmentType, EWeaponType WeaponType)
 {
-	// 총기 부착물 장착 해제 필요
+	// 총기 부착물 장착 해제
+	AActor* Owner = GetOwner();
+	AXVCharacter* XVCharacter = Cast<AXVCharacter>(Owner);
+	AGunBase* GunBase = XVCharacter->GetWeaponActor(WeaponType);
+	
 	switch (WeaponType)
 	{
 	case EWeaponType::Rifle:
 		switch (AttachmentType)
 		{
 		case EAttachmentType::Silencer:
-			UE_LOG(LogTemp, Log, TEXT("UnEquip Helmet!!"));
+			UE_LOG(LogTemp, Log, TEXT("UnEquip Silencer!!"));
 			RifleAttachment.Silencer = FAttachmentData();
+			GunBase->DetachSilencer();
 			break;
 		case EAttachmentType::ExtendedMag:
-			UE_LOG(LogTemp, Log, TEXT("UnEquip Helmet!!"));
+			UE_LOG(LogTemp, Log, TEXT("UnEquip ExtendedMag!!"));
 			RifleAttachment.ExtendedMag = FAttachmentData();
+			GunBase->DetachExtendedMag();
 			break;
 		}
 		break;
@@ -537,12 +564,14 @@ void UInventoryComponent::UnEquipAttachment(EAttachmentType AttachmentType, EWea
 		switch (AttachmentType)
 		{
 		case EAttachmentType::Silencer:
-			UE_LOG(LogTemp, Log, TEXT("UnEquip Helmet!!"));
+			UE_LOG(LogTemp, Log, TEXT("UnEquip Silencer!!"));
 			PistolAttachment.Silencer = FAttachmentData();
+			GunBase->DetachSilencer();
 			break;
 		case EAttachmentType::ExtendedMag:
-			UE_LOG(LogTemp, Log, TEXT("UnEquip Helmet!!"));
+			UE_LOG(LogTemp, Log, TEXT("UnEquip ExtendedMag!!"));
 			PistolAttachment.ExtendedMag = FAttachmentData();
+			GunBase->DetachExtendedMag();
 			break;
 		}
 		break;

@@ -48,6 +48,8 @@ public:
 	
 	void UpdateInventory();
 
+	void SetCurrentAMMO(FName ItemID);
+
 	bool PickUp(const FName& ItemID, const EItemType, float ItemQuantity);
 
 	bool FindMatchingSlot(const FName& ItemID, int32& OutIndex);

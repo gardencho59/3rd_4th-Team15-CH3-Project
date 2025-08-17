@@ -47,10 +47,13 @@ public:
 	
 	AGunBase();
 
+	void SetAMMO(int32 SetAmmo);
+
 	virtual void BeginPlay() override;
 
 	UFUNCTION(Blueprintable)
 	virtual void FireBullet() override;
+	
 	virtual void EmptyFireBullet() override;
 	virtual void Reload() override;
 	

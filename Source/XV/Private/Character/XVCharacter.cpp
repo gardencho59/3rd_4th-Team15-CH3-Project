@@ -278,6 +278,20 @@ void AXVCharacter::UnEquipArmor(EArmorType Armor)
 	BroadcastArmor();
 }
 
+AGunBase* AXVCharacter::GetWeaponActor(EWeaponType Weapon)
+{
+	switch (Weapon)
+	{
+	case EWeaponType::Pistol:
+		return Cast<AGunBase>(SubWeapon->GetChildActor());
+		
+	case EWeaponType::Rifle:
+		return Cast<AGunBase>(PrimaryWeapon->GetChildActor());
+	}
+
+	return nullptr;
+}
+
 void AXVCharacter::SetWeapon(EWeaponType Weapon)
 { // 일단 타입마다 필요한게 있을 까 싶어 나눴는데 추가 기능 없으면 간략하게 변경해도 될듯
 	if (CurrentWeaponType == Weapon) // 현재 무기와 동일한 무기가 매개변수로 들어온 경우 => 장착 해제
