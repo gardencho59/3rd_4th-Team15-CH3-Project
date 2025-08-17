@@ -287,9 +287,12 @@ protected:
 		AActor* OtherActor,
 		UPrimitiveComponent* OtherComp,
 		int32 OtherBodyIndex);
-	
+
+public:
 	UPROPERTY(BlueprintReadOnly, Category="State")
 	bool bIsDie;
+	float CurrentHealth;
+	float MaxHealth;
 
 private:
 	AInteractableItem* SpawnPotionForUse(FName ItemName);
@@ -299,8 +302,6 @@ private:
 	void BroadcastArmor();
 
 	// 캐릭터 스테이터스
-	float CurrentHealth;
-	float MaxHealth;
 	float TurnRate;
 	float ShieldAmount;
 	float HelmetAmount; // 헬멧 체력 추가량
