@@ -316,6 +316,7 @@ private:
 	bool bIsLookLeft;
 	bool bZoomLookLeft;
 	bool bIsShieldActive;
+	bool bIsReset;
 	
 	FTimerHandle DieTimerHandle;
 	FTimerHandle ShieldTimerHandle;
