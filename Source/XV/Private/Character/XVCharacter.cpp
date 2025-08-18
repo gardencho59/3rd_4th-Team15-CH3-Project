@@ -12,7 +12,6 @@
 #include "System/XVBaseGameMode.h"
 #include "Inventory/Component/InteractionComponent.h"
 #include "Inventory/Component/InventoryComponent.h"
-#include "Components/WidgetComponent.h"
 #include "UIFollowerComponent.h"
 #include "Components/BoxComponent.h"
 #include "Item/BandageItem.h"
@@ -56,6 +55,7 @@ AXVCharacter::AXVCharacter()
 	bZoomLookLeft = false;
 	bIsDie = false;
 	bIsShieldActive = false;
+	bIsReset = true;
 
 	GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
 
@@ -238,22 +238,31 @@ void AXVCharacter::SetArmor(const FArmorData& NewArmor, EArmorType Armor)
 {
 	if (Armor == EArmorType::Helmet)
 	{
-		SetMaxHealth(CurrentHealth - HelmetAmount); // 체력 중복 증가 방지
+		if (HelmetLevel == NewArmor.ArmorLevel && !bIsReset) return;
+		
+		SetMaxHealth(MaxHealth + NewArmor.ArmorHealth);
+		SetMaxHealth(MaxHealth - HelmetAmount); // 체력 중복 증가 방지
 		UE_LOG(LogTemp, Log, TEXT("Equip EArmorType : Helmet"));
 		HelmetMesh->SetStaticMesh(NewArmor.ArmorMesh);
 		HelmetAmount = NewArmor.ArmorHealth;
 		HelmetLevel = NewArmor.ArmorLevel;
+		
+		bIsReset = false;
 	}
 	if (Armor == EArmorType::Vest)
 	{
-		SetMaxHealth(CurrentHealth - VestAmount); // 체력 중복 증가 방지
+		if (VestLevel == NewArmor.ArmorLevel && !bIsReset) return; // 동일 아이템 무시
+		
+		SetMaxHealth(MaxHealth + NewArmor.ArmorHealth);
+		SetMaxHealth(MaxHealth - VestAmount); // 체력 중복 증가 방지
 		UE_LOG(LogTemp, Log, TEXT("Equip EArmorType : Vest"));
 		VestMesh->SetStaticMesh(NewArmor.ArmorMesh);
 		VestAmount = NewArmor.ArmorHealth;
 		VestLevel = NewArmor.ArmorLevel;
+
+		bIsReset = false;
 	}
-	SetMaxHealth(CurrentHealth + NewArmor.ArmorHealth);
-	AddHealth(NewArmor.ArmorHealth);
+	//AddHealth(NewArmor.ArmorHealth);
 	BroadcastArmor();
 }
 
@@ -263,7 +272,7 @@ void AXVCharacter::UnEquipArmor(EArmorType Armor)
 	{
 		UE_LOG(LogTemp, Log, TEXT("UnEquip EArmorType : Helmet"));
 		HelmetMesh->SetStaticMesh(nullptr);
-		SetMaxHealth(CurrentHealth - HelmetAmount);
+		SetMaxHealth(MaxHealth - HelmetAmount);
 		HelmetAmount = 0;
 		HelmetLevel = 0;
 	}
@@ -271,7 +280,7 @@ void AXVCharacter::UnEquipArmor(EArmorType Armor)
 	{
 		UE_LOG(LogTemp, Log, TEXT("UnEquip EArmorType : Vest"));
 		VestMesh->SetStaticMesh(nullptr);
-		SetMaxHealth(CurrentHealth - VestAmount);
+		SetMaxHealth(MaxHealth - VestAmount);
 		VestAmount = 0;
 		VestLevel = 0;
 	}
@@ -1246,6 +1255,13 @@ void AXVCharacter::FinishShield()
 { // 지속 시간 이후 원래 체력으로 복구
 	UE_LOG(LogTemp, Warning, TEXT("Finish Shield"));
 	SetMaxHealth(MaxHealth - ShieldAmount);
+	
+	if (CurrentHealth > ShieldAmount)
+	{
+		float Health = CurrentHealth - ShieldAmount;
+		AddHealth(-Health);
+	}
+
 	bIsShieldActive = false;
 	GetWorld()->GetTimerManager().ClearTimer(ShieldRemainTimerHandle);
 }
