@@ -112,6 +112,20 @@ public:
 	UPROPERTY()
 	FEquippedAttachment PistolAttachment; // 현재 장착중인 피스톨 부착물
 
+
+	// Getter
+	
+	FORCEINLINE TArray<FItemSlot> GetItemSlots() { return ItemSlots; }
+	FORCEINLINE FEquippedArmor GetEquippedArmor() { return EquippedArmor; }
+	FORCEINLINE FEquippedAttachment GetEquippedRifleAttachment() { return RifleAttachment; }
+	FORCEINLINE FEquippedAttachment GetEquippedPistolAttachment() { return PistolAttachment; }
+	
+	// Setter
+	FORCEINLINE void SetItemSlots(const TArray<FItemSlot>& NewItemSlots) { ItemSlots = NewItemSlots; }
+	FORCEINLINE void SetEquippedArmor(const FEquippedArmor& NewEquippedArmor) { EquippedArmor = NewEquippedArmor; }
+	FORCEINLINE void SetEquippedRifleAttachment(const FEquippedAttachment& NewRifleAttachment) { RifleAttachment = NewRifleAttachment; }
+	FORCEINLINE void SetEquippedPistolAttachment(const FEquippedAttachment& NewPistolAttachment) { RifleAttachment = NewPistolAttachment; }
+
 	void EquipArmor(const FArmorData& NewArmor, EArmorType ArmorType);
 	void EquipAttachment(const FAttachmentData& NewAttachment, EAttachmentType AttachmentType, EWeaponType WeaponType);
 	
