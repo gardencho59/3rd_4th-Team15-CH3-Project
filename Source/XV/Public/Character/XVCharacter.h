@@ -29,6 +29,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnBandagePotionCountChanged, int32,
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCurrentWeaponChanged, AGunBase*, NewWeapon);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHelmetLevelChanged, int32, NewLevel);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnVestLevelChanged, int32, NewLevel);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnCharacterDamage);
 
 
 UCLASS()
@@ -48,6 +49,7 @@ public:
 	UFUNCTION(BlueprintPure, Category="Armor")
 	int32 GetVestLevel() const;
 
+
 	UPROPERTY(BlueprintAssignable, Category="Armor")
 	FOnHelmetLevelChanged OnHelmetLevelChanged;
 	UPROPERTY(BlueprintAssignable, Category="Armor")
@@ -60,7 +62,9 @@ public:
 	UPROPERTY(BlueprintAssignable, Category="Shield")
 	FOnShieldTimeChanged OnShieldTimeChanged;
 
-
+	UPROPERTY(BlueprintAssignable, Category="Health")
+	FOnCharacterDamage OnCharacterDamage;
+	
 	UPROPERTY(BlueprintAssignable) FOnCurrentItemChanged OnCurrentItemChanged;
 	UPROPERTY(BlueprintAssignable) FOnHealthPotionCountChanged OnHealthPotionCountChanged;
 	UPROPERTY(BlueprintAssignable) FOnShieldPotionCountChanged OnShieldPotionCountChanged;
