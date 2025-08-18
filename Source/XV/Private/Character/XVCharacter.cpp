@@ -393,7 +393,7 @@ EWeaponType AXVCharacter::GetWeapon() const
 }
 
 bool AXVCharacter::GetISRun() const
-{
+{ // s 대문자 오타 죄송해여
 	return bIsRun;
 }
 
