@@ -11,26 +11,16 @@ AInteractableItem::AInteractableItem()
 	
 	PrimaryActorTick.bCanEverTick = false;
 
-	// Scene = CreateDefaultSubobject<USceneComponent>(TEXT("SceneRoot"));
-
-	Collision = CreateDefaultSubobject<USphereComponent>(TEXT("Sphere Collision"));
-	Collision->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
-	// Collision->SetupAttachment(Scene);
-	SetRootComponent(Collision);
-
 	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMesh"));
-	StaticMesh->SetupAttachment(Collision);
-
+	SetRootComponent(StaticMesh);
 	StaticMesh->SetSimulatePhysics(true);
-	StaticMesh->SetMassOverrideInKg(NAME_None, 500.0f, true);
-
 	StaticMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	StaticMesh->SetCollisionObjectType(ECC_GameTraceChannel3);
 	
 	ItemDataComp = CreateDefaultSubobject<UItemDataComponent>(TEXT("ItemData"));
 
 	InteractionWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("InteractionWidget"));
-	InteractionWidget->SetupAttachment(Collision);
+	InteractionWidget->SetupAttachment(StaticMesh);
 
 	if (InteractionWidgetClass)
 	{
@@ -55,6 +45,14 @@ float AInteractableItem::GetItemTime()
 float AInteractableItem::GetItemRemainTime()
 {
 	return ItemRemainTime;
+}
+
+void AInteractableItem::BeginPlay()
+{
+	Super::BeginPlay();
+	
+	StaticMesh->SetSimulatePhysics(true);
+	StaticMesh->SetMassOverrideInKg(NAME_None, 500.0f, true);
 }
 
 void AInteractableItem::Interact()
