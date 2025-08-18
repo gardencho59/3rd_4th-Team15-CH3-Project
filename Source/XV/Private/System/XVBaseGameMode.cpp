@@ -14,6 +14,7 @@
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
 #include "Perception/AIPerceptionComponent.h"
 #include "EngineUtils.h"
+#include "Inventory/Component/InventoryComponent.h"
 
 AXVBaseGameMode::AXVBaseGameMode()
 {

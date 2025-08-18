@@ -1,4 +1,6 @@
 #include "System/GM_XVStartLevel.h"
+#include "Inventory/Component/InventoryComponent.h"
+#include "Character/XVCharacter.h"
 #include "system/XVGameState.h"
 #include "System/XVGameInstance.h"
 #include "Kismet/GameplayStatics.h"
@@ -67,7 +69,19 @@ void AGM_XVStartLevel::EndGame(bool bIsClear)
 				false,
 				true
 			);
-			
+			if (AXVCharacter* XVChar = Cast<AXVCharacter>(PC->GetPawn()))
+			{
+				if (UInventoryComponent* Inventory = XVChar->FindComponentByClass<UInventoryComponent>())
+				{
+					if (UGameInstance* GI = GetGameInstance())
+					{
+						if (UXVGameInstance* XVGI = Cast<UXVGameInstance>(GI))
+						{
+							XVGI->SaveInventory(Inventory);
+						}
+					}
+				}
+			}
 			FTimerHandle TimerHandle;
 			GetWorldTimerManager().SetTimer(TimerHandle, [this]()
 			{

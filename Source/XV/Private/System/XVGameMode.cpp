@@ -1,10 +1,32 @@
 #include "System/XVGameMode.h"
+#include "Inventory/Component/InventoryComponent.h"
+#include "Character/XVCharacter.h"
 #include "GameFramework/PlayerController.h"
 #include "Kismet/GameplayStatics.h"
+#include "System/XVGameInstance.h"
 
 void AXVGameMode::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0))
+	{
+		if (AXVCharacter* XVChar = Cast<AXVCharacter>(PC->GetPawn()))
+		{
+			if (UInventoryComponent* Inventory = XVChar->FindComponentByClass<UInventoryComponent>())
+			{
+				if (UGameInstance* GI = GetGameInstance())
+				{
+					if (UXVGameInstance* XVGI = Cast<UXVGameInstance>(GI))
+					{
+						XVGI->LoadInventory(Inventory);
+						Inventory->ToggleInventory();
+						Inventory->ToggleInventory();
+					}
+				}
+			}
+		}
+	}
 	
 	if (GetWorld())
 	{
