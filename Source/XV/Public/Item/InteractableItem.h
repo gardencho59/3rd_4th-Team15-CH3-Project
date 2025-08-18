@@ -19,6 +19,8 @@ public:
 	virtual float GetItemTime();
 	virtual float GetItemRemainTime();
 
+	void EnablePhysics();
+	
 protected:
 
 	virtual void BeginPlay() override;
