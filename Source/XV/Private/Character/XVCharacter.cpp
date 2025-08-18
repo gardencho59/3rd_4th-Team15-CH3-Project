@@ -181,6 +181,11 @@ void AXVCharacter::AddHealth(float Value)
 
 void AXVCharacter::AddDamage(float Value)
 {
+	if (bIsShieldActive)
+	{
+		Value /= 2;
+		UE_LOG(LogTemp, Log, TEXT("Shield Damage : %f"), Value);
+	}
 	CurrentHealth = FMath::Clamp(CurrentHealth - Value, 0.0f, MaxHealth);
 	// 피격 애니메이션 추가
 	OnCharacterDamage.Broadcast();
@@ -1018,6 +1023,13 @@ void AXVCharacter::PickUpWeapon(const FInputActionValue& Value)
 void AXVCharacter::ChangeToMainWeapon(const FInputActionValue& Value)
 {
 	if (bIsDie) return;
+	if (CurrentWeaponType != EWeaponType::None)
+	{
+		if (CurrentWeaponActor->IsReloading())
+		{
+			return;
+		}
+	}
 	UE_LOG(LogTemp, Warning, TEXT("Change To MainWeapon"));
 	SetWeapon(MainWeaponType);
 }
@@ -1025,6 +1037,13 @@ void AXVCharacter::ChangeToMainWeapon(const FInputActionValue& Value)
 void AXVCharacter::ChangeToSubWeapon(const FInputActionValue& Value)
 {
 	if (bIsDie) return;
+	if (CurrentWeaponType != EWeaponType::None)
+	{
+		if (CurrentWeaponActor->IsReloading())
+		{
+			return;
+		}
+	}
 	UE_LOG(LogTemp, Warning, TEXT("Change To SubWeapon"));
 	SetWeapon(SubWeaponType);
 }
@@ -1225,7 +1244,7 @@ void AXVCharacter::ShieldItem(float Shield, float Duration)
 	if (!bIsShieldActive)
 	{
 		SetMaxHealth(MaxHealth + ShieldAmount);
-		AddHealth(ShieldAmount);
+		//AddHealth(ShieldAmount); // 회복 안 됨
 		bIsShieldActive = true;
 	}
 	
@@ -1254,13 +1273,7 @@ void AXVCharacter::ShieldItem(float Shield, float Duration)
 void AXVCharacter::FinishShield()
 { // 지속 시간 이후 원래 체력으로 복구
 	UE_LOG(LogTemp, Warning, TEXT("Finish Shield"));
-	SetMaxHealth(MaxHealth - ShieldAmount);
-	
-	if (CurrentHealth > ShieldAmount)
-	{
-		float Health = CurrentHealth - ShieldAmount;
-		AddHealth(-Health);
-	}
+	SetMaxHealth(MaxHealth - ShieldAmount);	
 
 	bIsShieldActive = false;
 	GetWorld()->GetTimerManager().ClearTimer(ShieldRemainTimerHandle);
