@@ -26,7 +26,14 @@ EBTNodeResult::Type UXVTASK_IsClosed::ExecuteTask(UBehaviorTreeComponent& OwnerC
     
 	// 거리 계산
 	const FVector AI_Location = MyPawn->GetActorLocation();
-	const FVector Player_Location = GetWorld()->GetFirstPlayerController()->GetPawn()->GetActorLocation();
+	APlayerController* Controller = GetWorld()->GetFirstPlayerController();
+	if (!Controller) return EBTNodeResult::Failed;
+
+	APawn* Player = Controller->GetPawn();
+	if (!Player) return EBTNodeResult::Failed;
+	
+	FVector Player_Location = Player->GetActorLocation();
+	
 	const float Distance = FVector::Dist(AI_Location, Player_Location);
 
 	// AI 공격 범위 체크
