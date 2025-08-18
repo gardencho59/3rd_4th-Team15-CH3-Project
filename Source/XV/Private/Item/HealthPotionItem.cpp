@@ -63,12 +63,11 @@ void AHealthPotionItem::FinishUse()
 	if (AXVCharacter* XVCharacter = Cast<AXVCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0)))
 	{
 		if (UInventoryComponent* InventoryComp = XVCharacter->GetInventoryComp())
-		{
-			
+		{			
 			UE_LOG(LogTemp, Warning, TEXT("%s"), *ItemDataComp->GetRowName().ToString());
 			InventoryComp->UseItem("HealthPotion", 1); // 인벤토리 수량 감소
 		}
-
+		HealAmount = XVCharacter->GetMaxHealth() * 0.4; // 회복량 : 캐릭터 최대 체력의 40 퍼센트
 		XVCharacter->AddHealth(HealAmount);
 		XVCharacter->SetCurrentItem(nullptr);        // 손에서 내려놓기(선택)
 	}

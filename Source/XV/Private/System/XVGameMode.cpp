@@ -1,5 +1,6 @@
 #include "System/XVGameMode.h"
 #include "GameFramework/PlayerController.h"
+#include "Kismet/GameplayStatics.h"
 
 void AXVGameMode::BeginPlay()
 {
@@ -9,6 +10,19 @@ void AXVGameMode::BeginPlay()
 	{
 		FTimerManager& TimerManager = GetWorld()->GetTimerManager();
 		TimerManager.ClearAllTimersForObject(this);
+	}
+	
+	APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
+	if (PC && PC->PlayerCameraManager)
+	{
+		PC->PlayerCameraManager->StartCameraFade(
+			1.0f,
+			0.0f,
+			1.0f,
+			FLinearColor::Black,
+			false,
+			false
+		);
 	}
 }
 
