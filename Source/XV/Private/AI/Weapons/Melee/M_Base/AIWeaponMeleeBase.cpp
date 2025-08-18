@@ -77,7 +77,7 @@ void AAIWeaponMeleeBase::CheckMeleeHit()
     {
         if (NoHitSound)
         {
-            GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("TODO : Missed! Change Sound!"));
+            // GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("TODO : Missed! Change Sound!"));
             NoHitSound->Play();
         }
     }
