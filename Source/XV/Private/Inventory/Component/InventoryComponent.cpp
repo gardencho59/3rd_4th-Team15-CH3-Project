@@ -17,6 +17,10 @@ UInventoryComponent::UInventoryComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 
 	InventoryUI = nullptr;
+	
+	EquippedArmor = FEquippedArmor();
+	RifleAttachment = FEquippedAttachment();
+	PistolAttachment = FEquippedAttachment();
 }
 
 void UInventoryComponent::BeginPlay()
