@@ -43,6 +43,12 @@ protected:
 	
 	void CreateItemSlots();
 
+	void CreateEquipmentSlots();
+
+	void SetArmorSlots(UAttachmentSlot* Widget, FName ItemName, EArmorType ArmorType);
+	
+	void SetAttachmentSlots(UAttachmentSlot* Widget, FName ItemName, EAttachmentType AttachmentType, EWeaponType WeaponType);
+
 	void EquipArmor(UAttachmentSlot* Widget, FItemData& ItemData, FArmorData& ArmorData, EArmorType ArmorType);
 
 	void EquipAttachment(UAttachmentSlot* Widget, FItemData& ItemData, FAttachmentData& AttachmentData, EAttachmentType AttachmentType, EWeaponType WeaponType);

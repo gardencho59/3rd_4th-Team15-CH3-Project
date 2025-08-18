@@ -9,7 +9,7 @@ AInteractableItem::AInteractableItem()
 	ItemUseTime = 0;
 	ItemRemainTime = 0;
 	
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 
 	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMesh"));
 	SetRootComponent(StaticMesh);
@@ -53,6 +53,17 @@ void AInteractableItem::BeginPlay()
 	
 	StaticMesh->SetSimulatePhysics(true);
 	StaticMesh->SetMassOverrideInKg(NAME_None, 500.0f, true);
+}
+
+void AInteractableItem::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	if (InteractionWidget)
+	{
+		FRotator CurrentRot = InteractionWidget->GetComponentRotation();
+		InteractionWidget->SetWorldRotation(FRotator(0.0f, CurrentRot.Yaw, 0.0f));
+	}
 }
 
 void AInteractableItem::Interact()
