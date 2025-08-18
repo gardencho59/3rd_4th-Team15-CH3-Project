@@ -137,6 +137,7 @@ void UInventoryUI::InitializeInventoryUI(UInventoryComponent* InInventoryComp)
 	InventoryComp->OnInventoryUpdated.RemoveAll(this);
 	InventoryComp->OnInventoryUpdated.AddUObject(this, &UInventoryUI::CreateItemSlots);
 
+	CreateEquipmentSlots();
 	CreateItemSlots();
 }
 
@@ -166,6 +167,54 @@ void UInventoryUI::CreateItemSlots()
 
 		ItemWrapBox->AddChild(NewSlot);
 	}
+}
+
+void UInventoryUI::CreateEquipmentSlots()
+{
+	FName HelmetName = InventoryComp->EquippedArmor.Helmet.ArmorName;
+	if (HelmetName != NAME_None)
+	{
+		SetArmorSlots(WBP_Helmet, HelmetName, EArmorType::Helmet);
+	}
+	FName VestName = InventoryComp->EquippedArmor.Vest.ArmorName;
+	if (VestName != NAME_None)
+	{
+		SetArmorSlots(WBP_Vest, VestName, EArmorType::Vest);
+	}
+	FName RifleSilencerName = InventoryComp->RifleAttachment.Silencer.AttachmentName;
+	if (RifleSilencerName != NAME_None)
+	{
+		SetAttachmentSlots(WBP_RifleSilencer, RifleSilencerName, EAttachmentType::Silencer, EWeaponType::Rifle);
+	}
+	FName RifleExtendedMagName = InventoryComp->RifleAttachment.ExtendedMag.AttachmentName;
+	if (RifleExtendedMagName != NAME_None)
+	{
+		SetAttachmentSlots(WBP_RifleExtendedMag, RifleExtendedMagName, EAttachmentType::ExtendedMag, EWeaponType::Rifle);
+	}
+	FName PistolSilencerName = InventoryComp->PistolAttachment.Silencer.AttachmentName;
+	if (PistolSilencerName != NAME_None)
+	{
+		SetAttachmentSlots(WBP_PistolSilencer, PistolSilencerName, EAttachmentType::Silencer, EWeaponType::Pistol);
+	}
+	FName PistolExtendedMagName = InventoryComp->PistolAttachment.ExtendedMag.AttachmentName;
+	if (PistolExtendedMagName != NAME_None)
+	{
+		SetAttachmentSlots(WBP_PistolExtendedMag, PistolExtendedMagName, EAttachmentType::ExtendedMag, EWeaponType::Pistol);
+	}
+}
+
+void UInventoryUI::SetArmorSlots(UAttachmentSlot* Widget, FName ItemName, EArmorType ArmorType)
+{
+	FItemData* ItemData = ItemDataTable->FindRow<FItemData>(ItemName, TEXT("Get Item Row in Inventory Component"));
+	FArmorData* ArmorData = ArmorDataTable->FindRow<FArmorData>(ItemName, TEXT("Get Item Row in Inventory Component"));
+	EquipArmor(Widget, *ItemData, *ArmorData, ArmorType);
+}
+
+void UInventoryUI::SetAttachmentSlots(UAttachmentSlot* Widget, FName ItemName, EAttachmentType AttachmentType, EWeaponType WeaponType)
+{
+	FItemData* ItemData = ItemDataTable->FindRow<FItemData>(ItemName, TEXT("Get Item Row in Inventory Component"));
+	FAttachmentData* AttachmentData = AttachmentDataTable->FindRow<FAttachmentData>(ItemName, TEXT("Get Item Row in Inventory Component"));
+	EquipAttachment(Widget, *ItemData, *AttachmentData, AttachmentType, WeaponType);
 }
 
 bool UInventoryUI::IsOverInventory(FVector2D ScreenPos)
