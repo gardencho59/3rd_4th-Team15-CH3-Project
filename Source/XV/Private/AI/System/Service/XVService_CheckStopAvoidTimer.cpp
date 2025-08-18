@@ -26,7 +26,15 @@ void UXVService_CheckStopAvoidTimer::TickNode(UBehaviorTreeComponent& OwnerComp,
 
 	// AI 위치와 플레이어 위치 획득, 거리 계산
 	FVector AI_Location = MyPawn->GetActorLocation();
-	FVector Player_Location = GetWorld()->GetFirstPlayerController()->GetPawn()->GetActorLocation();
+
+	APlayerController* Controller = GetWorld()->GetFirstPlayerController();
+	if (!Controller) return;
+
+	APawn* Player = Controller->GetPawn();
+	if (!Player) return;
+	
+	FVector Player_Location = Player->GetActorLocation();
+	
 	float Distance = FVector::Dist(AI_Location, Player_Location);
 
 	// AI 공격 범위 체크
