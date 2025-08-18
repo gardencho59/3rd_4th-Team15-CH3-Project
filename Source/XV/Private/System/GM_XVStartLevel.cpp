@@ -47,15 +47,6 @@ void AGM_XVStartLevel::OnEnemyKilled()
 	}
 }
 
-void AGM_XVStartLevel::OnWaveTriggered()
-{
-	if (AXVGameState* GS = GetGameState<AXVGameState>())
-	{
-		if (GS->IsWaveTriggered) return;
-		GS->IsWaveTriggered = true;
-	}
-}
-
 void AGM_XVStartLevel::EndGame(bool bIsClear)
 {
 	if (GetWorld())

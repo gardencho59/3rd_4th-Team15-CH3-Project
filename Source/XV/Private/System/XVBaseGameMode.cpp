@@ -17,7 +17,7 @@
 
 AXVBaseGameMode::AXVBaseGameMode()
 {
-	MaxLevel = 4;
+	MaxLevel = 5;
 }
 
 void AXVBaseGameMode::BeginPlay()
@@ -108,6 +108,8 @@ void AXVBaseGameMode::SpawnEnemies()
 	
 	if (AXVGameState* GS = GetGameState<AXVGameState>())
 	{
+		GS->SpawnPatrolEnemyCount = 0;
+
 		TArray<ASpawnVolume*> ValidVolumes;
 		
 		for (ASpawnVolume* Volume : ActiveSpawnVolumes)
@@ -143,7 +145,7 @@ void AXVBaseGameMode::SpawnEnemies()
 				}
 			}
 		}
-		
+		UE_LOG(LogTemp, Warning, TEXT("EnemyToSpawn: %d"), EnemyToSpawn);
 		const int32 SpawnVolumeCount = ValidVolumes.Num();
 		if (SpawnVolumeCount == 0)
 		{
@@ -324,13 +326,17 @@ void AXVBaseGameMode::EndGame(bool bIsClear)
 		{
 			if (UXVGameInstance* XVGI = Cast<UXVGameInstance>(GI))
 			{
+				XVGI->CurrentLevelIdx++;
 				if (XVGI->CurrentLevelIdx <	MaxLevel)
 				{
-					XVGI->CurrentLevelIdx++;
 					if (AXVGameState* GS = GetGameState<AXVGameState>())
 					{
 						if (!GS->IsWaveTriggered) return;
 						GS->IsWaveTriggered = false;
+					}
+					if (XVGI->CurrentLevelIdx == 4)
+					{
+						StartGame();
 					}
 				}
 				else

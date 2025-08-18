@@ -16,7 +16,6 @@ public:
 	
 	virtual void StartGame()override;
 	virtual void OnEnemyKilled() override;
-	virtual void OnWaveTriggered() override;
 	virtual void EndGame(bool bIsClear) override;
 	
 	bool bWavePending;
