@@ -17,6 +17,7 @@ class XV_API IWeaponInterface
 public:
 	virtual void EmptyFireBullet() = 0;
 	virtual void FireBullet() = 0;
+	virtual void SpawnShellEject() = 0;
 	virtual void Reload(int32 ReloadAmount) = 0;
 	virtual bool IsReloading() const = 0;
 	virtual bool IsCanFire() const = 0;

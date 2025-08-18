@@ -53,6 +53,7 @@ public:
 
 	UFUNCTION(Blueprintable)
 	virtual void FireBullet() override;
+	virtual void SpawnShellEject() override;
 	
 	virtual void EmptyFireBullet() override;
 	virtual void Reload(int32 ReloadAmount) override;
