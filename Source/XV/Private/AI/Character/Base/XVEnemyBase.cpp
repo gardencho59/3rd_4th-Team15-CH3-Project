@@ -150,6 +150,8 @@ void AXVEnemyBase::GetDamage(float Damage)
 	
 	AIStatusComponent->CurrentHealth();
 	AIStatusComponent->D_Gettter(Damage);
+
+	
 	
 	UE_LOG(Log_XV_AI, Warning, TEXT("GetDamage : %f"),AIStatusComponent->CurrentHealth());
 	UE_LOG(Log_XV_AI, Warning, TEXT("GetDamage : GetDamage Start"));
@@ -157,6 +159,11 @@ void AXVEnemyBase::GetDamage(float Damage)
 	AXVControllerBase* AIController = Cast<AXVControllerBase>(GetController());
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 
+	
+	if (true == AIController->AIBlackBoard->GetValueAsBool(TEXT("bIsBoss")))
+	{
+		OnDamageEventforHUD();
+	}
 	
 	// ▼ 체력이 0 이하로 떨어졌을 때만 사망 처리!
 	if (AIStatusComponent->CurrentHealth() <= 0.f)
