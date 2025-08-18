@@ -78,6 +78,7 @@ void AGM_XVStartLevel::EndGame(bool bIsClear)
 						if (UXVGameInstance* XVGI = Cast<UXVGameInstance>(GI))
 						{
 							XVGI->SaveInventory(Inventory);
+							XVGI->SavedHealth = XVChar->GetHealth();
 						}
 					}
 				}
