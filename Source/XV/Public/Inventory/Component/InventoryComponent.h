@@ -74,7 +74,7 @@ public:
 
 	void DropFromAttachment(const FName ItemID);
 
-	AActor* SpawnItem(FName ItemID);
+	AInteractableItem* SpawnItem(FName ItemID);
 
 	void SetItemQuantity(AActor* DroppedItem, const int32 SlotIndex);
 

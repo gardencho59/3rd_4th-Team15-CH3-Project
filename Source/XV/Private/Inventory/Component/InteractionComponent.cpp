@@ -49,7 +49,7 @@ void UInteractionComponent::InteractionTrace()
 		Start,
 		End,
 		FQuat::Identity,
-		ECC_GameTraceChannel3,
+		ECC_Visibility,
 		FCollisionShape::MakeSphere(SphereRadius),
 		Params);
 		
