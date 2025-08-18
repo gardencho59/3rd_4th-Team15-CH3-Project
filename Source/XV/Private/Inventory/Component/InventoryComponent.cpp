@@ -122,7 +122,10 @@ bool UInventoryComponent::PickUp(const FName& ItemID, const EItemType ItemType, 
 			}
 		}
 	}
-	SetCurrentAMMO(ItemType);
+	if (ItemType == EItemType::AMMORifle || ItemType == EItemType::AMMOPistol)
+	{
+		SetCurrentAMMO(ItemType);
+	}
 	UpdateInventory();
 
 	if (bIsSuccess)
@@ -280,7 +283,10 @@ void UInventoryComponent::DropFromInventory(const FName ItemID, const EItemType 
 	
 	ResetSlot(&ItemSlots[SlotIndex]);
 
-	SetCurrentAMMO(ItemType);
+	if (ItemType == EItemType::AMMORifle || ItemType == EItemType::AMMOPistol)
+	{
+		SetCurrentAMMO(ItemType);
+	}
 	UpdateInventory();
 	
 	FItemSFX ItemSFX = GetItemSFX(ItemID);

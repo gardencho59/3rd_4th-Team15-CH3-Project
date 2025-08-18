@@ -311,20 +311,36 @@ void AXVCharacter::SetWeapon(EWeaponType Weapon)
 	{
 	case EWeaponType::Pistol:
 		// 무기 교체 애니메이션 및 사운드 재생 필요
+		if (CurrentWeaponActor != nullptr)
+		{
+			CurrentWeaponActor->IsEquiped(false);
+		}
+		
 		SubWeaponOffset->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("Pistol_Equipped"));
 		PrimaryWeaponOffset->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("Rifle_Unequipped"));
-
+		
 		CurrentWeaponActor = Cast<AGunBase>(SubWeapon->GetChildActor());
+
+		CurrentWeaponActor->IsEquiped(true);
+		
 		SetCameraShake(CurrentWeaponActor->GetCameraShake());
 		Anim->PlayWeaponEquipAnim(CurrentWeaponActor);
 		break;
 		
 	case EWeaponType::Rifle:
 		// 무기 교체 애니메이션 및 사운드 재생 필요
+		if (CurrentWeaponActor != nullptr)
+		{
+			CurrentWeaponActor->IsEquiped(false);
+		}
+		
 		SubWeaponOffset->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("Pistol_Unequipped"));
 		PrimaryWeaponOffset->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("Rifle_Equipped"));
 
 		CurrentWeaponActor = Cast<AGunBase>(PrimaryWeapon->GetChildActor());
+
+		CurrentWeaponActor->IsEquiped(true);
+		
 		SetCameraShake(CurrentWeaponActor->GetCameraShake());
 		Anim->PlayWeaponEquipAnim(CurrentWeaponActor);
 		break;
@@ -1023,7 +1039,11 @@ void AXVCharacter::OpenDoor(const FInputActionValue& Value)
 
 void AXVCharacter::Reload(const FInputActionValue& Value)
 {
-	if (bIsDie || bIsRun || CurrentWeaponActor->GetRemainingAmmo() <= 0) return;
+	if (!CurrentWeaponActor)
+	{
+		return;
+	}
+	if (bIsDie || bIsRun || CurrentWeaponActor->GetRemainingAmmo() <= 0 || CurrentWeaponActor->GetCurrentAmmo() == CurrentWeaponActor->GetCurrentMaxAmmo()) return;
 	if (CurrentWeaponType != EWeaponType::None && !CurrentWeaponActor->IsReloading())
 	{
 		auto Anim = Cast<UXVPlayerAnimInstance>(GetMesh()->GetAnimInstance());
