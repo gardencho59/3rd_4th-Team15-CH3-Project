@@ -637,7 +637,15 @@ void AXVEnemyBase::DropItem()
 			if (ItemInfo->ItemClass)
 			{
 				FVector SpawnLoc = GetActorLocation() + FVector(0, 0, 200);
-				World->SpawnActor<AInteractableItem>(ItemInfo->ItemClass, SpawnLoc, FRotator::ZeroRotator);
+				AInteractableItem* Item = World->SpawnActor<AInteractableItem>(ItemInfo->ItemClass, SpawnLoc, FRotator::ZeroRotator);
+				if (Item)
+				{
+					if (UPrimitiveComponent* PrimComp = Cast<UPrimitiveComponent>(Item->GetRootComponent()))
+					{
+						PrimComp->SetSimulatePhysics(true);
+						PrimComp->SetEnableGravity(true);
+					}
+				}
 			}
 		}
 	}
