@@ -15,6 +15,7 @@ AInteractableItem::AInteractableItem()
 	SetRootComponent(StaticMesh);
 	StaticMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	StaticMesh->SetCollisionObjectType(ECC_GameTraceChannel3);
+	StaticMesh->SetCollisionResponseToChannel(ECC_GameTraceChannel3, ECR_Ignore);
 	
 	ItemDataComp = CreateDefaultSubobject<UItemDataComponent>(TEXT("ItemData"));
 
