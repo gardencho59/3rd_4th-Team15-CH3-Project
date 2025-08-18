@@ -29,4 +29,6 @@ public:
 
 	UPROPERTY()
 	TArray<ASpawnVolume*> ActiveSpawnVolumes;
+
+	FTimerHandle RespawnSlowHandle;
 };
