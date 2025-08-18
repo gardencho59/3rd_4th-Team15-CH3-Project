@@ -23,12 +23,6 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* TextBlock;
-	
-	UPROPERTY(meta = (BindWidget))
-	class UImage* ItemImage;
-
-	UPROPERTY()
-	class UTexture2D* ItemIcon;
 
 	UPROPERTY()
 	FItemData ItemData;
