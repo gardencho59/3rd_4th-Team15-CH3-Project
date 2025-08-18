@@ -35,6 +35,7 @@ void AArrivalPoint::OnArrivalPointBeginOverlap(
 			if (OtherActor && OtherActor->ActorHasTag("Player"))
 			{
 				ActivateArrivalPoint(OtherActor);
+				Destroy();
 			}
 		}
 	}
@@ -55,6 +56,9 @@ void AArrivalPoint::ActivateArrivalPoint(AActor* Activator)
 				XVGI->CurrentLevelIdx++;
 			}
 		}
-		UGameplayStatics::OpenLevel(GetWorld(), "Level_Laboratory_Demo");
+		if (AXVBaseGameMode* GM = Cast<AXVBaseGameMode>(GetWorld()->GetAuthGameMode()))
+		{
+			GM->EndGame(true);
+		}
 	}
 }
