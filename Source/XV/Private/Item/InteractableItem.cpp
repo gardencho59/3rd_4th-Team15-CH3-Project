@@ -13,7 +13,6 @@ AInteractableItem::AInteractableItem()
 
 	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMesh"));
 	SetRootComponent(StaticMesh);
-	StaticMesh->SetSimulatePhysics(true);
 	StaticMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	StaticMesh->SetCollisionObjectType(ECC_GameTraceChannel3);
 	
@@ -50,9 +49,11 @@ float AInteractableItem::GetItemRemainTime()
 void AInteractableItem::BeginPlay()
 {
 	Super::BeginPlay();
-	
+}
+
+void AInteractableItem::EnablePhysics()
+{
 	StaticMesh->SetSimulatePhysics(true);
-	StaticMesh->SetMassOverrideInKg(NAME_None, 500.0f, true);
 }
 
 void AInteractableItem::Interact()

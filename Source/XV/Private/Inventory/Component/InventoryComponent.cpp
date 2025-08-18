@@ -273,14 +273,16 @@ void UInventoryComponent::DropFromInventory(const FName ItemID, const EItemType 
 	
 	if (ItemType == EItemType::AMMOPistol || ItemType == EItemType::AMMORifle)
 	{
-		AActor* DroppedItem = SpawnItem(ItemID);
+		AInteractableItem* DroppedItem = SpawnItem(ItemID);
 		SetItemQuantity(DroppedItem, SlotIndex);
+		DroppedItem->EnablePhysics();
 	}
 	else
 	{
 		for (int i = 0; i < ItemSlots[SlotIndex].ItemQuantity; ++i)
 		{
-			SpawnItem(ItemID);
+			AInteractableItem* DroppedItem = SpawnItem(ItemID);
+			DroppedItem->EnablePhysics();
 		}
 	}
 	
@@ -328,7 +330,7 @@ void UInventoryComponent::DropFromAttachment(const FName ItemID)
 	
 }
 
-AActor* UInventoryComponent::SpawnItem(FName ItemID)
+AInteractableItem* UInventoryComponent::SpawnItem(FName ItemID)
 {
 	FItemData* ItemRow = GetItemData(ItemID);
 	if (!ItemRow || !ItemRow->ItemClass)
