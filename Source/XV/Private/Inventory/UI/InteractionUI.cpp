@@ -32,7 +32,7 @@ void UInteractionUI::SetItemData(FItemData NewItemData, int32 NewItemQuantity, b
 
 void UInteractionUI::SetUI()
 {
-	if (!TextBlock || !ItemImage)
+	if (!TextBlock)
 	{
 		return;
 	}
@@ -51,7 +51,6 @@ void UInteractionUI::SetUI()
 	}
 		
 	TextBlock->SetText(Message);
-	ItemImage->SetBrushFromTexture(ItemData.ItemIcon);
 	
 	SetVisibility(ESlateVisibility::Visible);
 
