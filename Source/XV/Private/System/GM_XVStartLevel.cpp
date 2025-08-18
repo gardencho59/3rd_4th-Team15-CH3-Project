@@ -65,12 +65,23 @@ void AGM_XVStartLevel::EndGame(bool bIsClear)
 	
 	if (bIsClear)
 	{
-		if (UGameInstance* GI = GetGameInstance())
+		APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
+		if (PC && PC->PlayerCameraManager)
 		{
-			if (UXVGameInstance* XVGI = Cast<UXVGameInstance>(GI))
+			PC->PlayerCameraManager->StartCameraFade(
+				0.0f,
+				1.0f,
+				1.0f,
+				FLinearColor::Black,
+				false,
+				true
+			);
+			
+			FTimerHandle TimerHandle;
+			GetWorldTimerManager().SetTimer(TimerHandle, [this]()
 			{
-				UGameplayStatics::OpenLevel(GetWorld(), "Level_Laboratory_Demo");
-			}
+				UGameplayStatics::OpenLevel(GetWorld(), "LoadingMenu");
+			}, 1.05f, false);
 		}
 	}
 	else
