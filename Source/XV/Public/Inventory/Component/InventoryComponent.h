@@ -124,7 +124,7 @@ public:
 	FORCEINLINE void SetItemSlots(const TArray<FItemSlot>& NewItemSlots) { ItemSlots = NewItemSlots; }
 	FORCEINLINE void SetEquippedArmor(const FEquippedArmor& NewEquippedArmor) { EquippedArmor = NewEquippedArmor; }
 	FORCEINLINE void SetEquippedRifleAttachment(const FEquippedAttachment& NewRifleAttachment) { RifleAttachment = NewRifleAttachment; }
-	FORCEINLINE void SetEquippedPistolAttachment(const FEquippedAttachment& NewPistolAttachment) { RifleAttachment = NewPistolAttachment; }
+	FORCEINLINE void SetEquippedPistolAttachment(const FEquippedAttachment& NewPistolAttachment) { PistolAttachment = NewPistolAttachment; }
 
 	void EquipArmor(const FArmorData& NewArmor, EArmorType ArmorType);
 	void EquipAttachment(const FAttachmentData& NewAttachment, EAttachmentType AttachmentType, EWeaponType WeaponType);

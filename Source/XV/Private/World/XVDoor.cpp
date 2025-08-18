@@ -137,17 +137,4 @@ void AXVDoor::SetDoorOpening()
 {
 	IsOpening = true;
 	TargetPos = ClosedPos + OpenOffset;
-	if (UGameInstance* GI = GetGameInstance())
-	{
-		if (UXVGameInstance* XVGI = Cast<UXVGameInstance>(GI))
-		{
-			if (XVGI->CurrentLevelIdx == 4)
-			{
-				if (AXVBaseGameMode* GM = GetWorld()->GetAuthGameMode<AXVBaseGameMode>())
-				{
-					GM->StartGame();
-				}
-			}
-		}
-	}
 }
