@@ -183,7 +183,7 @@ void AXVCharacter::AddDamage(float Value)
 {
 	CurrentHealth = FMath::Clamp(CurrentHealth - Value, 0.0f, MaxHealth);
 	// 피격 애니메이션 추가
-	
+	OnCharacterDamage.Broadcast();
 	BroadcastHealth();
 	
 	if (CurrentHealth <= 0.0f)
