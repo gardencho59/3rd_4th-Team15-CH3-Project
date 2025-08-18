@@ -1,9 +1,14 @@
 
 #pragma once
 
+#include <Inventory/Data/Attachment/EquippedAttachment.h>
+
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
+#include "Inventory/Data/Armor/EquippedArmor.h"
 #include "XVGameInstance.generated.h"
+
+struct FItemSlot;
 
 UCLASS()
 class XV_API UXVGameInstance : public UGameInstance
@@ -21,4 +26,16 @@ public:
 	bool WasCinePlay;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Game Data")
 	int32 TotalKilledEnemyCount;
+	
+	UPROPERTY()
+	TArray<FItemSlot> SavedItemSlots;
+	UPROPERTY()
+	FEquippedArmor SavedEquippedArmor;
+	UPROPERTY()
+	FEquippedAttachment SavedRifleAttachment;
+	UPROPERTY()
+	FEquippedAttachment SavedPistolAttachment;
+	
+	void SaveInventory(class UInventoryComponent* Inventory);
+	void LoadInventory(class UInventoryComponent* Inventory);
 };
