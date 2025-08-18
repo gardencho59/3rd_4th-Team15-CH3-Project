@@ -15,6 +15,8 @@ public:
 public:
 	virtual void TakeDamage(float Damage);
 	virtual float Sub_Health(float Damage){return Health = Health - Damage;}
+
+	UFUNCTION(BlueprintCallable, Category = "AI Status")
 	virtual float CurrentHealth(){return Health;}
 	
 	UPROPERTY(EditAnywhere, Category = "AI Status")

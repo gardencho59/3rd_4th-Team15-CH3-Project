@@ -112,6 +112,9 @@ public:
 	UAnimMontage* AvoidMontageRight;
 	UPROPERTY(EditDefaultsOnly, Category = Animation)
 	UAnimMontage* AvoidMontageBack;
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "AI")
+	void OnDamageEventforHUD();
 	
 	UFUNCTION()
 	void OnDamageEnded(); // 피격 애니메이션 종료 후 비해비어 트리 재시작
