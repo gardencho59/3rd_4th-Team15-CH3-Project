@@ -67,35 +67,51 @@ FVector AGunBase::GetAimDirection() const
 
     if (PC->DeprojectScreenPositionToWorld(ScreenCenter.X, ScreenCenter.Y, WorldLocation, WorldDirection))
     {
-        FHitResult Hit;
+        // 레이 끝점
         FVector TraceEnd = WorldLocation + WorldDirection * 10000.0f;
 
-        if (GetWorld()->LineTraceSingleByChannel(Hit, WorldLocation, TraceEnd, ECC_Visibility))
+        // 트레이스 파라미터 (자기 자신 제외)
+        FCollisionQueryParams QueryParams;
+        QueryParams.AddIgnoredActor(this);
+        if (PC->GetPawn())
         {
+            QueryParams.AddIgnoredActor(PC->GetPawn());
+        }
+
+        // 트레이스 결과
+        FHitResult Hit;
+        if (GetWorld()->LineTraceSingleByChannel(Hit, WorldLocation, TraceEnd, ECC_Visibility, QueryParams))
+        {
+            if (AActor* HitActor = Hit.GetActor())
+            {
+                UE_LOG(LogTemp, Log, TEXT("Hit Actor: %s"), *HitActor->GetName());
+            }
+
             // 최소 거리 기준
             const float MinAimDistance = 300.0f;
             float DistanceToHit = FVector::Dist(WorldLocation, Hit.ImpactPoint);
 
             if (DistanceToHit >= MinAimDistance)
             {
-                // 충분히 멀리 있으면, 그 지점으로 조준
+                // 충분히 멀리 있는 물체나 캐릭터라면 해당 지점으로 조준
                 return (Hit.ImpactPoint - GetMuzzleLocation()).GetSafeNormal();
             }
             else
             {
-                // 너무 가까우면 그냥 직선으로 발사
+                // 너무 가까우면 정면으로 발사
                 return WorldDirection.GetSafeNormal();
             }
         }
         else
         {
-            // 맞은 게 없으면 그냥 정면으로
+            // 맞은 게 없으면 그냥 정면
             return WorldDirection.GetSafeNormal();
         }
     }
 
     return FVector::ZeroVector;
 }
+
 
 void AGunBase::SetAMMO(int32 SetAmmo)
 {
@@ -158,8 +174,9 @@ void AGunBase::FireBullet()
     PlayEffects();
     SpawnBullet();
     SpawnShellEject();
+    OnFireBullet.Broadcast();
 
-    // 🔥 발사할 때마다 퍼짐 증가
+    // 발사할 때마다 퍼짐 증가
     CurrentSpread = FMath::Clamp(CurrentSpread + SpreadIncrement, BaseSpread, MaxSpread);
 
     // 퍼짐 회복 타이머 시작
@@ -168,6 +185,7 @@ void AGunBase::FireBullet()
     GetWorld()->GetTimerManager().SetTimer(FireCooldownHandle, [this]()
     {
         bCanFire = true;
+        EndFireBullet.Broadcast();
     }, WeaponDataAsset->FireRate, false);
 }
 

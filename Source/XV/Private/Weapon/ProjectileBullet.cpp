@@ -59,7 +59,7 @@ void AProjectileBullet::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
 	{
 		if (AXVEnemyBase* Enemy = Cast<AXVEnemyBase>(OtherActor))
 		{
-			Enemy->GetDamage(100.f);
+			Enemy->GetDamage(Damage);
 		}
 
 		if (BulletImpactDecal)
