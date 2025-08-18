@@ -89,6 +89,16 @@ protected:
 	void PlayEffects();
 	void PlaySoundAtMuzzle(USoundBase* Sound) const;
 	void FinishReload(int32 ReloadAmount);
+
+	float BaseSpread;
+	float MaxSpread;
+	float CurrentSpread;
+	float SpreadIncrement;
+	float SpreadRecoveryRate;
+
+	FTimerHandle SpreadRecoveryHandle;
+
+	void RecoverSpread();
 	
 	UPROPERTY(VisibleAnywhere, Category = "Mesh")
 	USkeletalMeshComponent* GunMesh;

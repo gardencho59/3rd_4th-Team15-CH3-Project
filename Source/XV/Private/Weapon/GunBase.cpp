@@ -8,7 +8,7 @@
 
 AGunBase::AGunBase()
 {
-    PrimaryActorTick.bCanEverTick = false;
+    PrimaryActorTick.bCanEverTick = true;
 
     GunMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("GunMesh"));
     RootComponent = GunMesh;
@@ -20,6 +20,12 @@ AGunBase::AGunBase()
     bIsExtendedMagAttached = false;
     CurrentAmmo = 0;
     RemainingAmmo = 0;
+
+    BaseSpread = 0.5f;          // 기본 퍼짐 (도 단위)
+    MaxSpread = 7.0f;           // 최대 퍼짐
+    CurrentSpread = BaseSpread; 
+    SpreadIncrement = 0.2f;     // 발사시 증가량
+    SpreadRecoveryRate = 1.5f;  // 초당 감소량
 }
 
 FVector AGunBase::GetAimDirection() const
@@ -135,10 +141,27 @@ void AGunBase::FireBullet()
     PlayEffects();
     SpawnBullet();
 
+    // 🔥 발사할 때마다 퍼짐 증가
+    CurrentSpread = FMath::Clamp(CurrentSpread + SpreadIncrement, BaseSpread, MaxSpread);
+
+    // 퍼짐 회복 타이머 시작
+    GetWorld()->GetTimerManager().SetTimer(SpreadRecoveryHandle, this, &AGunBase::RecoverSpread, 0.1f, true);
+
     GetWorld()->GetTimerManager().SetTimer(FireCooldownHandle, [this]()
     {
         bCanFire = true;
     }, WeaponDataAsset->FireRate, false);
+}
+
+void AGunBase::RecoverSpread()
+{
+    // 초당 SpreadRecoveryRate만큼 줄여줌
+    CurrentSpread = FMath::Max(BaseSpread, CurrentSpread - (SpreadRecoveryRate * 0.1f));
+
+    if (CurrentSpread <= BaseSpread + KINDA_SMALL_NUMBER)
+    {
+        GetWorld()->GetTimerManager().ClearTimer(SpreadRecoveryHandle);
+    }
 }
 
 void AGunBase::Reload(int32 ReloadAmount)
@@ -176,7 +199,14 @@ void AGunBase::SpawnBullet()
 
     FVector MuzzleLocation = GetMuzzleLocation();
     FVector AimDirection = GetAimDirection();
-    FRotator BulletRotation = AimDirection.Rotation();
+
+    // 🔥 랜덤 오프셋 추가
+    float RandomYaw   = FMath::RandRange(-CurrentSpread, CurrentSpread);
+    float RandomPitch = FMath::RandRange(-CurrentSpread, CurrentSpread);
+
+    FRotator SpreadRotation = AimDirection.Rotation();
+    SpreadRotation.Yaw   += RandomYaw;
+    SpreadRotation.Pitch += RandomPitch;
 
     FActorSpawnParameters SpawnParams;
     SpawnParams.Owner = this;
@@ -185,7 +215,7 @@ void AGunBase::SpawnBullet()
     AProjectileBullet* Bullet = GetWorld()->SpawnActor<AProjectileBullet>(
         WeaponDataAsset->BulletClass,
         MuzzleLocation,
-        BulletRotation,
+        SpreadRotation,
         SpawnParams
     );
 
@@ -197,6 +227,12 @@ void AGunBase::SpawnBullet()
 
 void AGunBase::PlayEffects()
 {
+    if (bSilencerAttached)
+    {
+        PlaySoundAtMuzzle(WeaponDataAsset->SilenceSound);
+
+        return;
+    }
     if (!bSilencerAttached)
     {
         if (WeaponDataAsset->MuzzleFlash)
@@ -213,10 +249,6 @@ void AGunBase::PlayEffects()
         }
 
         PlaySoundAtMuzzle(WeaponDataAsset->FireSound);
-    }
-    else
-    {
-        PlaySoundAtMuzzle(WeaponDataAsset->SilenceSound);
     }
 }
 
