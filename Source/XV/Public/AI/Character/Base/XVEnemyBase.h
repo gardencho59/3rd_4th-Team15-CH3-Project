@@ -131,8 +131,14 @@ public:
 protected:
 	void RunBTWithDelay();
 	void TryRandomPortal();
+	void DropItem();
 
 	UPROPERTY()
 	AXVControllerBase* CachedAIController;
+
+
+	// AI 드랍 아이템 소환
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Inventory")
+	UDataTable* ItemData;
 	
 };
