@@ -22,6 +22,7 @@ void AXVGameMode::BeginPlay()
 						XVGI->LoadInventory(Inventory);
 						Inventory->ToggleInventory();
 						Inventory->ToggleInventory();
+						XVChar->SetHealth(XVGI->SavedHealth);
 					}
 				}
 			}
@@ -76,8 +77,19 @@ void AXVGameMode::OnWaveTriggered()
 void AXVGameMode::EndGame(bool bIsClear)
 {
 	Super::EndGame(bIsClear);
-}
 
+	if (UGameInstance* GI = GetGameInstance())
+	{
+		if (UXVGameInstance* XVGI = Cast<UXVGameInstance>(GI))
+		{
+			if (bIsClear && XVGI->CurrentLevelIdx == 5)
+			{
+				GameClear();
+			}
+		}
+	}
+	
+}
 
 
 	

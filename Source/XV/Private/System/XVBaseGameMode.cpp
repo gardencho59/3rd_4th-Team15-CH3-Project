@@ -109,8 +109,6 @@ void AXVBaseGameMode::SpawnEnemies()
 	
 	if (AXVGameState* GS = GetGameState<AXVGameState>())
 	{
-		GS->SpawnPatrolEnemyCount = 0;
-
 		TArray<ASpawnVolume*> ValidVolumes;
 		
 		for (ASpawnVolume* Volume : ActiveSpawnVolumes)
@@ -314,6 +312,7 @@ void AXVBaseGameMode::OnWaveTriggered()
 		if (GS->IsWaveTriggered) return;
 
 		GS->IsWaveTriggered = true;
+		GS->SpawnPatrolEnemyCount = 0;
 		FindSpawnVolume();
 		SpawnEnemies();
 	}
