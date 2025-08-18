@@ -28,6 +28,31 @@ AGunBase::AGunBase()
     SpreadRecoveryRate = 1.5f;  // 초당 감소량
 }
 
+void AGunBase::BeginPlay()
+{
+    Super::BeginPlay();
+
+    if (WeaponDataAsset)
+    {
+        CurrentAmmo = WeaponDataAsset->MaxAmmo;
+        DefaultMaxAmmo = CurrentAmmo;
+        CurrentMaxAmmo = CurrentAmmo;
+
+        if (WeaponDataAsset->WeaponMesh)
+        {
+            GunMesh->SetSkeletalMesh(WeaponDataAsset->WeaponMesh);
+        }
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("WeaponDataAsset is NULL on %s"), *GetName());
+    }
+
+    // ★ 시작 상태도 UI에 알려주기
+    OnMagAmmoChanged.Broadcast(CurrentAmmo, GetMagSize());
+    OnReserveAmmoChanged.Broadcast(RemainingAmmo);
+}
+
 FVector AGunBase::GetAimDirection() const
 {
     APlayerController* PC = Cast<APlayerController>(GetWorld()->GetFirstPlayerController());
@@ -88,29 +113,21 @@ FVector AGunBase::GetMuzzleLocation() const
     return GunMesh->GetSocketLocation(WeaponDataAsset->MuzzleSocketName);
 }
 
-void AGunBase::BeginPlay()
+void AGunBase::SpawnShellEject()
 {
-    Super::BeginPlay();
+    if (!WeaponDataAsset->ShellEjectFX || !GunMesh) return;
 
-    if (WeaponDataAsset)
-    {
-        CurrentAmmo = WeaponDataAsset->MaxAmmo;
-        DefaultMaxAmmo = CurrentAmmo;
-        CurrentMaxAmmo = CurrentAmmo;
+    // 소켓에서 위치 가져오기 (예: Eject 구멍 위치)
+    FVector EjectLocation = GunMesh->GetSocketLocation("ShellEject");  
+    FRotator EjectRotation = GunMesh->GetSocketRotation("ShellEject");
 
-        if (WeaponDataAsset->WeaponMesh)
-        {
-            GunMesh->SetSkeletalMesh(WeaponDataAsset->WeaponMesh);
-        }
-    }
-    else
-    {
-        UE_LOG(LogTemp, Error, TEXT("WeaponDataAsset is NULL on %s"), *GetName());
-    }
-
-    // ★ 시작 상태도 UI에 알려주기
-    OnMagAmmoChanged.Broadcast(CurrentAmmo, GetMagSize());
-    OnReserveAmmoChanged.Broadcast(RemainingAmmo);
+    // 나이아가라 시스템 스폰
+    UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+        GetWorld(),
+        WeaponDataAsset->ShellEjectFX,
+        EjectLocation,
+        EjectRotation
+    );
 }
 
 void AGunBase::EmptyFireBullet()
@@ -140,6 +157,7 @@ void AGunBase::FireBullet()
 
     PlayEffects();
     SpawnBullet();
+    SpawnShellEject();
 
     // 🔥 발사할 때마다 퍼짐 증가
     CurrentSpread = FMath::Clamp(CurrentSpread + SpreadIncrement, BaseSpread, MaxSpread);

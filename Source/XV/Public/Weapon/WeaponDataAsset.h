@@ -22,6 +22,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Visuals")
 	class UNiagaraSystem* MuzzleFlash;
 
+	// 머즐 플래시
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Visuals")
+	class UNiagaraSystem* ShellEjectFX;
+
 	// 무기 메쉬
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon Parts")
 	UStaticMesh* SilenceParts;
@@ -49,7 +53,7 @@ public:
 	// 발사할 탄환 클래스
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Bullet")
 	TSubclassOf<class AProjectileBullet> BulletClass;
-
+	
 	// 발사 탄환 속도
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Firing")
 	float BulletSpeed;
