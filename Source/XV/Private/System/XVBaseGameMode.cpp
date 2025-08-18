@@ -13,6 +13,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
 #include "Perception/AIPerceptionComponent.h"
+#include "EngineUtils.h"
 
 AXVBaseGameMode::AXVBaseGameMode()
 {
@@ -249,10 +250,48 @@ void AXVBaseGameMode::RespawnPlayer(AController* Controller, float RespawnDelay)
 			{
 				Stimuli->RegisterWithPerceptionSystem();
 			}
+
+			GetWorld()->GetTimerManager().SetTimer(
+				RespawnSlowHandle,
+				[this]()
+				{
+					if (APlayerController* PC2 = UGameplayStatics::GetPlayerController(this, 0))
+					{
+						if (AXVCharacter* PlayerChar = Cast<AXVCharacter>(PC2->GetPawn()))
+						{
+							PlayerChar->CustomTimeDilation = 1.0f;
+						}
+					}
+					
+					for (TActorIterator<AXVEnemyBase> It(GetWorld()); It; ++It)
+					{
+						AXVEnemyBase* Enemy = *It;
+						if (IsValid(Enemy))
+						{
+							Enemy->CustomTimeDilation = 1.0f;
+						}
+					}
+				}, 0.7f,
+			false
+			);
 			
+			DeadCharacter->CustomTimeDilation = 1.0f;
 			DeadCharacter->CurrentHealth = DeadCharacter->MaxHealth;
 			DeadCharacter->bIsDie = false;
 
+			FTimerHandle TimerHandle;
+			if (APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0))
+			{
+				GetWorld()->GetTimerManager().SetTimer(TimerHandle, [this, PC]()
+			{
+				if (PC && PC->PlayerCameraManager)
+				{
+					PC->PlayerCameraManager->StartCameraFade(
+						1.f, 0.f, 0.5f, FLinearColor::Black, false, true);
+				}
+			}, 1.5f, false);
+			}
+			
 			if (UAnimInstance* AnimInstance = DeadCharacter->GetMesh()->GetAnimInstance())
 			{
 				AnimInstance->StopAllMontages(0.2f);
@@ -305,11 +344,36 @@ void AXVBaseGameMode::EndGame(bool bIsClear)
 	{
 		if (APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0))
 		{
+			if (PC && PC->PlayerCameraManager)
+			{
+				PC->PlayerCameraManager->StartCameraFade(
+					0.f,
+					1.f,
+					0.5f,
+					FLinearColor::Black,
+					false,
+					true
+					);
+			}
+			
+			if (AXVCharacter* PlayerChar = Cast<AXVCharacter>(PC->GetPawn()))
+			{
+				PlayerChar->CustomTimeDilation = 0.1f;
+			}
+			for (TActorIterator<AXVEnemyBase> It(GetWorld()); It; ++It)
+			{
+				AXVEnemyBase* Enemy = *It;
+				if (IsValid(Enemy))
+				{
+					Enemy->CustomTimeDilation = 0.1f;
+				}
+			}
+			
+			RespawnPlayer(PC, 2.0f);
 			if (AXVGameState* GS = GetGameState<AXVGameState>())
 			{
 				GS->IsWaveTriggered = false;
 			}
-			RespawnPlayer(PC, 1.0f);
 		}
 	}
 }
