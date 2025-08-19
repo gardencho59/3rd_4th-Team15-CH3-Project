@@ -12,6 +12,8 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "System/XVBaseGameMode.h"
 #include "Components/CapsuleComponent.h"
+#include "Inventory/Data/Item/ItemData.h"
+#include "Item/InteractableItem.h"
 #include "Perception/AIPerceptionComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundBase.h"
@@ -96,7 +98,7 @@ void AXVEnemyBase::Destroyed()
 	{
 		AIWeaponBase->Destroy();
 	}
-
+	
 	if (DestroyTimerHandle.IsValid())
 	{
 		GetWorldTimerManager().ClearTimer(DestroyTimerHandle);
@@ -168,6 +170,8 @@ void AXVEnemyBase::GetDamage(float Damage)
 	// ▼ 체력이 0 이하로 떨어졌을 때만 사망 처리!
 	if (AIStatusComponent->CurrentHealth() <= 0.f)
 	{
+		DropItem();
+		
 		if (true == AIController->AIBlackBoard->GetValueAsBool(TEXT("bIsBoss")))
 		{
 			if (DeathSound)
@@ -286,6 +290,9 @@ void AXVEnemyBase::GetDamage(float Damage)
 	
 	if (false == AIController->AIBlackBoard->GetValueAsBool(TEXT("bIsBoss")))
 	{
+		AIController->AIBlackBoard->SetValueAsBool(TEXT("AIIsAttacking"), true);
+		SetAttackMode();
+		
 		// 기본 : 10% 확률로 애니메이션 실행
 		if (AIStatusComponent->CurrentHealth() > 10.f && false == bIsAvoid && FMath::FRand() < AvoidChance)
 		{
@@ -332,6 +339,9 @@ void AXVEnemyBase::GetDamage(float Damage)
 	}
 	else if (true == AIController->AIBlackBoard->GetValueAsBool(TEXT("bIsBoss")))
 	{
+		AIController->AIBlackBoard->SetValueAsBool(TEXT("AIIsAttacking"), true);
+		SetAttackMode();
+		
 		// 기본 : 50% 확률로 애니메이션 실행
 		if (AIStatusComponent->CurrentHealth() > 10.f && false == bIsAvoid && FMath::FRand() < 0.5f)
 		{
@@ -609,4 +619,40 @@ void AXVEnemyBase::TryRandomPortal()
 
 	const FRotator KeepRot = GetActorRotation();
 	TeleportTo(OutNavLoc.Location, KeepRot, false, false);
+}
+
+
+void AXVEnemyBase::DropItem()
+{
+	if (ItemData)
+	{
+		UWorld* World = GetWorld();
+		if (!World) return;
+
+		// Row 이름들 뽑기
+		TArray<FName> RowNames = ItemData->GetRowNames();
+		if (RowNames.Num() == 0) return;
+    
+		// 랜덤으로 Row 선택
+		int32 RandIdx = FMath::RandRange(0, RowNames.Num() - 1);
+		FName SelectedRowName = RowNames[RandIdx];
+
+		// 아이템 데이터에서 정보 가져오기
+		if (const FItemData* ItemInfo = ItemData->FindRow<FItemData>(SelectedRowName, TEXT("")))
+		{
+			if (ItemInfo->ItemClass)
+			{
+				FVector SpawnLoc = GetActorLocation() + FVector(0, 0, 200);
+				AInteractableItem* Item = World->SpawnActor<AInteractableItem>(ItemInfo->ItemClass, SpawnLoc, FRotator::ZeroRotator);
+				if (Item)
+				{
+					if (UPrimitiveComponent* PrimComp = Cast<UPrimitiveComponent>(Item->GetRootComponent()))
+					{
+						PrimComp->SetSimulatePhysics(true);
+						PrimComp->SetEnableGravity(true);
+					}
+				}
+			}
+		}
+	}
 }

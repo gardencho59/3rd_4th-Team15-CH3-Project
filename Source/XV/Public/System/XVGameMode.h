@@ -18,4 +18,7 @@ public:
 	virtual void OnEnemyKilled() override;
 	virtual void OnWaveTriggered() override;
 	virtual void EndGame(bool bIsClear) override;
+
+	UFUNCTION(BlueprintImplementableEvent, Category="Game")
+	void GameClear();
 };

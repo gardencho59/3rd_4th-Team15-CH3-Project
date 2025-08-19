@@ -35,6 +35,9 @@ public:
 	FEquippedAttachment SavedRifleAttachment;
 	UPROPERTY()
 	FEquippedAttachment SavedPistolAttachment;
+
+	UPROPERTY()
+	float SavedHealth;
 	
 	void SaveInventory(class UInventoryComponent* Inventory);
 	void LoadInventory(class UInventoryComponent* Inventory);
