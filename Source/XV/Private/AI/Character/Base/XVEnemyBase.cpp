@@ -290,6 +290,9 @@ void AXVEnemyBase::GetDamage(float Damage)
 	
 	if (false == AIController->AIBlackBoard->GetValueAsBool(TEXT("bIsBoss")))
 	{
+		AIController->AIBlackBoard->SetValueAsBool(TEXT("AIIsAttacking"), true);
+		SetAttackMode();
+		
 		// 기본 : 10% 확률로 애니메이션 실행
 		if (AIStatusComponent->CurrentHealth() > 10.f && false == bIsAvoid && FMath::FRand() < AvoidChance)
 		{
@@ -336,6 +339,9 @@ void AXVEnemyBase::GetDamage(float Damage)
 	}
 	else if (true == AIController->AIBlackBoard->GetValueAsBool(TEXT("bIsBoss")))
 	{
+		AIController->AIBlackBoard->SetValueAsBool(TEXT("AIIsAttacking"), true);
+		SetAttackMode();
+		
 		// 기본 : 50% 확률로 애니메이션 실행
 		if (AIStatusComponent->CurrentHealth() > 10.f && false == bIsAvoid && FMath::FRand() < 0.5f)
 		{
