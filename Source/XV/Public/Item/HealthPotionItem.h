@@ -2,7 +2,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Item/InteractableItem.h"
+#include "Item/InteractiveItem.h"
 #include "HealthPotionItem.generated.h"
 
 // 진행 UI용 델리게이트
@@ -12,7 +12,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnChargeCancel);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnChargeFinish);
 
 UCLASS()
-class XV_API AHealthPotionItem : public AInteractableItem
+class XV_API AHealthPotionItem : public AInteractiveItem
 {
 	GENERATED_BODY()
 public:

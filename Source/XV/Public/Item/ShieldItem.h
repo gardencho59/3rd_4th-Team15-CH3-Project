@@ -3,14 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Item/InteractableItem.h"
+#include "Item/InteractiveItem.h"
 #include "ShieldItem.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class XV_API AShieldItem : public AInteractableItem
+class XV_API AShieldItem : public AInteractiveItem
 {
 	GENERATED_BODY()
 	AShieldItem();

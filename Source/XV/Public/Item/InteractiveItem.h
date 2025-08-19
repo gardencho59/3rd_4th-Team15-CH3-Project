@@ -3,17 +3,17 @@
 #include "CoreMinimal.h"
 #include "ItemInterface.h"
 #include "GameFramework/Actor.h"
-#include "InteractableItem.generated.h"
+#include "InteractiveItem.generated.h"
 
 class AXVCharacter;
 
 UCLASS()
-class XV_API AInteractableItem : public AActor, public IItemInterface
+class XV_API AInteractiveItem : public AActor, public IItemInterface
 {
 	GENERATED_BODY()
 
 public:
-	AInteractableItem();
+	AInteractiveItem();
 
 	virtual void UseItem();
 	virtual float GetItemTime();

@@ -3,11 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Item/InteractableItem.h"
+#include "Item/InteractiveItem.h"
 #include "BandageItem.generated.h"
 
 UCLASS()
-class XV_API ABandageItem : public AInteractableItem
+class XV_API ABandageItem : public AInteractiveItem
 {
 	GENERATED_BODY()
 	ABandageItem();

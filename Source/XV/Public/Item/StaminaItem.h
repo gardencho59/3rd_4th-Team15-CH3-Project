@@ -3,14 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Item/InteractableItem.h"
+#include "Item/InteractiveItem.h"
 #include "StaminaItem.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class XV_API AStaminaItem : public AInteractableItem
+class XV_API AStaminaItem : public AInteractiveItem
 {
 	GENERATED_BODY()
 
