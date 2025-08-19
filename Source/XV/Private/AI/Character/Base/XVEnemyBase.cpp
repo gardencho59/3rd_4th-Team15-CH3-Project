@@ -1,5 +1,4 @@
 ﻿#include "AI/Character/Base/XVEnemyBase.h"
-
 #include "BrainComponent.h"
 #include "NavigationSystem.h"
 #include "AI/Weapons/Base/AIWeaponBase.h"
@@ -8,7 +7,6 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "AI/AIComponents/AIConfigComponent.h"
 #include "AI/DebugTool/DebugTool.h"
-#include "AssetTypeActions/AssetDefinition_SoundBase.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "System/XVBaseGameMode.h"
 #include "Components/CapsuleComponent.h"
@@ -68,9 +66,7 @@ void AXVEnemyBase::BeginPlay()
 	MovementComponent->bOrientRotationToMovement = OrientRotationToMovement;       // 이동 방향으로 캐릭터 회전
 
 	// 무기 끼우기
-	// TODO : 무기 어떻게 할거임? 기존의 것 가져오던지 아니면 말던지.
 	SetWeapon();
-	// checkf(AIWeaponBaseClass != nullptr, TEXT("AIWeaponBaseClass is NULL"));
 
 }
 
@@ -85,7 +81,6 @@ void AXVEnemyBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	if (DestroyTimerHandle.IsValid())
 	{
 		GetWorldTimerManager().ClearTimer(DestroyTimerHandle);
-		UE_LOG(LogTemp, Warning, TEXT("DestroyTimerHandle Clear in EndPlay"));
 	}
 
 	Super::EndPlay(EndPlayReason);
@@ -102,7 +97,6 @@ void AXVEnemyBase::Destroyed()
 	if (DestroyTimerHandle.IsValid())
 	{
 		GetWorldTimerManager().ClearTimer(DestroyTimerHandle);
-		UE_LOG(LogTemp, Warning, TEXT("DestroyTimerHandle Clear in Destroyed"));
 	}
 	
 	Super::Destroyed();
@@ -135,7 +129,6 @@ void AXVEnemyBase::GetDamage(float Damage)
 {
 	if (bIsDead)
 	{
-		UE_LOG(Log_XV_AI, Warning, TEXT("GetDamage : bIsDead is %d"), bIsDead);
 		if (CachedAIController && CachedAIController->BrainComponent)
 		{
 			CachedAIController->BrainComponent->StopLogic(TEXT("Dead"));
@@ -146,22 +139,15 @@ void AXVEnemyBase::GetDamage(float Damage)
 
 	if (bIsAvoid)
 	{
-		UE_LOG(Log_XV_AI, Warning, TEXT("GetDamage : bIsAvoid is %d"), bIsAvoid);
 		return;
 	}
 	
 	AIStatusComponent->CurrentHealth();
 	AIStatusComponent->D_Gettter(Damage);
-
-	
-	
-	UE_LOG(Log_XV_AI, Warning, TEXT("GetDamage : %f"),AIStatusComponent->CurrentHealth());
-	UE_LOG(Log_XV_AI, Warning, TEXT("GetDamage : GetDamage Start"));
 	
 	AXVControllerBase* AIController = Cast<AXVControllerBase>(GetController());
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 
-	
 	if (true == AIController->AIBlackBoard->GetValueAsBool(TEXT("bIsBoss")))
 	{
 		OnDamageEventforHUD();
@@ -181,7 +167,6 @@ void AXVEnemyBase::GetDamage(float Damage)
 			}
 		}
 		
-		UE_LOG(Log_XV_AI, Warning, TEXT("GetDamage : GetDamage Start2"));
 		AIController->AIPerception->SetActive(false);
 		
 		//
@@ -214,19 +199,13 @@ void AXVEnemyBase::GetDamage(float Damage)
 		
 		if(AXVBaseGameMode* BaseGameMode = GetWorld()->GetAuthGameMode<AXVBaseGameMode>())
 		{
-			UE_LOG(LogTemp, Warning, TEXT("OnEnemyKilled Succeed"));
 			BaseGameMode->OnEnemyKilled();
-		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("OnEnemyKilled failed"));
 		}
 		
 		bIsDead = true;
 
 		AIController->AIBlackBoard->SetValueAsBool(TEXT("bIsDead"), true);
 		
-		UE_LOG(Log_XV_AI, Warning, TEXT("GetDamage : bIsDead is %d"), bIsDead);
 		// 컨트롤러 가져오기 (현재 액터에 바운드된 실제 컨트롤러)
 		if (AIController)
 		{
@@ -255,10 +234,6 @@ void AXVEnemyBase::GetDamage(float Damage)
 		{
 			if (AnimInstance)
 			{
-				// 델리게이트 람다 바인딩
-				// FOnMontageEnded DeathMontageEndedDelegate;
-				//DeathMontageEndedDelegate.BindLambda([this](UAnimMontage*, bool){DeathTimer();});
-
 				if (true == AIController->AIBlackBoard->GetValueAsBool(TEXT("bIsBoss")))
 				{
 					// 슬로우 모션 시작
@@ -271,20 +246,10 @@ void AXVEnemyBase::GetDamage(float Damage)
 						UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 1.0f);
 					}, 3.0f, false);
 				}
-				
 				AnimInstance->Montage_Play(DeathMontage);
-				// AnimInstance->Montage_SetEndDelegate(DeathMontageEndedDelegate, DeathMontage);
-				//AnimInstance->Montage_SetPlayRate(DeathMontage, 1.0f);
-			}
-			else
-			{
-				//DeathTimer();
 			}
 		}
-		else
-		{
-			//DeathTimer();
-		}
+		
 		return;
 	}
 	
@@ -298,7 +263,6 @@ void AXVEnemyBase::GetDamage(float Damage)
 		{
 			AIController->AIBlackBoard->SetValueAsBool(TEXT("bIsAvoiding"), true);
 		
-			UE_LOG(Log_XV_AI, Warning, TEXT("AvoidChance Succeed"));
 			ACharacter* PlayerCharacter = Cast<ACharacter>(GetWorld()->GetFirstPlayerController()->GetCharacter());
 			if (PlayerCharacter)
 			{
@@ -308,7 +272,6 @@ void AXVEnemyBase::GetDamage(float Damage)
 		}
 		else if (AIStatusComponent->CurrentHealth() > 5.f && false == bIsAvoid && FMath::FRand() > AvoidChance)
 		{
-			UE_LOG(Log_XV_AI, Warning, TEXT("AvoidChance Fail"));
 			// 데미지 받기
 			AIStatusComponent->Sub_Health(Damage);
 		
@@ -347,7 +310,6 @@ void AXVEnemyBase::GetDamage(float Damage)
 		{
 			AIController->AIBlackBoard->SetValueAsBool(TEXT("bIsAvoiding"), true);
 		
-			UE_LOG(Log_XV_AI, Warning, TEXT("AvoidChance Succeed"));
 			ACharacter* PlayerCharacter = Cast<ACharacter>(GetWorld()->GetFirstPlayerController()->GetCharacter());
 			if (PlayerCharacter)
 			{
@@ -358,7 +320,6 @@ void AXVEnemyBase::GetDamage(float Damage)
 		}
 		else if (AIStatusComponent->CurrentHealth() > 5.f && false == bIsAvoid && FMath::FRand() > 0.5f)
 		{
-			UE_LOG(Log_XV_AI, Warning, TEXT("AvoidChance Fail"));
 			
 			// 데미지 받기
 			AIStatusComponent->Sub_Health(Damage);
@@ -410,16 +371,8 @@ void AXVEnemyBase::DeathTimer()
 
 	UE_LOG(Log_XV_AI, Warning, TEXT("DeathTimer Start"));
 	
-	// SetActorHiddenInGame(true);      // 액터 전체 숨김(컴포넌트 관계 없음)
-	// SetActorEnableCollision(false);  // 충돌도 끔(안 밟힘)
-	// SetActorTickEnabled(false);      // 틱도 끔(CPU 소모 방지)
-	//
-
 	GetMesh()->bPauseAnims = true;
 
-	// GetMesh()->SetVisibility(false, true);
-	// GetMesh()->SetHiddenInGame(true, true);
-	
 	for (UActorComponent* Comp : GetComponents())
 	{
 		UMeshComponent* MeshComp = Cast<UMeshComponent>(Comp);
@@ -427,7 +380,6 @@ void AXVEnemyBase::DeathTimer()
 			{
 			MeshComp->SetVisibility(false, true);
 			MeshComp->SetHiddenInGame(true, true);
-			UE_LOG(LogTemp, Warning, TEXT("%s: V:%d, H:%d"), *MeshComp->GetName(), MeshComp->IsVisible(), MeshComp->bHiddenInGame);
 		}
 	}
 	
@@ -444,7 +396,6 @@ void AXVEnemyBase::DeathTimer()
 		false
 	);
 
-	UE_LOG(Log_XV_AI, Warning, TEXT("DeathTimer End"));
 }
 
 void AXVEnemyBase::OnDamageEnded()
@@ -470,7 +421,6 @@ void AXVEnemyBase::OnDamageEnded()
 
 void AXVEnemyBase::TryRandomAvoid(const FVector& PlayerLocation)
 {
-	UE_LOG(Log_XV_AI, Warning, TEXT("TryRandomAvoid : TryRandomAvoid Start"));
 	bIsAvoid = true;
 
 	// 1. 플레이어 바라보는 방향 계산
@@ -510,15 +460,10 @@ void AXVEnemyBase::TryRandomAvoid(const FVector& PlayerLocation)
 		AnimInstance->Montage_SetEndDelegate(AvoidMontageEndedDelegate, MontageToPlay);
 	}
 
-	// 4. 회피 이동 처리 (예: LaunchCharacter로 순간 이동 느낌)
-	// float DodgeStrength = GetCharacterMovement()->GetMaxSpeed()*100000;
-	// LaunchCharacter(DodgeDir * DodgeStrength, true, true);
 }
 
 void AXVEnemyBase::EndAvoid()
 {
-	UE_LOG(LogTemp, Warning, TEXT("EndAvoid : EndAvoid Start"));
-	
 	bIsAvoid = false; // 중단/정상 무관하게 명확히 false 처리
 
 	// AI 재활성화(1초 후 실행) 
@@ -547,7 +492,6 @@ void AXVEnemyBase::EndAvoid()
 		}
 	}
 	
-	UE_LOG(LogTemp, Warning, TEXT("Now bIsAvoid boll is %d"), bIsAvoid);
 }
 
 

@@ -1,7 +1,5 @@
 ﻿#include "AI/AIComponents/AIStatusComponent.h"
 
-#include <System/XVBaseGameMode.h>
-
 UAIStatusComponent::UAIStatusComponent()
 	: Health(100)
 	, AttackDamage(10)

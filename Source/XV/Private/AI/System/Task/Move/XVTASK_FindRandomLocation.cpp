@@ -30,7 +30,6 @@ EBTNodeResult::Type UXVTASK_FindRandomLocation::ExecuteTask(UBehaviorTreeCompone
 	// 키 확인
 	if (LocationKey.SelectedKeyName.IsNone())
 	{
-		UE_LOG(Log_XV_AI, Error, TEXT("LocationKey is not set in Behavior Tree!"));
 		return EBTNodeResult::Failed;
 	}
 
@@ -47,6 +46,5 @@ EBTNodeResult::Type UXVTASK_FindRandomLocation::ExecuteTask(UBehaviorTreeCompone
 		}
 	}
 
-	UE_LOG(Log_XV_AI, Warning, TEXT("Find Random Location Failed")); 
 	return EBTNodeResult::Failed;  // 실패
 }
