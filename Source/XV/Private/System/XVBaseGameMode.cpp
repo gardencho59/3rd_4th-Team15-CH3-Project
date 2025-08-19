@@ -12,9 +12,8 @@
 #include "GameFramework/Character.h"
 #include "Components/CapsuleComponent.h"
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
-#include "Perception/AIPerceptionComponent.h"
+#include "BrainComponent.h"
 #include "EngineUtils.h"
-#include "Inventory/Component/InventoryComponent.h"
 
 AXVBaseGameMode::AXVBaseGameMode()
 {
@@ -160,6 +159,7 @@ void AXVBaseGameMode::SpawnEnemies()
 			if (SpawnActor && SpawnActor->IsA(AXVEnemyBase::StaticClass()))
 			{
 				GS->SpawnedEnemyCount++;
+				SpawnActor->OnDestroyed.AddDynamic(this, &AXVBaseGameMode::OnEnemyDestroyed);
 			}
 		}
 	}
@@ -197,32 +197,6 @@ void AXVBaseGameMode::RespawnPlayer(AController* Controller, float RespawnDelay)
 	FRotator RespawnRotation = DeadPawn->GetActorRotation();
 	
 	Controller->UnPossess();
-	if (AXVCharacter* DeadCharacter = Cast<AXVCharacter>(DeadPawn))
-	{
-		if (UAIPerceptionStimuliSourceComponent* Stimuli = DeadCharacter->FindComponentByClass<UAIPerceptionStimuliSourceComponent>())
-		{
-			Stimuli->UnregisterFromPerceptionSystem();
-		}
-
-		TArray<AActor*> FoundPawns;
-		UGameplayStatics::GetAllActorsOfClass(GetWorld(), APawn::StaticClass(), FoundPawns);
-
-		for (AActor* Actor : FoundPawns)
-		{
-			APawn* Pawn = Cast<APawn>(Actor);
-			if (!Pawn) continue;
-
-			AAIController* AICon = Cast<AAIController>(Pawn->GetController());
-			if (!AICon) continue;
-
-			if (UAIPerceptionComponent* Perception = AICon->FindComponentByClass<UAIPerceptionComponent>())
-			{
-				Perception->ForgetActor(DeadCharacter);
-			}
-		}
-		
-		DeadCharacter->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	}
 	
 	FTimerHandle TimerHandle;
 	GetWorldTimerManager().SetTimer(TimerHandle, [this, Controller, DeadPawn, RespawnLocation, RespawnRotation]()
@@ -384,4 +358,22 @@ void AXVBaseGameMode::EndGame(bool bIsClear)
 	}
 }
 
+void AXVBaseGameMode::OnEnemyDestroyed(AActor* DestroyedActor)
+{
+	if (APawn* Pawn = Cast<APawn>(DestroyedActor))
+	{
+		if (AController* Ctrl = Pawn->GetController())
+		{
+			if (AAIController* AICon = Cast<AAIController>(Ctrl))
+			{
+				if (UBrainComponent* Brain = AICon->GetBrainComponent())
+				{
+					Brain->StopLogic(TEXT("Enemy Destroyed"));
+				}
+				AICon->UnPossess();
+				AICon->Destroy();
+			}
+		}
+	}
+}
 
