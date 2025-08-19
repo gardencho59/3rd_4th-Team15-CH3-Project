@@ -56,8 +56,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Mission")
 	TArray<FMissionData> Missions =
 		{
-			{ TEXT("Mission 1"), TEXT("Kill All Enemies") },
-			{ TEXT("Mission 2"), TEXT("Take the Elevator") },
+			{ TEXT("Mission 1"), TEXT("Get 15 kills or More & Move Towards the Building") },
+			{ TEXT("Mission 2"), TEXT("Take Itmes & Take the Elevator in the Building") },
 			{ TEXT("Mission 3"), TEXT("Interact Button to Open Door") },
 			{ TEXT("Mission 4"), TEXT("Kill All Enemies") },
 			{ TEXT("Mission 5"), TEXT("Hack a Computer to Activate Interactive Button") },
