@@ -534,10 +534,12 @@ void UInventoryComponent::EquipArmor(const FArmorData& NewArmor, EArmorType Armo
 	{
 	case EArmorType::Helmet:
 		UE_LOG(LogTemp, Log, TEXT("Equip Helmet!!"));
+		if (EquippedArmor.Helmet.ArmorName == NewArmor.ArmorName) return;
 		EquippedArmor.Helmet = NewArmor;
 		break;
 	case EArmorType::Vest:
 		UE_LOG(LogTemp, Log, TEXT("Equip Vest!!"));
+		if (EquippedArmor.Vest.ArmorName == NewArmor.ArmorName) return;
 		EquippedArmor.Vest = NewArmor;
 		break;
 	}
@@ -570,6 +572,7 @@ void UInventoryComponent::EquipAttachment(const FAttachmentData& NewAttachment, 
 	AGunBase* GunBase = XVCharacter->GetWeaponActor(WeaponType);
 	
 	UE_LOG(LogTemp, Log, TEXT("WeaponType: %s"), *StaticEnum<EWeaponType>()->GetNameStringByValue(static_cast<int64>(WeaponType)));
+	
 	switch (AttachmentType)
 	{
 	case EAttachmentType::Silencer:
@@ -577,11 +580,13 @@ void UInventoryComponent::EquipAttachment(const FAttachmentData& NewAttachment, 
 		{
 		case EWeaponType::Rifle:
 			UE_LOG(LogTemp, Log, TEXT("Equip Silencer To Rifle"));
+			if (RifleAttachment.Silencer.AttachmentName == NewAttachment.AttachmentName) return;
 			RifleAttachment.Silencer = NewAttachment;
 			GunBase->AttachSilencer();
 			break;
 		case EWeaponType::Pistol:
 			UE_LOG(LogTemp, Log, TEXT("Equip Silencer To Pistol"));
+			if (PistolAttachment.Silencer.AttachmentName == NewAttachment.AttachmentName) return;
 			PistolAttachment.Silencer = NewAttachment;
 			GunBase->AttachSilencer();
 			break;
@@ -592,18 +597,20 @@ void UInventoryComponent::EquipAttachment(const FAttachmentData& NewAttachment, 
 		{
 		case EWeaponType::Rifle:
 			UE_LOG(LogTemp, Log, TEXT("Equip ExtendedMag To Rifle"));
+			if (RifleAttachment.ExtendedMag.AttachmentName == NewAttachment.AttachmentName) return;
 			RifleAttachment.ExtendedMag = NewAttachment;
 			GunBase->AttachExtendedMag();
 			break;
 		case EWeaponType::Pistol:
 			UE_LOG(LogTemp, Log, TEXT("Equip ExtendedMag To Pistol"));
+			if (PistolAttachment.ExtendedMag.AttachmentName == NewAttachment.AttachmentName) return;
 			PistolAttachment.ExtendedMag = NewAttachment;
 			GunBase->AttachExtendedMag();
 			break;
 		}
 		break;
 	}
-	
+			
 	FItemSFX ItemSFX = GetItemSFX(NewAttachment.AttachmentName);
 	if (!ItemSFX.Move)
 	{
