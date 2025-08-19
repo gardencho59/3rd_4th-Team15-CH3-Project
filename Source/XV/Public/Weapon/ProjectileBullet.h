@@ -23,6 +23,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "VFX")
 	UMaterialInterface* BulletImpactDecal;
 
+	UPROPERTY(EditDefaultsOnly, Category="Effect")
+	class UNiagaraSystem* BulletImpactNiagara;
+
 	UPROPERTY(VisibleAnywhere)
 	UProjectileMovementComponent* ProjectileMovement;
 

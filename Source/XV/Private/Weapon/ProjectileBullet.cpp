@@ -2,6 +2,7 @@
 
 #include "AI/Character/Base/XVEnemyBase.h"
 #include "GameFramework/ProjectileMovementComponent.h"
+#include "NiagaraFunctionLibrary.h"
 #include "Kismet/GameplayStatics.h"
 
 AProjectileBullet::AProjectileBullet()
@@ -38,7 +39,17 @@ void AProjectileBullet::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// 타이머로 탄환 자동 파괴 (예: 3초)
+	// 처음엔 안 보이게
+	BulletMesh->SetVisibility(false);
+
+	// 0.2초 후 보이게
+	FTimerHandle TimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, [this]()
+	{
+		BulletMesh->SetVisibility(true);
+	}, 0.05f, false);
+
+	// 기존처럼 3초 후 자동 파괴
 	SetLifeSpan(3.0f);
 }
 
@@ -74,6 +85,18 @@ void AProjectileBullet::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
 				10.0f                          // 지속 시간
 			);
 		}
+
+		// OnHit 안에 추가
+		if (BulletImpactNiagara)
+		{
+			UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+				GetWorld(),
+				BulletImpactNiagara,       // 파티클 시스템
+				Hit.ImpactPoint,            // 위치
+				Hit.ImpactNormal.Rotation() // 방향
+			);
+		}
+
 		 
 		// 프렉처 관련 오류 남
 		if (OtherComp && OtherComp->IsSimulatingPhysics())
