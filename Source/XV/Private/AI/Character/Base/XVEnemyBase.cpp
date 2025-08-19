@@ -13,7 +13,7 @@
 #include "System/XVBaseGameMode.h"
 #include "Components/CapsuleComponent.h"
 #include "Inventory/Data/Item/ItemData.h"
-#include "Item/InteractableItem.h"
+#include "Item/InteractiveItem.h"
 #include "Perception/AIPerceptionComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundBase.h"
@@ -643,7 +643,7 @@ void AXVEnemyBase::DropItem()
 			if (ItemInfo->ItemClass)
 			{
 				FVector SpawnLoc = GetActorLocation() + FVector(0, 0, 200);
-				AInteractableItem* Item = World->SpawnActor<AInteractableItem>(ItemInfo->ItemClass, SpawnLoc, FRotator::ZeroRotator);
+				AInteractiveItem* Item = World->SpawnActor<AInteractiveItem>(ItemInfo->ItemClass, SpawnLoc, FRotator::ZeroRotator);
 				if (Item)
 				{
 					if (UPrimitiveComponent* PrimComp = Cast<UPrimitiveComponent>(Item->GetRootComponent()))
