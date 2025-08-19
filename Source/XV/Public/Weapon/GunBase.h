@@ -8,6 +8,8 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnMagAmmoChanged, int32, Current, int32, Max);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnReserveAmmoChanged, int32, Reserve);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnFireBullet);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FEndFireBullet);
 
 UCLASS()
 class XV_API AGunBase : public AActor, public IWeaponInterface
@@ -32,6 +34,13 @@ public:
 		const int32 Max = GetMagSize();
 		return (Max > 0) ? float(CurrentAmmo) / Max : 0.f;
 	}
+
+	// GunBase.h
+	UPROPERTY(BlueprintAssignable, Category="Weapon")
+	FOnFireBullet OnFireBullet;
+
+	UPROPERTY(BlueprintAssignable, Category="Weapon")
+	FOnFireBullet EndFireBullet;
 
 	UFUNCTION(BlueprintCallable, Category="Weapon|Parts")
 	void AttachExtendedMag();
