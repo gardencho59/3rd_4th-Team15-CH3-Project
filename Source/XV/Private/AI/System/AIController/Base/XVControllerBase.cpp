@@ -82,9 +82,6 @@ void AXVControllerBase::BeginPlay()
 	// 비해비어 트리 시작
 	checkf(BehaviorTreeAsset != nullptr, TEXT("BehaviorTreeAsset is NULL"));
 	RunBehaviorTree(BehaviorTreeAsset);
-
-	// 로그 확인
-	LogDataAssetValues();
 }
 
 void AXVControllerBase::Tick(float DeltaSeconds)
@@ -176,9 +173,6 @@ void AXVControllerBase::OnTargetInfoUpdated(AActor* Actor, FAIStimulus Stimulus)
 		Enemy->SetAttackMode();
 	}
 	
-    // 디버그 정보 출력
-    const FString StatusText = bWasSuccessfullySensed ? FString::Printf(TEXT("Saw: %s"), *Actor->GetName()) : FString::Printf(TEXT("Lost: %s"), *Actor->GetName());
-    // DrawDebugString(GetWorld(), Actor->GetActorLocation() + FVector(0, 0, 100), StatusText, nullptr, bWasSuccessfullySensed ? FColor::Green : FColor::Red, 2.0f,true);
 	
 	// 게임모드 업데이트
 	if (UGameInstance* GI = GetGameInstance())
@@ -192,30 +186,3 @@ void AXVControllerBase::OnTargetInfoUpdated(AActor* Actor, FAIStimulus Stimulus)
 		}
 	}
 }
-
-void AXVControllerBase::LogDataAssetValues() const
-{
-	// 소유 테스트 확인
-	
-	// Sight Config 적용된 값 확인
-	UE_LOG(LogTemp, Warning, TEXT("--- Sight Configuration ---"));
-	UE_LOG(LogTemp, Warning, TEXT("Sight Radius: %.2f"), AISightConfig->SightRadius);
-	UE_LOG(LogTemp, Warning, TEXT("Lose Sight Radius: %.2f"), AISightConfig->LoseSightRadius);
-	UE_LOG(LogTemp, Warning, TEXT("Peripheral Vision Angle: %.2f"), AISightConfig->PeripheralVisionAngleDegrees);
-
-	// Hearing Config 적용된 값 확인
-	UE_LOG(LogTemp, Warning, TEXT("--- Hearing Configuration ---"));
-	UE_LOG(LogTemp, Warning, TEXT("Hearing Range: %.2f"), AIHearingConfig->HearingRange);
-
-	// 적용된 감지 설정 확인
-	UE_LOG(LogTemp, Warning, TEXT("--- Detection Settings ---"));
-	UE_LOG(LogTemp, Warning, TEXT("Sight - Detect Enemies: %s"), AISightConfig->DetectionByAffiliation.bDetectEnemies ? TEXT("True") : TEXT("False"));
-	UE_LOG(LogTemp, Warning, TEXT("Sight - Detect Neutrals: %s"), AISightConfig->DetectionByAffiliation.bDetectNeutrals ? TEXT("True") : TEXT("False"));
-	UE_LOG(LogTemp, Warning, TEXT("Sight - Detect Friendlies: %s"), AISightConfig->DetectionByAffiliation.bDetectFriendlies ? TEXT("True") : TEXT("False"));
-    
-	UE_LOG(LogTemp, Warning, TEXT("Hearing - Detect Enemies: %s"), AIHearingConfig->DetectionByAffiliation.bDetectEnemies ? TEXT("True") : TEXT("False"));
-	UE_LOG(LogTemp, Warning, TEXT("Hearing - Detect Neutrals: %s"), AIHearingConfig->DetectionByAffiliation.bDetectNeutrals ? TEXT("True") : TEXT("False"));
-	UE_LOG(LogTemp, Warning, TEXT("Hearing - Detect Friendlies: %s"), AIHearingConfig->DetectionByAffiliation.bDetectFriendlies ? TEXT("True") : TEXT("False"));
-
-	
-} // DataAsset 값들을 로그로 출력하는 함수

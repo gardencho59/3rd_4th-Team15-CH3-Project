@@ -12,9 +12,6 @@ AArrivalPoint::AArrivalPoint()
 
 	BoxComponent = CreateDefaultSubobject<UBoxComponent>("BoxComponent");
 	BoxComponent->SetupAttachment(SceneRoot);
-
-	StaticMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>("StaticMeshComponent");
-	StaticMeshComponent->SetupAttachment(SceneRoot);
 	
 	BoxComponent->OnComponentBeginOverlap.AddDynamic(this, &AArrivalPoint::OnArrivalPointBeginOverlap);
 }

@@ -48,12 +48,8 @@ protected:
 public:
 	// 블랙 보드 getter 
 	FORCEINLINE UBlackboardComponent* GetBlackboardComp() const { return AIBlackBoard; }
-
-private:
-	// DataAsset 값들을 로그로 출력하는 함수 (퍼셉션 관련 필수만)
-	void LogDataAssetValues() const;
 #pragma endregion 
-	
+
 #pragma region Var_And_Components // 변수 및 컴포넌트 모음
 //---------------------------------------------------------------------------------------------------------------------//
 
