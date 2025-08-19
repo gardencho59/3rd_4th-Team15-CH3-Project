@@ -1244,7 +1244,7 @@ void AXVCharacter::ShieldItem(float Shield, float Duration)
 	if (!bIsShieldActive)
 	{
 		SetMaxHealth(MaxHealth + ShieldAmount);
-		//AddHealth(ShieldAmount); // 회복 안 됨
+		AddHealth(ShieldAmount); // 회복 안 되게 하려면 여기 주석 처리
 		bIsShieldActive = true;
 	}
 	
