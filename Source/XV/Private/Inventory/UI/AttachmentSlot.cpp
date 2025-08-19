@@ -17,7 +17,6 @@ void UAttachmentSlot::NativeConstruct()
 
 FReply UAttachmentSlot::NativeOnPreviewMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
-	UE_LOG(LogTemp, Display, TEXT("NativeOnPreviewMouseButtonDown"));
 	if (InMouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
 	{
 		if (!IsEquipped)
@@ -33,7 +32,6 @@ FReply UAttachmentSlot::NativeOnPreviewMouseButtonDown(const FGeometry& InGeomet
 
 void UAttachmentSlot::NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& OutOperation)
 {
-	UE_LOG(LogTemp, Display, TEXT("NativeOnDragDetected"));
 	
 	if (!ItemSlotPreviewClass)
 	{
@@ -43,7 +41,6 @@ void UAttachmentSlot::NativeOnDragDetected(const FGeometry& InGeometry, const FP
 	UItemSlotPreview* ItemSlotPreview = CreateWidget<UItemSlotPreview>(GetWorld(), ItemSlotPreviewClass);
 	if (!ItemSlotPreview)
 	{
-		UE_LOG(LogTemp, Display, TEXT("Null ItemSlotPreview"));
 		return;
 	}
 	ItemSlotPreview->ItemID = ItemID;
@@ -51,7 +48,6 @@ void UAttachmentSlot::NativeOnDragDetected(const FGeometry& InGeometry, const FP
 	UDragDropOperation* DragOp = NewObject<UDragDropOperation>();
 	if (!DragOp)
 	{
-		UE_LOG(LogTemp, Display, TEXT("Null DragOp"));
 		return;
 	}
 	DragOp->Pivot = EDragPivot::CenterCenter;
@@ -63,11 +59,9 @@ void UAttachmentSlot::NativeOnDragDetected(const FGeometry& InGeometry, const FP
 
 void UAttachmentSlot::NativeOnDragCancelled(const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation)
 {
-	UE_LOG(LogTemp, Display, TEXT("NativeOnDragCancelled"));
 
 	if (!InventoryComp)
 	{
-		UE_LOG(LogTemp, Display, TEXT("!InventoryComp"));
 		return;
 	}
 
@@ -81,7 +75,6 @@ void UAttachmentSlot::NativeOnDragCancelled(const FDragDropEvent& InDragDropEven
 	if (InventoryUI->IsOverInventory(DropPos))
 	{
 		bool IsSuccess = InventoryComp->AddToInventory(ItemID);
-		UE_LOG(LogTemp, Log, TEXT("IsSuccess: %s"), IsSuccess ? TEXT("true") : TEXT("false"));
 		if (!IsSuccess)
 		{
 			return;
@@ -123,7 +116,6 @@ void UAttachmentSlot::EquipAttachment()
 
 void UAttachmentSlot::UnEquipAttachment()
 {
-	UE_LOG(LogTemp, Display, TEXT("UnEquipped"));
 	ImageIcon->SetVisibility(ESlateVisibility::Collapsed);
 	IsEquipped = false;
 	
