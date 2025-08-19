@@ -2,7 +2,6 @@
 #include "AI/Character/Base/XVEnemyBase.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "AIController.h"
-#include "AI/DebugTool/DebugTool.h"
 
 UXVTask_PatrolToPoint::UXVTask_PatrolToPoint()
 {
@@ -21,7 +20,6 @@ EBTNodeResult::Type UXVTask_PatrolToPoint::ExecuteTask(UBehaviorTreeComponent& O
 
 	AActor* NextPoint = MyCharacter->PatrolPoints[Index];
 
-	UE_LOG(Log_XV_AI, Warning, TEXT("Set Next Patrol Point %s"), *NextPoint->GetName());
 	
 	if (!NextPoint) return EBTNodeResult::Failed;
 

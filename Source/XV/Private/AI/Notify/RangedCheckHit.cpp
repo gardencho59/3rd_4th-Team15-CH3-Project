@@ -38,12 +38,7 @@ void URangedCheckHit::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenc
     FVector End = PlayerChar->GetActorLocation() + FVector(0.0f, 0.0f, 40.0f);
 
     FRotator Orientation = (End - Start).Rotation();
-
-    // 트레이스 박스 시각화용
-    // DrawDebugBox(Enemy->GetWorld(), Start, BoxHalfSize, Orientation.Quaternion(), FColor::Blue, false, 2.0f, 0, 2.0f);
-    // DrawDebugBox(Enemy->GetWorld(), End, BoxHalfSize, Orientation.Quaternion(), FColor::Green, false, 2.0f, 0, 2.0f);
-    // DrawDebugLine(Enemy->GetWorld(), Start, End, FColor::Red, false, 2.0f, 0, 3.0f);
-
+    
     TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
     ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_Pawn));
 
@@ -83,12 +78,6 @@ void URangedCheckHit::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenc
                 FCollisionQueryParams(FName(TEXT("RangedHitBlock")), false, Enemy)
             );
 
-            // DrawDebugLine(Enemy->GetWorld(),
-            //     TraceStart,
-            //     TraceEnd,
-            //     bBlocked ? FColor::Red : FColor::Green,
-            //    false, 2.0f, 0, 2.5f);
-
             if (bBlocked && (BlockCheckHit.GetActor() != Character))
             {
                 continue;
@@ -119,9 +108,7 @@ void URangedCheckHit::PlayHitEffects(UWorld* World, USkeletalMeshComponent* Mesh
     if (!World) return;
     
     const FVector MuzzleLoc = Mesh->GetSocketLocation(MuzzleSocketName);
-    UE_LOG(LogTemp, Warning, TEXT("MuzzleLoc: %s"), *MuzzleLoc.ToString());
     const FVector ShellLoc = Mesh->GetSocketLocation(ShellEjectSocketName);
-    UE_LOG(LogTemp, Warning, TEXT("ShellLoc: %s"), *ShellLoc.ToString());
     
     if (NiagaraEffect_MuzzleFlash)
     {
