@@ -20,7 +20,6 @@ void UItemSlotUI::NativeConstruct()
 
 FReply UItemSlotUI::NativeOnPreviewMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
-	UE_LOG(LogTemp, Display, TEXT("NativeOnPreviewMouseButtonDown"));
 	if (InMouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
 	{
 		FEventReply ReplyResult = UWidgetBlueprintLibrary::DetectDragIfPressed(InMouseEvent, this, EKeys::LeftMouseButton);
@@ -37,7 +36,6 @@ bool UItemSlotUI::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent
 
 void UItemSlotUI::NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& OutOperation)
 {
-	UE_LOG(LogTemp, Display, TEXT("NativeOnDragDetected"));
 	
 	if (!ItemSlotPreviewClass)
 	{
@@ -47,7 +45,6 @@ void UItemSlotUI::NativeOnDragDetected(const FGeometry& InGeometry, const FPoint
 	UItemSlotPreview* ItemSlotPreview = CreateWidget<UItemSlotPreview>(GetWorld(), ItemSlotPreviewClass);
 	if (!ItemSlotPreview)
 	{
-		UE_LOG(LogTemp, Display, TEXT("Null ItemSlotPreview"));
 		return;
 	}
 	ItemSlotPreview->ItemID = ItemID;
@@ -56,7 +53,6 @@ void UItemSlotUI::NativeOnDragDetected(const FGeometry& InGeometry, const FPoint
 	UDragDropOperation* DragOp = NewObject<UDragDropOperation>();
 	if (!DragOp)
 	{
-		UE_LOG(LogTemp, Display, TEXT("Null DragOp"));
 		return;
 	}
 	DragOp->Pivot = EDragPivot::CenterCenter;
@@ -68,11 +64,9 @@ void UItemSlotUI::NativeOnDragDetected(const FGeometry& InGeometry, const FPoint
 
 void UItemSlotUI::NativeOnDragCancelled(const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation)
 {
-	UE_LOG(LogTemp, Display, TEXT("NativeOnDragCancelled"));
 
 	if (!InventoryComp)
 	{
-		UE_LOG(LogTemp, Display, TEXT("!InventoryComp"));
 		return;
 	}
 

@@ -79,7 +79,6 @@ void UInventoryComponent::ResetSlot(FItemSlot* ItemSlot)
 
 void UInventoryComponent::UpdateInventory()
 {
-	UE_LOG(LogTemp, Log, TEXT("Update Inventory!!!"));
 	SortInventory();
 	OnInventoryUpdated.Broadcast();
 	
@@ -101,13 +100,11 @@ bool UInventoryComponent::PickUp(const FName& ItemID, const EItemType ItemType, 
 		{
 			AddToSlot(FoundIndex, 1);
 			ItemQuantity --;
-			UE_LOG(LogTemp, Log, TEXT("Add To Existing Slot!"))
 			bIsSuccess = true;
 		}
 		// 아이템 슬롯에 같은 아이템이 없을 때
 		else
 		{
-			UE_LOG(LogTemp, Log, TEXT("No Same Item In Slot"))
 			// 슬롯에 넣을 곳이 있을 때
 			int32 AvailableIndex = -1;
 			if (AnyAvailableSlots(AvailableIndex))
@@ -115,13 +112,11 @@ bool UInventoryComponent::PickUp(const FName& ItemID, const EItemType ItemType, 
 				// 새로운 슬롯에 아이템 넣기
 				AddToNewSlot(ItemID, ItemType, 1, AvailableIndex);
 				ItemQuantity --;
-				UE_LOG(LogTemp, Log, TEXT("Add To New Slot!"))
 				bIsSuccess = true;
 			}
 			// 슬롯에 넣을 곳이 없을 때
 			else
 			{
-				UE_LOG(LogTemp, Log, TEXT("No Space In Slot"))
 				bIsFull = true;
 			}
 		}
@@ -310,7 +305,6 @@ void UInventoryComponent::DropFromAttachment(const FName ItemID)
 
 	if (!ItemRow || !ItemRow->ItemClass)
 	{
-		UE_LOG(LogTemp, Log, TEXT("!ItemRow || !ItemRow->ItemClass, %s"), *ItemRow->ItemName.ToString());
 		return;
 	}
 
@@ -336,7 +330,6 @@ AInteractiveItem* UInventoryComponent::SpawnItem(FName ItemID)
 	FItemData* ItemRow = GetItemData(ItemID);
 	if (!ItemRow || !ItemRow->ItemClass)
 	{
-		UE_LOG(LogTemp, Log, TEXT("!ItemRow || !ItemRow->ItemClass, %s"), *ItemRow->ItemName.ToString());
 		return nullptr;
 	}
 
@@ -363,11 +356,9 @@ void UInventoryComponent::UseItem(const FName ItemID, const int32 ItemQuantity)
 		{
 			if (ItemSlot.ItemQuantity < ItemQuantity)
 			{
-				UE_LOG(LogTemp, Log, TEXT("Not Enough Item In ItemSlot!"));
 				return;
 			}
 
-			UE_LOG(LogTemp, Log, TEXT("Use Item: %s Item Quantity: %d "), *ItemID.ToString(), ItemQuantity);
 			ItemSlot.ItemQuantity -= ItemQuantity;
 			if (ItemSlot.ItemQuantity == 0)
 			{
@@ -467,7 +458,6 @@ bool UInventoryComponent::AddToInventory(const FName ItemID)
 	}
 	else
 	{
-		UE_LOG(LogTemp, Log, TEXT("Inventory Is Full!!"));
 		return false;
 	}
 	UpdateInventory();
@@ -533,12 +523,10 @@ void UInventoryComponent::EquipArmor(const FArmorData& NewArmor, EArmorType Armo
 	switch (ArmorType)
 	{
 	case EArmorType::Helmet:
-		UE_LOG(LogTemp, Log, TEXT("Equip Helmet!!"));
 		if (EquippedArmor.Helmet.ArmorName == NewArmor.ArmorName) return;
 		EquippedArmor.Helmet = NewArmor;
 		break;
 	case EArmorType::Vest:
-		UE_LOG(LogTemp, Log, TEXT("Equip Vest!!"));
 		if (EquippedArmor.Vest.ArmorName == NewArmor.ArmorName) return;
 		EquippedArmor.Vest = NewArmor;
 		break;
@@ -555,7 +543,6 @@ void UInventoryComponent::EquipArmor(const FArmorData& NewArmor, EArmorType Armo
 	{
 		if (ItemSlot.ItemID == NewArmor.ArmorName)
 		{
-			UE_LOG(LogTemp, Log, TEXT("NewArmor: %s"), *NewArmor.ArmorName.ToString());
 			ResetSlot(&ItemSlot);
 			UpdateInventory();
 			return;
@@ -571,21 +558,17 @@ void UInventoryComponent::EquipAttachment(const FAttachmentData& NewAttachment, 
 	AXVCharacter* XVCharacter = Cast<AXVCharacter>(Owner);
 	AGunBase* GunBase = XVCharacter->GetWeaponActor(WeaponType);
 	
-	UE_LOG(LogTemp, Log, TEXT("WeaponType: %s"), *StaticEnum<EWeaponType>()->GetNameStringByValue(static_cast<int64>(WeaponType)));
-	
 	switch (AttachmentType)
 	{
 	case EAttachmentType::Silencer:
 		switch (WeaponType)
 		{
 		case EWeaponType::Rifle:
-			UE_LOG(LogTemp, Log, TEXT("Equip Silencer To Rifle"));
 			if (RifleAttachment.Silencer.AttachmentName == NewAttachment.AttachmentName) return;
 			RifleAttachment.Silencer = NewAttachment;
 			GunBase->AttachSilencer();
 			break;
 		case EWeaponType::Pistol:
-			UE_LOG(LogTemp, Log, TEXT("Equip Silencer To Pistol"));
 			if (PistolAttachment.Silencer.AttachmentName == NewAttachment.AttachmentName) return;
 			PistolAttachment.Silencer = NewAttachment;
 			GunBase->AttachSilencer();
@@ -596,13 +579,11 @@ void UInventoryComponent::EquipAttachment(const FAttachmentData& NewAttachment, 
 		switch (WeaponType)
 		{
 		case EWeaponType::Rifle:
-			UE_LOG(LogTemp, Log, TEXT("Equip ExtendedMag To Rifle"));
 			if (RifleAttachment.ExtendedMag.AttachmentName == NewAttachment.AttachmentName) return;
 			RifleAttachment.ExtendedMag = NewAttachment;
 			GunBase->AttachExtendedMag();
 			break;
 		case EWeaponType::Pistol:
-			UE_LOG(LogTemp, Log, TEXT("Equip ExtendedMag To Pistol"));
 			if (PistolAttachment.ExtendedMag.AttachmentName == NewAttachment.AttachmentName) return;
 			PistolAttachment.ExtendedMag = NewAttachment;
 			GunBase->AttachExtendedMag();
@@ -622,7 +603,6 @@ void UInventoryComponent::EquipAttachment(const FAttachmentData& NewAttachment, 
 	{
 		if (ItemSlot.ItemID == NewAttachment.AttachmentName)
 		{
-			UE_LOG(LogTemp, Log, TEXT("NewAttachment: %s"), *NewAttachment.AttachmentName.ToString());
 			ResetSlot(&ItemSlot);
 			UpdateInventory();
 			return;
@@ -640,11 +620,9 @@ void UInventoryComponent::UnEquipArmor(EArmorType ArmorType)
 	switch (ArmorType)
 	{
 	case EArmorType::Helmet:
-		UE_LOG(LogTemp, Log, TEXT("UnEquip Helmet!!"));
 		EquippedArmor.Helmet = FArmorData();
 		break;
 	case EArmorType::Vest:
-		UE_LOG(LogTemp, Log, TEXT("UnEquip Helmet!!"));
 		EquippedArmor.Vest = FArmorData();
 		break;
 	}
@@ -663,12 +641,10 @@ void UInventoryComponent::UnEquipAttachment(EAttachmentType AttachmentType, EWea
 		switch (AttachmentType)
 		{
 		case EAttachmentType::Silencer:
-			UE_LOG(LogTemp, Log, TEXT("UnEquip Silencer!!"));
 			RifleAttachment.Silencer = FAttachmentData();
 			GunBase->DetachSilencer();
 			break;
 		case EAttachmentType::ExtendedMag:
-			UE_LOG(LogTemp, Log, TEXT("UnEquip ExtendedMag!!"));
 			RifleAttachment.ExtendedMag = FAttachmentData();
 			GunBase->DetachExtendedMag();
 			break;
@@ -678,12 +654,10 @@ void UInventoryComponent::UnEquipAttachment(EAttachmentType AttachmentType, EWea
 		switch (AttachmentType)
 		{
 		case EAttachmentType::Silencer:
-			UE_LOG(LogTemp, Log, TEXT("UnEquip Silencer!!"));
 			PistolAttachment.Silencer = FAttachmentData();
 			GunBase->DetachSilencer();
 			break;
 		case EAttachmentType::ExtendedMag:
-			UE_LOG(LogTemp, Log, TEXT("UnEquip ExtendedMag!!"));
 			PistolAttachment.ExtendedMag = FAttachmentData();
 			GunBase->DetachExtendedMag();
 			break;

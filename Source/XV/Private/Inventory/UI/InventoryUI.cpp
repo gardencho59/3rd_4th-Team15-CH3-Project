@@ -61,7 +61,6 @@ bool UInventoryUI::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEven
 	}
 	if (DraggedItemSlot)
 	{
-		UE_LOG(LogTemp, Log, TEXT("DraggedItemSlot"))
 		if (IsOverInventory(DropPosition))
 		{
 			return true;
@@ -73,7 +72,6 @@ bool UInventoryUI::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEven
 	FAttachmentData* AttachmentData = AttachmentDataTable->FindRow<FAttachmentData>(ItemID, TEXT("Get Attachment Row in InventoryUI"));
 	if (!AttachmentData && !ArmorData)
 	{
-		UE_LOG(LogTemp, Log, TEXT("Is Over Any Border"))
 		if (IsOverAnyBorder(DropPosition))
 		{
 			return true;

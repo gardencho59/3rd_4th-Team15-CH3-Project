@@ -23,6 +23,9 @@ public:
 	virtual void OnWaveTriggered();
 	virtual void RespawnPlayer(AController* Controller, float RespawnDelay = 2.0f);
 	virtual void EndGame(bool bIsClear);
+
+	UFUNCTION()
+	void OnEnemyDestroyed(AActor* DestroyedActor);
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Level")
 	int32 MaxLevel;
