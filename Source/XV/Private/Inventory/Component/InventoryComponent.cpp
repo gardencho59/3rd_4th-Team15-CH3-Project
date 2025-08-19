@@ -9,7 +9,7 @@
 #include "Inventory/UI/InventoryUI.h"
 #include "Components/WidgetComponent.h"
 #include "Inventory/Data/Attachment/AttachmentType.h"
-#include "Item/InteractableItem.h"
+#include "Item/InteractiveItem.h"
 #include "Kismet/GameplayStatics.h"
 
 UInventoryComponent::UInventoryComponent()
@@ -273,7 +273,7 @@ void UInventoryComponent::DropFromInventory(const FName ItemID, const EItemType 
 	
 	if (ItemType == EItemType::AMMOPistol || ItemType == EItemType::AMMORifle)
 	{
-		AInteractableItem* DroppedItem = SpawnItem(ItemID);
+		AInteractiveItem* DroppedItem = SpawnItem(ItemID);
 		SetItemQuantity(DroppedItem, SlotIndex);
 		DroppedItem->EnablePhysics();
 	}
@@ -281,7 +281,7 @@ void UInventoryComponent::DropFromInventory(const FName ItemID, const EItemType 
 	{
 		for (int i = 0; i < ItemSlots[SlotIndex].ItemQuantity; ++i)
 		{
-			AInteractableItem* DroppedItem = SpawnItem(ItemID);
+			AInteractiveItem* DroppedItem = SpawnItem(ItemID);
 			DroppedItem->EnablePhysics();
 		}
 	}
@@ -314,7 +314,7 @@ void UInventoryComponent::DropFromAttachment(const FName ItemID)
 		return;
 	}
 
-	AActor* DroppedItem = GetWorld()->SpawnActor<AInteractableItem>(
+	AActor* DroppedItem = GetWorld()->SpawnActor<AInteractiveItem>(
 		ItemRow->ItemClass,
 		GetDropLocation(),
 		FRotator::ZeroRotator);
@@ -330,7 +330,7 @@ void UInventoryComponent::DropFromAttachment(const FName ItemID)
 	
 }
 
-AInteractableItem* UInventoryComponent::SpawnItem(FName ItemID)
+AInteractiveItem* UInventoryComponent::SpawnItem(FName ItemID)
 {
 	FItemData* ItemRow = GetItemData(ItemID);
 	if (!ItemRow || !ItemRow->ItemClass)
@@ -339,7 +339,7 @@ AInteractableItem* UInventoryComponent::SpawnItem(FName ItemID)
 		return nullptr;
 	}
 
-	return GetWorld()->SpawnActor<AInteractableItem>(
+	return GetWorld()->SpawnActor<AInteractiveItem>(
 		ItemRow->ItemClass,
 		GetDropLocation(),
 		FRotator::ZeroRotator);

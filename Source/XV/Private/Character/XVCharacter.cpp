@@ -15,7 +15,7 @@
 #include "UIFollowerComponent.h"
 #include "Components/BoxComponent.h"
 #include "Item/BandageItem.h"
-#include "Item/InteractableItem.h"
+#include "Item/InteractiveItem.h"
 #include "Item/HealthPotionItem.h"
 #include "Item/ShieldItem.h"
 
@@ -1113,7 +1113,7 @@ int32 AXVCharacter::GetVestLevel() const
 	return VestLevel;
 }
 
-void AXVCharacter::SetCurrentItem(AInteractableItem* Item)
+void AXVCharacter::SetCurrentItem(AInteractiveItem* Item)
 {
 	if (CurrentItem == Item) return;        // ★ 중복 방지
 
@@ -1201,7 +1201,7 @@ void AXVCharacter::SetInventoryItem()
 	OnBandagePotionCountChanged.Broadcast(BandagePotionCount);
 }
 
-AInteractableItem* AXVCharacter::SpawnPotionForUse(FName ItemName)
+AInteractiveItem* AXVCharacter::SpawnPotionForUse(FName ItemName)
 { // 아이템 클래스를 인스턴스로 반환
 	if (!GetWorld()) return nullptr;
 
@@ -1213,7 +1213,7 @@ AInteractableItem* AXVCharacter::SpawnPotionForUse(FName ItemName)
 	const FVector Loc = GetActorLocation() + GetActorForwardVector() * 40.f + FVector(0,0,10);
 	const FRotator Rot = GetActorRotation();
 
-	AInteractableItem* NewPotion = nullptr;
+	AInteractiveItem* NewPotion = nullptr;
 	if (FName(TEXT("HealthPotion")) == ItemName)
 	{
 		NewPotion =

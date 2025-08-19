@@ -11,7 +11,7 @@
 
 
 class UBoxComponent;
-class AInteractableItem;
+class AInteractiveItem;
 class UInventoryComponent;
 class AXVDoor;
 class USpringArmComponent;
@@ -21,7 +21,7 @@ class UUIFollowerComponent;
 class AHealthPotionItem;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnHealthChanged, float, Current, float, Max);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCurrentItemChanged, AInteractableItem*, NewItem);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCurrentItemChanged, AInteractiveItem*, NewItem);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHealthPotionCountChanged, int32, NewCount);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnShieldPotionCountChanged, int32, NewCount);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnShieldTimeChanged, float, RemainTime);
@@ -70,8 +70,8 @@ public:
 	UPROPERTY(BlueprintAssignable) FOnShieldPotionCountChanged OnShieldPotionCountChanged;
 	UPROPERTY(BlueprintAssignable) FOnBandagePotionCountChanged OnBandagePotionCountChanged;
 	
-	UFUNCTION(BlueprintCallable) void SetCurrentItem(AInteractableItem* NewItem);
-	UFUNCTION(BlueprintPure)   AInteractableItem* GetCurrentItem() const { return CurrentItem; }
+	UFUNCTION(BlueprintCallable) void SetCurrentItem(AInteractiveItem* NewItem);
+	UFUNCTION(BlueprintPure)   AInteractiveItem* GetCurrentItem() const { return CurrentItem; }
 	UFUNCTION(BlueprintPure)   int32 GetHealthPotionCount() const { return HealthPotionCount; }
 
 	AGunBase* GetWeaponActor(EWeaponType Weapon);
@@ -228,7 +228,7 @@ protected:
 	AXVDoor* Door;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Overlap")
-	AInteractableItem* CurrentItem;
+	AInteractiveItem* CurrentItem;
 
 	
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
@@ -299,7 +299,7 @@ public:
 	float MaxHealth;
 
 private:
-	AInteractableItem* SpawnPotionForUse(FName ItemName);
+	AInteractiveItem* SpawnPotionForUse(FName ItemName);
 	void FinishShield();
 	void TickShieldProgress();
 	void BroadcastHealth();

@@ -6,7 +6,7 @@
 #include "ItemType.h"
 #include "ItemData.generated.h"
 
-class AInteractableItem;
+class AInteractiveItem;
 
 USTRUCT(BlueprintType)
 struct FItemData : public FTableRowBase
@@ -27,7 +27,7 @@ struct FItemData : public FTableRowBase
 
 	// 아이템 클래스
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TSubclassOf<AInteractableItem> ItemClass;
+	TSubclassOf<AInteractiveItem> ItemClass;
 
 	// 아이템 사운드 이펙트
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)

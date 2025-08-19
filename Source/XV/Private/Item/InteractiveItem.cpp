@@ -1,10 +1,10 @@
-#include "Item/InteractableItem.h"
+#include "Item/InteractiveItem.h"
 #include "Components/SphereComponent.h"
 #include "Inventory/Component/ItemDataComponent.h"
 #include "Inventory/UI/InteractionUI.h"
 #include "Components/WidgetComponent.h"
 
-AInteractableItem::AInteractableItem()
+AInteractiveItem::AInteractiveItem()
 {
 	ItemUseTime = 0;
 	ItemRemainTime = 0;
@@ -33,31 +33,31 @@ AInteractableItem::AInteractableItem()
 
 }
 
-void AInteractableItem::UseItem()
+void AInteractiveItem::UseItem()
 {
 }
 
-float AInteractableItem::GetItemTime()
+float AInteractiveItem::GetItemTime()
 {
 	return ItemUseTime;
 }
 
-float AInteractableItem::GetItemRemainTime()
+float AInteractiveItem::GetItemRemainTime()
 {
 	return ItemRemainTime;
 }
 
-void AInteractableItem::BeginPlay()
+void AInteractiveItem::BeginPlay()
 {
 	Super::BeginPlay();
 }
 
-void AInteractableItem::EnablePhysics()
+void AInteractiveItem::EnablePhysics()
 {
 	StaticMesh->SetSimulatePhysics(true);
 }
 
-void AInteractableItem::Interact()
+void AInteractiveItem::Interact()
 {
 }
 
