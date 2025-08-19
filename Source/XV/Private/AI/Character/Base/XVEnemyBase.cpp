@@ -511,8 +511,8 @@ void AXVEnemyBase::TryRandomAvoid(const FVector& PlayerLocation)
 	}
 
 	// 4. 회피 이동 처리 (예: LaunchCharacter로 순간 이동 느낌)
-	float DodgeStrength = GetCharacterMovement()->GetMaxSpeed()*100000;
-	LaunchCharacter(DodgeDir * DodgeStrength, true, true);
+	// float DodgeStrength = GetCharacterMovement()->GetMaxSpeed()*100000;
+	// LaunchCharacter(DodgeDir * DodgeStrength, true, true);
 }
 
 void AXVEnemyBase::EndAvoid()
