@@ -4,6 +4,7 @@
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "Kismet/GameplayStatics.h"
+#include "Weapon/GunBase.h"
 
 AProjectileBullet::AProjectileBullet()
 {
@@ -50,12 +51,13 @@ void AProjectileBullet::BeginPlay()
 	}, 0.05f, false);
 
 	// 기존처럼 3초 후 자동 파괴
-	SetLifeSpan(3.0f);
+	SetLifeSpan(1.5f);
 }
 
-void AProjectileBullet::InitBullet(float Speed, float DamageValue)
+void AProjectileBullet::InitBullet(AGunBase* Gun, float Speed, float DamageValue)
 {
 	Damage = DamageValue;
+	GunBase = Gun;
 	ProjectileMovement->InitialSpeed = Speed;
 	ProjectileMovement->MaxSpeed = Speed;
 }
@@ -71,6 +73,8 @@ void AProjectileBullet::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
 		if (AXVEnemyBase* Enemy = Cast<AXVEnemyBase>(OtherActor))
 		{
 			Enemy->GetDamage(Damage);
+
+			GunBase->EnemyHit();
 		}
 
 		if (BulletImpactDecal)
