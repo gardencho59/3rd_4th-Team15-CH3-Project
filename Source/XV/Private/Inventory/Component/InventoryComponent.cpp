@@ -314,10 +314,11 @@ void UInventoryComponent::DropFromAttachment(const FName ItemID)
 		return;
 	}
 
-	AActor* DroppedItem = GetWorld()->SpawnActor<AInteractiveItem>(
+	AInteractiveItem* DroppedItem = GetWorld()->SpawnActor<AInteractiveItem>(
 		ItemRow->ItemClass,
 		GetDropLocation(),
 		FRotator::ZeroRotator);
+	DroppedItem->EnablePhysics();
 
 	UpdateInventory();
 	
@@ -540,6 +541,14 @@ void UInventoryComponent::EquipArmor(const FArmorData& NewArmor, EArmorType Armo
 		EquippedArmor.Vest = NewArmor;
 		break;
 	}
+	
+	FItemSFX ItemSFX = GetItemSFX(NewArmor.ArmorName);
+	if (!ItemSFX.Move)
+	{
+		return;
+	}
+	PlaySFX(ItemSFX.Move);
+	
 	for (FItemSlot& ItemSlot : ItemSlots)
 	{
 		if (ItemSlot.ItemID == NewArmor.ArmorName)
@@ -550,6 +559,7 @@ void UInventoryComponent::EquipArmor(const FArmorData& NewArmor, EArmorType Armo
 			return;
 		}
 	}
+
 }
 
 void UInventoryComponent::EquipAttachment(const FAttachmentData& NewAttachment, EAttachmentType AttachmentType, EWeaponType WeaponType)
@@ -593,6 +603,14 @@ void UInventoryComponent::EquipAttachment(const FAttachmentData& NewAttachment, 
 		}
 		break;
 	}
+	
+	FItemSFX ItemSFX = GetItemSFX(NewAttachment.AttachmentName);
+	if (!ItemSFX.Move)
+	{
+		return;
+	}
+	PlaySFX(ItemSFX.Move);
+	
 	for (FItemSlot& ItemSlot : ItemSlots)
 	{
 		if (ItemSlot.ItemID == NewAttachment.AttachmentName)
@@ -665,5 +683,4 @@ void UInventoryComponent::UnEquipAttachment(EAttachmentType AttachmentType, EWea
 		}
 		break;
 	}
-
 }
