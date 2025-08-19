@@ -36,7 +36,7 @@ void AGunBase::BeginPlay()
     {
         CurrentAmmo = WeaponDataAsset->MaxAmmo;
         DefaultMaxAmmo = CurrentAmmo;
-        CurrentMaxAmmo = CurrentAmmo;
+        CurrentMaxAmmo = DefaultMaxAmmo;
 
         if (WeaponDataAsset->WeaponMesh)
         {
@@ -68,7 +68,7 @@ FVector AGunBase::GetAimDirection() const
     if (PC->DeprojectScreenPositionToWorld(ScreenCenter.X, ScreenCenter.Y, WorldLocation, WorldDirection))
     {
         // 레이 끝점
-        FVector TraceEnd = WorldLocation + WorldDirection * 10000.0f;
+        FVector TraceEnd = WorldLocation + WorldDirection * 5000.0f;
 
         // 트레이스 파라미터 (자기 자신 제외)
         FCollisionQueryParams QueryParams;
@@ -88,7 +88,7 @@ FVector AGunBase::GetAimDirection() const
             }
 
             // 최소 거리 기준
-            const float MinAimDistance = 300.0f;
+            const float MinAimDistance = 100.0f;
             float DistanceToHit = FVector::Dist(WorldLocation, Hit.ImpactPoint);
 
             if (DistanceToHit >= MinAimDistance)
@@ -159,7 +159,6 @@ void AGunBase::EmptyFireBullet()
     }
 }
 
-
 void AGunBase::FireBullet()
 {
     if (!WeaponDataAsset || bIsReloading || !bCanFire)
@@ -189,6 +188,11 @@ void AGunBase::FireBullet()
     }, WeaponDataAsset->FireRate, false);
 }
 
+void AGunBase::EnemyHit() const
+{
+    HitFireBullet.Broadcast();
+}
+
 void AGunBase::RecoverSpread()
 {
     // 초당 SpreadRecoveryRate만큼 줄여줌
@@ -214,8 +218,7 @@ void AGunBase::Reload(int32 ReloadAmount)
     [this, ReloadAmount]() { FinishReload(ReloadAmount); },  // 람다로 감싸기
     WeaponDataAsset->ReloadTime,
     false
-);
-
+    );
 }
 
 void AGunBase::FinishReload(int32 ReloadAmount)
@@ -236,7 +239,7 @@ void AGunBase::SpawnBullet()
     FVector MuzzleLocation = GetMuzzleLocation();
     FVector AimDirection = GetAimDirection();
 
-    // 🔥 랜덤 오프셋 추가
+    // 랜덤 오프셋 추가
     float RandomYaw   = FMath::RandRange(-CurrentSpread, CurrentSpread);
     float RandomPitch = FMath::RandRange(-CurrentSpread, CurrentSpread);
 
@@ -257,7 +260,7 @@ void AGunBase::SpawnBullet()
 
     if (Bullet)
     {
-        Bullet->InitBullet(WeaponDataAsset->BulletSpeed, WeaponDataAsset->BulletDamage);
+        Bullet->InitBullet(this, WeaponDataAsset->BulletSpeed, WeaponDataAsset->BulletDamage);
     }
 }
 
@@ -397,6 +400,7 @@ bool AGunBase::IsReloading() const
 {
     return bIsReloading;
 }
+
 bool AGunBase::IsCanFire() const { return bCanFire; }
 
 bool AGunBase::IsSilence() const { return bSilencerAttached; }

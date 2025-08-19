@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GunBase.h"
 #include "GameFramework/Actor.h"
 #include "ProjectileBullet.generated.h"
 
@@ -29,13 +30,15 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	UProjectileMovementComponent* ProjectileMovement;
 
+	AGunBase* GunBase;
+
 	UFUNCTION()
 	void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
 			   UPrimitiveComponent* OtherComp, FVector NormalImpulse,
 			   const FHitResult& Hit);
 
 public:
-	void InitBullet(float Speed, float DamageValue);
+	void InitBullet(AGunBase* Gun, float Speed, float DamageValue);
 
 private:
 	float Damage;

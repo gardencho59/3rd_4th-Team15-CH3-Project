@@ -10,6 +10,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnMagAmmoChanged, int32, Current, 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnReserveAmmoChanged, int32, Reserve);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnFireBullet);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FEndFireBullet);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FHitFireBullet);
 
 UCLASS()
 class XV_API AGunBase : public AActor, public IWeaponInterface
@@ -38,9 +39,12 @@ public:
 	// GunBase.h
 	UPROPERTY(BlueprintAssignable, Category="Weapon")
 	FOnFireBullet OnFireBullet;
+	
+	UPROPERTY(BlueprintAssignable, Category="Weapon")
+	FEndFireBullet EndFireBullet;
 
 	UPROPERTY(BlueprintAssignable, Category="Weapon")
-	FOnFireBullet EndFireBullet;
+	FHitFireBullet HitFireBullet;
 
 	UFUNCTION(BlueprintCallable, Category="Weapon|Parts")
 	void AttachExtendedMag();
@@ -55,8 +59,9 @@ public:
 	void DetachSilencer();
 	
 	AGunBase();
-
+	
 	void SetAMMO(int32 SetAmmo);
+	void EnemyHit() const;
 
 	virtual void BeginPlay() override;
 
